@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net47</TargetFrameworks>
+    <PackageId>SharpZipLib</PackageId>
+    <SignAssembly>False</SignAssembly>
+    <AssemblyOriginatorKeyFile>ICSharpCode.SharpZipLib.snk</AssemblyOriginatorKeyFile>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.0.0</Version>
+    <RepositoryUrl>https://github.com/icsharpcode/SharpZipLib</RepositoryUrl>
+    <PackageReleaseNotes>This is a pre-release version! Please see https://github.com/icsharpcode/SharpZipLib/wiki/Release-1.0 for more information.</PackageReleaseNotes>
+    <PackageLicenseUrl>https://github.com/icsharpcode/SharpZipLib/blob/master/LICENSE.txt</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/icsharpcode/SharpZipLib</PackageProjectUrl> 
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETCore.Portable.Compatibility" Version="1.0.1" />
+    <PackageReference Include="System.Net.Http" Version="4.3.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Zstd.Net\Zstd.Net.csproj" />
+  </ItemGroup>
+</Project>
