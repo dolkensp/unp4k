@@ -26,8 +26,6 @@ namespace unp4k
 				
 				foreach (ZipEntry entry in pak)
 				{
-					if (!entry.IsAesCrypted) continue;
-
 					var crypto = entry.IsAesCrypted ? "Crypt" : "Plain";
 
 					if (args[1] == "*.*" ||                                                                                                                                 // Searching for everything
