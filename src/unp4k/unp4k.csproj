@@ -4,7 +4,8 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>netcoreapp2.0;net47</TargetFrameworks>
     <StartupObject>unp4k.Program</StartupObject>
-    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
+    <RuntimeIdentifiers>win-x64;win-x86</RuntimeIdentifiers>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
 
   <ItemGroup>
