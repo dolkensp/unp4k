@@ -2,7 +2,7 @@
   "profiles": {
     "unp4k": {
       "commandName": "Project",
-      "commandLineArgs": "O:\\StarCitizen\\StarCitizen\\LIVE\\Data.p4k"
+      "commandLineArgs": "D:\\Data.p4k"
     }
   }
 }
