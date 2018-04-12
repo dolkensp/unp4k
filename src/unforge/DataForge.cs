@@ -3,6 +3,7 @@
 using Microsoft.CSharp;
 using System;
 using System.CodeDom.Compiler;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
@@ -23,8 +24,8 @@ namespace unforge
         public Int32 RecordIndex { get; set; }
     }
 
-    public class DataForge
-    {
+    public class DataForge : IEnumerable
+	{
         internal BinaryReader _br;
 
         public Boolean IsLegacy { get; set; }
@@ -104,8 +105,6 @@ namespace unforge
             var dataMappingCount = this._br.ReadUInt16(); var temp06 = this._br.ReadUInt16();  // 0x013c
             var recordDefinitionCount = this._br.ReadUInt16(); var temp07 = this._br.ReadUInt16();  // 0x0b35
 
-            Console.WriteLine($"{this._br.BaseStream.Position:X16}");
-
             var booleanValueCount = this._br.ReadUInt16(); var temp16 = this._br.ReadUInt16();  // 0x0014 - Boolean
             var int8ValueCount = this._br.ReadUInt16(); var temp08 = this._br.ReadUInt16();  // 0x0014 - Int8
             var int16ValueCount = this._br.ReadUInt16(); var temp09 = this._br.ReadUInt16();  // 0x0014 - Int16
@@ -115,8 +114,6 @@ namespace unforge
             var uint16ValueCount = this._br.ReadUInt16(); var temp13 = this._br.ReadUInt16();  // 0x0014 - UInt16
             var uint32ValueCount = this._br.ReadUInt16(); var temp15 = this._br.ReadUInt16();  // 0x0014 - UInt64
             var uint64ValueCount = this._br.ReadUInt16(); var temp14 = this._br.ReadUInt16();  // 0x0014 - UInt32
-
-            Console.WriteLine($"{this._br.BaseStream.Position:X16}");
 
             var singleValueCount = this._br.ReadUInt16(); var temp17 = this._br.ReadUInt16();  // 0x003c - Single
             var doubleValueCount = this._br.ReadUInt16(); var temp18 = this._br.ReadUInt16();  // 0x0014 - Double
@@ -137,8 +134,6 @@ namespace unforge
             this.DataMappingTable = this.ReadArray<DataForgeDataMapping>(dataMappingCount);
             this.RecordDefinitionTable = this.ReadArray<DataForgeRecord>(recordDefinitionCount);
 
-            Console.WriteLine($"{this._br.BaseStream.Position:X16}");
-
             this.Array_Int8Values = this.ReadArray<DataForgeInt8>(int8ValueCount);
             this.Array_Int16Values = this.ReadArray<DataForgeInt16>(int16ValueCount);
             this.Array_Int32Values = this.ReadArray<DataForgeInt32>(int32ValueCount);
@@ -156,8 +151,6 @@ namespace unforge
             this.Array_EnumValues = this.ReadArray<DataForgeEnum>(enumValueCount);
             this.Array_StrongValues = this.ReadArray<DataForgePointer>(strongValueCount);
             this.Array_WeakValues = this.ReadArray<DataForgePointer>(weakValueCount);
-
-            Console.WriteLine($"{this._br.BaseStream.Position:X16}");
 
             this.Array_ReferenceValues = this.ReadArray<DataForgeReference>(referenceValueCount);
             this.EnumOptionTable = this.ReadArray<DataForgeStringLookup>(enumOptionCount);
@@ -235,124 +228,148 @@ namespace unforge
 
         public void Save(String filename)
         {
-            var root = this._xmlDocument.CreateElement("DataForge");
-            this._xmlDocument.AppendChild(root);
+			if (String.IsNullOrWhiteSpace(this._xmlDocument?.InnerXml)) this.Compile();
+			
+			var i = 0;
+			foreach (var record in this.RecordDefinitionTable)
+			{
+				var fileReference = record.FileName;
 
-            foreach (var dataMapping in this.Require_StrongMapping)
-            {
-                var strong = this.Array_StrongValues[dataMapping.RecordIndex];
+				if (fileReference.Split('/').Length == 2) fileReference = fileReference.Split('/')[1];
 
-                if (strong.Index == 0xFFFFFFFF)
-                {
+				if (String.IsNullOrWhiteSpace(fileReference)) fileReference = String.Format(@"Dump\{0}_{1}.xml", record.Name, i++);
+
+				var newPath = Path.Combine(Path.GetDirectoryName(filename), fileReference);
+
+				if (!Directory.Exists(Path.GetDirectoryName(newPath))) Directory.CreateDirectory(Path.GetDirectoryName(newPath));
+
+				XmlDocument doc = new XmlDocument { };
+				doc.LoadXml(this.DataMap[record.StructIndex][record.VariantIndex].OuterXml);
+				doc.Save(newPath);
+			}
+
+			this._xmlDocument.Save(filename);
+        }
+
+		public void Compile()
+		{
+			var root = this._xmlDocument.CreateElement("DataForge");
+			this._xmlDocument.AppendChild(root);
+
+			foreach (var dataMapping in this.Require_StrongMapping)
+			{
+				var strong = this.Array_StrongValues[dataMapping.RecordIndex];
+
+				if (strong.Index == 0xFFFFFFFF)
+				{
 #if NONULL
-                    dataMapping.Node.ParentNode.RemoveChild(dataMapping.Node);
+					dataMapping.Node.ParentNode.RemoveChild(dataMapping.Node);
 #else
                     dataMapping.Item1.ParentNode.ReplaceChild(
                         this._xmlDocument.CreateElement("null"),
                         dataMapping.Item1);
 #endif
-                }
-                else
-                {
-                    dataMapping.Node.ParentNode.ReplaceChild(
-                        this.DataMap[strong.StructType][(Int32)strong.Index],
-                        dataMapping.Node);
-                }
-            }
+				}
+				else
+				{
+					dataMapping.Node.ParentNode.ReplaceChild(
+						this.DataMap[strong.StructType][(Int32)strong.Index],
+						dataMapping.Node);
+				}
+			}
 
-            foreach (var dataMapping in this.Require_WeakMapping1)
-            {
-                var weak = this.Array_WeakValues[dataMapping.RecordIndex];
+			foreach (var dataMapping in this.Require_WeakMapping1)
+			{
+				var weak = this.Array_WeakValues[dataMapping.RecordIndex];
 
-                var weakAttribute = dataMapping.Node;
+				var weakAttribute = dataMapping.Node;
 
-                if (weak.Index == 0xFFFFFFFF)
-                {
-                    weakAttribute.Value = String.Format("0");
-                }
-                else
-                {
-                    var targetElement = this.DataMap[weak.StructType][(Int32)weak.Index];
+				if (weak.Index == 0xFFFFFFFF)
+				{
+					weakAttribute.Value = String.Format("0");
+				}
+				else
+				{
+					var targetElement = this.DataMap[weak.StructType][(Int32)weak.Index];
 
-                    weakAttribute.Value = targetElement.GetPath();
-                }
-            }
+					weakAttribute.Value = targetElement.GetPath();
+				}
+			}
 
-            foreach (var dataMapping in this.Require_WeakMapping2)
-            {
-                var weakAttribute = dataMapping.Node;
+			foreach (var dataMapping in this.Require_WeakMapping2)
+			{
+				var weakAttribute = dataMapping.Node;
 
-                if (dataMapping.StructIndex == 0xFFFF)
-                {
-                    weakAttribute.Value = "null";
-                }
-                else if (dataMapping.RecordIndex == -1)
-                {
-                    var targetElement = this.DataMap[dataMapping.StructIndex];
+				if (dataMapping.StructIndex == 0xFFFF)
+				{
+					weakAttribute.Value = "null";
+				}
+				else if (dataMapping.RecordIndex == -1)
+				{
+					var targetElement = this.DataMap[dataMapping.StructIndex];
 
-                    weakAttribute.Value = targetElement.FirstOrDefault()?.GetPath();
-                }
-                else
-                {
-                    var targetElement = this.DataMap[dataMapping.StructIndex][dataMapping.RecordIndex];
+					weakAttribute.Value = targetElement.FirstOrDefault()?.GetPath();
+				}
+				else
+				{
+					var targetElement = this.DataMap[dataMapping.StructIndex][dataMapping.RecordIndex];
 
-                    weakAttribute.Value = targetElement.GetPath();
-                }
-            }
+					weakAttribute.Value = targetElement.GetPath();
+				}
+			}
 
-            var i = 0;
-            foreach (var record in this.RecordDefinitionTable)
-            {
-                var fileReference = record.FileName;
+			var i = 0;
+			foreach (var record in this.RecordDefinitionTable)
+			{
+				var fileReference = record.FileName;
 
-                if (fileReference.Split('/').Length == 2)
-                {
-                    fileReference = fileReference.Split('/')[1];
-                }
+				if (fileReference.Split('/').Length == 2)
+				{
+					fileReference = fileReference.Split('/')[1];
+				}
 
-                if (!record.FileName.ToLowerInvariant().Contains(record.Name.ToLowerInvariant()) &&
-                    !record.FileName.ToLowerInvariant().Contains(record.Name.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries).Last().ToLowerInvariant()))
-                {
-                    Console.WriteLine("Warning {0} doesn't match {1}", record.Name, record.FileName);
-                }
+				if (!record.FileName.ToLowerInvariant().Contains(record.Name.ToLowerInvariant()) &&
+					!record.FileName.ToLowerInvariant().Contains(record.Name.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries).Last().ToLowerInvariant()))
+				{
+					Console.WriteLine("Warning {0} doesn't match {1}", record.Name, record.FileName);
+				}
 
-                if (String.IsNullOrWhiteSpace(fileReference))
-                {
-                    fileReference = String.Format(@"Dump\{0}_{1}.xml", record.Name, i++);
-                }
+				if (String.IsNullOrWhiteSpace(fileReference))
+				{
+					fileReference = String.Format(@"Dump\{0}_{1}.xml", record.Name, i++);
+				}
 
-                var newPath = Path.Combine(Path.GetDirectoryName(filename), fileReference);
-                if (!Directory.Exists(Path.GetDirectoryName(newPath)))
-                {
-                    Directory.CreateDirectory(Path.GetDirectoryName(newPath));
-                }
+				if (record.Hash.HasValue && record.Hash != Guid.Empty)
+				{
+					var hash = this.CreateAttribute("__ref");
+					hash.Value = $"{record.Hash}";
+					this.DataMap[record.StructIndex][record.VariantIndex].Attributes.Append(hash);
+				}
 
-                if (record.Hash.HasValue && record.Hash != Guid.Empty)
-                {
-                    var hash = this.CreateAttribute("__ref");
-                    hash.Value = $"{record.Hash}";
-                    this.DataMap[record.StructIndex][record.VariantIndex].Attributes.Append(hash);
-                }
+				if (!String.IsNullOrWhiteSpace(record.FileName))
+				{
+					var path = this.CreateAttribute("__path");
+					path.Value = $"{record.FileName}";
+					this.DataMap[record.StructIndex][record.VariantIndex].Attributes.Append(path);
+				}
+				
+				this.DataMap[record.StructIndex][record.VariantIndex] = this.DataMap[record.StructIndex][record.VariantIndex].Rename(record.Name);
+				root.AppendChild(this.DataMap[record.StructIndex][record.VariantIndex]);
+			}
+		}
 
-                if (!String.IsNullOrWhiteSpace(record.FileName))
-                {
-                    var path = this.CreateAttribute("__path");
-                    path.Value = $"{record.FileName}";
-                    this.DataMap[record.StructIndex][record.VariantIndex].Attributes.Append(path);
-                }
+		public Stream GetStream()
+		{
+			if (String.IsNullOrWhiteSpace(this._xmlDocument?.InnerXml)) this.Compile();
 
-                XmlDocument doc = new XmlDocument { };
-                doc.LoadXml(this.DataMap[record.StructIndex][record.VariantIndex].OuterXml);
-                doc.Save(newPath);
+			var outStream = new MemoryStream();
 
-                this.DataMap[record.StructIndex][record.VariantIndex] = this.DataMap[record.StructIndex][record.VariantIndex].Rename(record.Name);
-                root.AppendChild(this.DataMap[record.StructIndex][record.VariantIndex]);
-            }
+			this._xmlDocument.Save(outStream);
 
-            this._xmlDocument.Save(filename);
-        }
+			return outStream;
+		}
 
-        public void GenerateSerializationClasses(String path = "AutoGen", String assemblyName = "HoloXPLOR.Data.DataForge")
+		public void GenerateSerializationClasses(String path = "AutoGen", String assemblyName = "HoloXPLOR.Data.DataForge")
         {
             path = new DirectoryInfo(path).FullName;
 
@@ -436,6 +453,31 @@ namespace unforge
                 File.WriteAllText(Path.Combine(path, String.Format("{0}.cs", structDefinition.Name)), code);
             }
         }
+
+		public IEnumerator GetEnumerator()
+		{
+			if (String.IsNullOrWhiteSpace(this._xmlDocument?.InnerXml)) this.Compile();
+
+			var i = 0;
+
+			foreach (var record in this.RecordDefinitionTable)
+			{
+				var fileReference = record.FileName;
+
+				if (fileReference.Split('/').Length == 2) fileReference = fileReference.Split('/')[1];
+
+				if (String.IsNullOrWhiteSpace(fileReference)) fileReference = String.Format(@"Dump\{0}_{1}.xml", record.Name, i++);
+
+				var newPath = fileReference;
+
+				if (!Directory.Exists(Path.GetDirectoryName(newPath))) Directory.CreateDirectory(Path.GetDirectoryName(newPath));
+
+				XmlDocument doc = new XmlDocument { };
+				doc.LoadXml(this.DataMap[record.StructIndex][record.VariantIndex].OuterXml);
+
+				yield return (FileName: newPath, XmlDocument: doc);
+			}
+		}
 
 #if !NETSTANDARD2_0
 		public void CompileSerializationAssembly(String assemblyName = "HoloXPLOR.Data.DataForge")

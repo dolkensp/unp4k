@@ -7,7 +7,6 @@ namespace unp4k.gui.TreeModel
 {
 	public class ZipEntryTreeItem : TreeItem
 	{
-		public override TreeItem Parent { get; }
 		public ZipEntry Entry { get; }
 
 		public override String Title => Path.GetFileName(this.Entry.Name);
@@ -15,10 +14,10 @@ namespace unp4k.gui.TreeModel
 			path: this.Entry.Name,
 			iconSize: IconManager.IconSize.Large);
 
-		public ZipEntryTreeItem(ZipEntry entry, TreeItem parent)
+		public ZipEntryTreeItem(ZipEntry entry, ITreeItem parent)
+			: base(Path.GetFileName(entry.Name), parent)
 		{
 			this.Entry = entry;
-			this.Parent = parent;
 		}
 	}
 }

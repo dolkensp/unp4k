@@ -84,12 +84,9 @@ namespace unp4k.gui
 						}
 
 						var filterText = this._lastFilterText;
-
-						await Dispatcher.Invoke(async () =>
-						{
-							await this.NotifyNodesAsync(this._root);
-						});
-
+						
+						await this.NotifyNodesAsync(this._root);
+						
 						this._activeFilterText = filterText;
 
 						await Task.Delay(FILTER_PING);
@@ -117,44 +114,39 @@ namespace unp4k.gui
 		{
 			TreeView treeView = this.trvFileExplorer;
 
-			new Thread(() =>
+			var pakFile = File.OpenRead(path);
+			var pak = new ZipFile(pakFile);
+
+			var root = new ZipFileTreeItem(pak, Path.GetFileName(path));
+
+			var filter = this._lastFilterText;
+
+			if (filter.Equals("Filter...", StringComparison.InvariantCultureIgnoreCase)) filter = null;
+
+			await this.Dispatcher.Invoke(async () =>
 			{
-				var pakFile = File.OpenRead(path);
-				var pak = new ZipFile(pakFile);
+				treeView.Items.Clear();
 
-				var root = new ZipFileTreeItem(pak, null, Path.GetFileName(path));
-
-				var filter = this._lastFilterText;
-
-				if (filter.Equals("Filter...", StringComparison.InvariantCultureIgnoreCase)) filter = null;
-				
-				this.Dispatcher.Invoke(async () =>
+				if (this._pak != null)
 				{
-					treeView.Items.Clear();
+					this._pak.Close();
+					this._pak = null;
+				}
 
-					if (this._pak != null)
-					{
-						this._pak.Close();
-						this._pak = null;
-					}
+				if (this._pakFile != null)
+				{
+					this._pakFile.Dispose();
+					this._pakFile = null;
+				}
 
-					if (this._pakFile != null)
-					{
-						this._pakFile.Dispose();
-						this._pakFile = null;
-					}
+				this._pak = pak;
+				this._pakFile = pakFile;
 
-					this._pak = pak;
-					this._pakFile = pakFile;
+				this._extractor = new TreeExtractor(pak, this.Filter);
+				this._root = root;
 
-					this._extractor = new TreeExtractor(pak, this.Filter);
-					this._root = root;
-
-					treeView.Items.Add(root);
-				});
-			}).Start();
-
-			await Task.CompletedTask;
+				treeView.Items.Add(root);
+			});
 		}
 
 		public Predicate<Object> Filter => (Object n) =>
@@ -163,19 +155,16 @@ namespace unp4k.gui
 
 			if (String.IsNullOrWhiteSpace(filter)) return true;
 
-			if (n is DirectoryTreeItem directory)
+			if (n is IBranchItem branch)
 			{
-				return directory.Nodes.Any(z => z.Name.Contains(filter, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols));
+				var result = branch.AllChildren.Any(z => z.RelativePath.Contains(filter, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols));
+				return result;
 			}
 
-			if (n is ZipEntryTreeItem zipEntry)
+			if (n is IStreamTreeItem leaf)
 			{
-				return zipEntry.Entry.Name.Contains(filter, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols);
-			}
-
-			if (n is ZipFileTreeItem zipFile)
-			{
-				return zipFile.Nodes.Any(z => z.Name.Contains(filter, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols));
+				var result = leaf.RelativePath.Contains(filter, CompareOptions.IgnoreCase | CompareOptions.IgnoreSymbols);
+				return result;
 			}
 
 			return false;
@@ -192,16 +181,27 @@ namespace unp4k.gui
 
 				node.Items.Filter = this.Filter;
 
-				var treeItem = node.DataContext as TreeItem;
-
-				if (treeItem != null)
+				if (node.DataContext is IBranchItem branchItem)
 				{
-					treeItem.Expanded = true;
+					branchItem.Expanded = true;
 				}
 			}
 		}
 
-		private async void mnuOpen_Executed(object sender, ExecutedRoutedEventArgs e)
+		private void trvFileExplorer_Collapsed(object sender, RoutedEventArgs e)
+		{
+			var node = e.OriginalSource as TreeViewItem;
+
+			if (node != null)
+			{
+				if (node.DataContext is IBranchItem branchItem)
+				{
+					branchItem.Expanded = false;
+				}
+			}
+		}
+
+		private async void cmdOpenArchive_Executed(Object sender, ExecutedRoutedEventArgs e)
 		{
 			var openFileDialog = new VistaOpenFileDialog
 			{
@@ -213,49 +213,86 @@ namespace unp4k.gui
 
 			if (openFileDialog.ShowDialog() == true)
 			{
-				await this.OpenP4kAsync(openFileDialog.FileName);
+				// Move to background thread
+				new Thread(async () => await this.OpenP4kAsync(openFileDialog.FileName)).Start();
 			}
+
+			await Task.CompletedTask;
+		}
+
+		private async void cmdExtractFile_Executed(Object sender, ExecutedRoutedEventArgs e)
+		{
+			var selectedItem = trvFileExplorer.SelectedItem as ITreeItem;
+			
+			if (selectedItem == null) return;
+
+			// Move to background thread
+			new Thread(async () => await this._extractor.ExtractNodeAsync(selectedItem, false)).Start();
+
+			await Task.CompletedTask;
+		}
+
+		private async void cmdOpenFile_Executed(Object sender, ExecutedRoutedEventArgs e)
+		{
+			var selectedItem = trvFileExplorer.SelectedItem as IStreamTreeItem;
+
+			if (selectedItem == null) return;
+
+			// Move to background thread
+			new Thread(async () => await this._extractor.ExtractNodeAsync(selectedItem, true)).Start();
+
+			await Task.CompletedTask;
 		}
 
 		#region Mouse Support
 
 		private async void trvFileExplorer_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 		{
-			var treeView = sender as TreeView;
+			var selectedNode = e.OriginalSource as TreeViewItem;
 
-			var selectedItem = treeView.SelectedItem as TreeModel.TreeItem;
+			if (selectedNode == null) return;
 
+			var selectedItem = selectedNode.DataContext as ITreeItem;
+
+			if (selectedItem == null) return;
+
+			// Move to background thread
 			new Thread(async () => await this._extractor.ExtractNodeAsync(selectedItem, false)).Start();
+
+			await Task.CompletedTask;
 		}
 
 		#endregion
 
 		#region Keyboard Support
 
-		private Dictionary<Key, Boolean> keyState = new Dictionary<Key, Boolean> { { Key.Enter, false } };
-
-		private async void trvFileExplorer_KeyDown(object sender, KeyEventArgs e)
-		{
-			this.keyState[e.Key] = true;
-
-			await Task.CompletedTask;
-		}
-
-		private async void trvFileExplorer_KeyUp(object sender, KeyEventArgs e)
-		{
-			if (this.keyState[Key.Enter])
-			{
-				var treeView = sender as TreeView;
-
-				var selectedItem = treeView.SelectedItem as TreeModel.TreeItem;
-
-				var useTemp = treeView.SelectedItem is ZipEntryTreeItem;
-
-				new Thread(async () => await this._extractor.ExtractNodeAsync(selectedItem, useTemp)).Start();
-			}
-
-			this.keyState[e.Key] = false;
-		}
+		// private Dictionary<Key, Boolean> keyState = new Dictionary<Key, Boolean> { { Key.Enter, false } };
+		// 
+		// private async void trvFileExplorer_KeyDown(object sender, KeyEventArgs e)
+		// {
+		// 	this.keyState[e.Key] = true;
+		// 
+		// 	await Task.CompletedTask;
+		// }
+		// 
+		// private async void trvFileExplorer_KeyUp(object sender, KeyEventArgs e)
+		// {
+		// 	if (this.keyState[Key.Enter])
+		// 	{
+		// 		var selectedItem = trvFileExplorer.SelectedItem as TreeModel.TreeItem;
+		// 
+		// 		if (selectedItem != null)
+		// 		{
+		// 			var useTemp = trvFileExplorer.SelectedItem is ZipEntryTreeItem;
+		// 
+		// 			new Thread(async () => await this._extractor.ExtractNodeAsync(selectedItem, useTemp)).Start();
+		// 		}
+		// 	}
+		// 
+		// 	this.keyState[e.Key] = false;
+		// 
+		// 	await Task.CompletedTask;
+		// }
 
 		#endregion
 
@@ -279,39 +316,24 @@ namespace unp4k.gui
 		#endregion
 
 		#region Filter Support
-
-		private Thread _filterThread;
+		
 		private DateTime? _lastFilterTime;
 		private String _lastFilterText = String.Empty;
 		private String _activeFilterText = String.Empty;
-
-		//private async Task FilterNodesAsync(ItemsControl node)
-		//{
-		//	node.Items.Filter = this.GetFilter();
-
-		//	foreach (Object item in node.Items)
-		//	{
-		//		var child = node.ItemContainerGenerator.ContainerFromItem(item) as TreeViewItem;
-
-		//		if (child == null) continue;
-
-		//		await this.FilterNodesAsync(child);
-		//	}
-		//}
-
-		private async Task NotifyNodesAsync(TreeItem node)
+		
+		private async Task NotifyNodesAsync(ITreeItem node)
 		{
-			// Debug.WriteLine($"Touched {node.RelativePath}");
-
-			node.Children.Touch();
-
-			if (node.Expanded)
+			Dispatcher.Invoke(() =>
 			{
-				foreach (TreeItem item in node.Children)
-				{
-					await this.NotifyNodesAsync(item);
-				}
+				node.Children.Touch();
+			});
+
+			if (node is IBranchItem branchItem && branchItem.Expanded)
+			{
+				node.Children.AsParallel().ForAll(async item => await this.NotifyNodesAsync(item));
 			}
+
+			await Task.CompletedTask;
 		}
 
 		private async void txtFilter_TextChanged(object sender, TextChangedEventArgs e)
@@ -323,6 +345,8 @@ namespace unp4k.gui
 
 			this._lastFilterTime = DateTime.Now;
 			this._lastFilterText = filter;
+
+			await Task.CompletedTask;
 		}
 
 		#endregion
@@ -377,5 +401,15 @@ namespace unp4k.gui
 		}
 
 		#endregion
+		
+		private void cmdExitApplication_Executed(Object sender, ExecutedRoutedEventArgs e)
+		{
+			Application.Current.Shutdown();
+		}
+
+		private void trvFileExplorer_SelectedItemChanged(Object sender, RoutedPropertyChangedEventArgs<Object> e)
+		{
+			var node = e.OriginalSource as TreeViewItem;
+		}
 	}
 }

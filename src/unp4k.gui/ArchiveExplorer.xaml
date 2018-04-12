@@ -13,28 +13,50 @@
 		Width="400"
 		>
 	<Window.Resources>
-		<RoutedUICommand x:Key="OpenFile" Text="Open">
+		<RoutedUICommand x:Key="ExitApplication" Text="E_xit">
+			<RoutedUICommand.InputGestures>
+				<KeyGesture>ALT+F4</KeyGesture>
+			</RoutedUICommand.InputGestures>
+		</RoutedUICommand>
+		<RoutedUICommand x:Key="OpenArchive" Text="_Open Archive">
 			<RoutedUICommand.InputGestures>
 				<KeyGesture>CTRL+O</KeyGesture>
 			</RoutedUICommand.InputGestures>
 		</RoutedUICommand>
+		<RoutedUICommand x:Key="ExtractFile" Text="Extract File">
+			<RoutedUICommand.InputGestures>
+				<KeyGesture>CTRL+ENTER</KeyGesture>
+			</RoutedUICommand.InputGestures>
+		</RoutedUICommand>
+		<RoutedUICommand x:Key="OpenFile" Text="Open File">
+			<RoutedUICommand.InputGestures>
+				<KeyGesture>ENTER</KeyGesture>
+			</RoutedUICommand.InputGestures>
+		</RoutedUICommand>
 	</Window.Resources>
 	<Window.CommandBindings>
-		<CommandBinding Command="{StaticResource OpenFile}" Executed="mnuOpen_Executed"/>
+		<CommandBinding Command="{StaticResource OpenArchive}" Executed="cmdOpenArchive_Executed" />
+		<CommandBinding Command="{StaticResource ExtractFile}" Executed="cmdExtractFile_Executed" />
+		<CommandBinding Command="{StaticResource OpenFile}" Executed="cmdOpenFile_Executed" />
+		<CommandBinding Command="{StaticResource ExitApplication}" Executed="cmdExitApplication_Executed" />
 	</Window.CommandBindings>
 	<Grid>
 		<Grid.RowDefinitions>
-			<RowDefinition Height="24"/>
+			<RowDefinition Height="24" Name="Test"/>
 			<RowDefinition Height="44"/>
 			<RowDefinition Height="409*"/>
 			<RowDefinition Height="24"/>
 		</Grid.RowDefinitions>
-		<DockPanel Margin="0,0,0.333,0" Grid.RowSpan="1">
+		<DockPanel Margin="0,0,0.333,0" Grid.Row="0">
 			<Menu DockPanel.Dock="Top" Padding="2">
-				<MenuItem Header="_Open" Command="{StaticResource OpenFile}" InputGestureText="Ctrl+O" />
+				<MenuItem Header="_File">
+					<MenuItem Command="{StaticResource OpenArchive}" InputGestureText="Ctrl+O" />
+					<Separator />
+					<MenuItem Command="{StaticResource ExitApplication}" InputGestureText="Alt+F4" />
+				</MenuItem>
 			</Menu>
 		</DockPanel>
-		<StackPanel Grid.Row="1" Margin="0,0,0.333,10">
+		<StackPanel Margin="0,0,0.333,10" Grid.Row="1" Width="391">
 			<TextBox Height="23"
 					 TextWrapping="NoWrap"
 					 Text="Filter..."
@@ -45,25 +67,32 @@
 					 LostFocus="txtFilter_LostFocus"
 					 TextChanged="txtFilter_TextChanged" />
 		</StackPanel>
-		<TreeView x:Name="trvFileExplorer" Margin="10,0,10,10" Grid.Row="2"
-				  MouseDoubleClick="trvFileExplorer_MouseDoubleClick"
-				  TreeViewItem.Expanded="trvFileExplorer_Expanded"
-				  KeyDown="trvFileExplorer_KeyDown"
-				  KeyUp="trvFileExplorer_KeyUp"
+		<TreeView x:Name="trvFileExplorer"
+				  Grid.Row="2"
+				  Margin="10,0,10,10" 
 				  AllowDrop="True"
+				  Drop="trvFileExplorer_Drop"
 				  PreviewMouseDown="trvFileExplorer_PreviewMouseDown"
 				  MouseMove="trvFileExplorer_MouseMove"
-				  Drop="trvFileExplorer_Drop">
+				  MouseDoubleClick="trvFileExplorer_MouseDoubleClick"
+				  SelectedItemChanged="trvFileExplorer_SelectedItemChanged"
+				  TreeViewItem.Expanded="trvFileExplorer_Expanded"
+				  TreeViewItem.Collapsed="trvFileExplorer_Collapsed">
 			<TreeView.ItemTemplate>
 				<HierarchicalDataTemplate DataType="{x:Type model:TreeItem}" ItemsSource="{Binding Children}">
 					<StackPanel Orientation="Horizontal" Margin="2">
 						<Image Source="{Binding Icon}" Width="16" Height="16" SnapsToDevicePixels="True"/>
-						<TextBlock Text="{Binding Title}" Margin="5,0"/>
+						<TextBlock Text="{Binding Title}" Margin="5,0" />
+						<StackPanel.ContextMenu>
+							<ContextMenu StaysOpen="True">
+								<MenuItem Command="{StaticResource OpenFile}" />
+								<MenuItem Command="{StaticResource ExtractFile}" />
+							</ContextMenu>
+						</StackPanel.ContextMenu>
 					</StackPanel>
 				</HierarchicalDataTemplate>
 			</TreeView.ItemTemplate>
 		</TreeView>
-
 		<DockPanel Margin="0,0,0,0" Grid.Row="4">
 			<StatusBar DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Margin="0" Height="24" Padding="0">
 				<ProgressBar Name="barProgress" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="16" Width="250" />

@@ -5,53 +5,30 @@ using System.Collections.Generic;
 using System.Windows.Media;
 using System.Globalization;
 using System.Diagnostics;
+using unp4k.gui.Extensions;
 
 namespace unp4k.gui.TreeModel
 {
-	public class ZipFileTreeItem : TreeItem
+	public class ZipFileTreeItem : TreeItem, IBranchItem
 	{
-		public ZipFile Archive { get; }
+		public virtual ZipFile Archive { get; }
 
-		public override TreeItem Parent { get; }
-		public override String Title { get; }
+		public virtual Boolean Expanded { get; set; } = false;
 
 		public override String RelativePath => String.Empty;
 		public override ImageSource Icon => IconManager.GetCachedFileIcon(
 			path: this.Title, 
 			iconSize: IconManager.IconSize.Large);
 
-		internal List<ZipEntry> Nodes { get; } = new List<ZipEntry> { };
-
-		public ZipFileTreeItem(ZipFile zipFile, TreeItem parent, String name = null)
+		public ZipFileTreeItem(ZipFile zipFile, String name = null, ITreeItem parent = null)
+			: base(zipFile.GetArchiveName(name), parent)
 		{
 			this.Archive = zipFile;
-			this.Title = name;
-			this.Parent = parent;
 
 			foreach (ZipEntry entry in this.Archive)
 			{
-				this.Nodes.Add(entry);
-				this.Children.AddEntry(entry, this);
+				this.Children.AddEntry(this.Archive, entry, this);
 			}
-
-			if (String.IsNullOrWhiteSpace(this.Title)) this.Title = this.Archive.Name;
-			if (String.IsNullOrWhiteSpace(this.Title)) this.Title = "Data.p4k";
-		}
-
-		private ZipFileTreeItem(IEnumerable<ZipEntry> nodes, ZipFile zipFile, TreeItem parent, String name)
-		{
-			this.Archive = zipFile;
-			this.Title = name;
-			this.Parent = parent;
-
-			foreach (ZipEntry entry in nodes)
-			{
-				this.Nodes.Add(entry);
-				this.Children.AddEntry(entry, this);
-			}
-
-			if (String.IsNullOrWhiteSpace(this.Title)) this.Title = this.Archive.Name;
-			if (String.IsNullOrWhiteSpace(this.Title)) this.Title = "Data.p4k";
 		}
 	}
 }

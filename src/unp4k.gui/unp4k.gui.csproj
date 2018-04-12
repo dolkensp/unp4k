@@ -86,13 +86,19 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Extensions\ComparisonExtensions.cs" />
+    <Compile Include="Extensions\ListExtensions.cs" />
+    <Compile Include="Extensions\ParserExtensions.cs" />
     <Compile Include="Extensions\PathManipulationExtensions.cs" />
+    <Compile Include="Extensions\ZipFileExtensions.cs" />
+    <Compile Include="Plugins\IFormatFactory.cs" />
     <Compile Include="TreeExtractor.cs" />
+    <Compile Include="TreeModel\BranchItem.cs" />
+    <Compile Include="TreeModel\DataForgeTreeItem.cs" />
     <Compile Include="TreeModel\DirectoryTreeItem.cs" />
     <Compile Include="TreeModel\TreeItem.cs" />
     <Compile Include="TreeModel\ZipEntryTreeItem.cs" />
     <Compile Include="TreeModel\ZipFileTreeItem.cs" />
-    <Compile Include="TreeModel\ZipObservableCollection.cs" />
+    <Compile Include="TreeModel\TreeItemObservableCollection.cs" />
     <Page Include="ArchiveExplorer.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

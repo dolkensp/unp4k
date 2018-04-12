@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Path = System.IO.Path;
 using unp4k.gui.Extensions;
 using unp4k.gui.TreeModel;
+using unp4k.gui.Plugins;
 
 namespace unp4k.gui
 {
@@ -21,7 +22,7 @@ namespace unp4k.gui
 			this.Filter = filter;
 		}
 
-		public async Task ExtractNodeAsync(TreeItem selectedItem, Boolean useTemp = false)
+		public async Task ExtractNodeAsync(ITreeItem selectedItem, Boolean useTemp = false)
 		{
 			if (selectedItem == null) return;
 
@@ -36,7 +37,7 @@ namespace unp4k.gui
 
 			if (String.IsNullOrWhiteSpace(path))
 			{
-				if (selectedItem is ZipEntryTreeItem zipEntry)
+				if (selectedItem is IStreamTreeItem)
 				{
 					var dlg = new VistaSaveFileDialog
 					{
@@ -50,24 +51,11 @@ namespace unp4k.gui
 					path = dlg.FileName;
 				}
 
-				if (selectedItem is DirectoryTreeItem directory)
+				else if (selectedItem is IBranchItem)
 				{
 					var dlg = new VistaFolderBrowserDialog
 					{
 						Description = $"Export {selectedItem.Title} Directory",
-						UseDescriptionForTitle = true,
-						SelectedPath = selectedItem.Title,
-					};
-
-					result = dlg.ShowDialog();
-					path = dlg.SelectedPath;
-				}
-
-				if (selectedItem is ZipFileTreeItem zipFile)
-				{
-					var dlg = new VistaFolderBrowserDialog
-					{
-						Description = $"Export {selectedItem.Title} Archive",
 						UseDescriptionForTitle = true,
 						SelectedPath = selectedItem.Title,
 					};
@@ -87,34 +75,35 @@ namespace unp4k.gui
 			await Task.CompletedTask;
 		}
 
-		private async Task ExtractNodeAsync(TreeItem node, String outputRoot, String rootPath = null)
+		private async Task ExtractNodeAsync(ITreeItem node, String outputRoot, String rootPath = null)
 		{
-			// Early exit
+			// Early exit if we don't match the filter
 			if (!this.Filter(node)) return;
 
-			if (node is DirectoryTreeItem directory)
+			if (node is IStreamTreeItem leaf)
 			{
-				await this.ExtractNodeAsync(directory, outputRoot, rootPath);
+				await this.ExtractNodeAsync(leaf, outputRoot, rootPath);
 			}
 
-			else if (node is ZipEntryTreeItem zipEntry)
+			if (node is IBranchItem branch)
 			{
-				await this.ExtractNodeAsync(zipEntry, outputRoot, rootPath);
+				await this.ExtractNodeAsync(branch, outputRoot, rootPath);
 			}
-
-			else if (node is ZipFileTreeItem zipFile)
-			{
-				await this.ExtractNodeAsync(zipFile, outputRoot, rootPath);
-			}
-
-			else
-			{
-				throw new NotSupportedException($"Node type not supported. Node type: {node.GetType().Name}");
-			}
+			
+			// else
+			// {
+			// 	throw new NotSupportedException($"Node type not supported. Node type: {node.GetType().Name}");
+			// }
 		}
 
-		private async Task ExtractNodeAsync(ZipEntryTreeItem node, String outputRoot, String rootPath)
+		private async Task ExtractNodeAsync(IStreamTreeItem node, String outputRoot, String rootPath)
 		{
+			var forgeFactory = new DataForgeFormatFactory { };
+			var cryxmlFactory = new CryXmlFormatFactory { };
+
+			node = forgeFactory.Extract(node);
+			node = cryxmlFactory.Extract(node);
+
 			if (rootPath == null)
 			{
 				rootPath = Path.GetDirectoryName(node.RelativePath);
@@ -127,63 +116,27 @@ namespace unp4k.gui
 
 			if (!String.IsNullOrWhiteSpace(absolutePath))
 			{
-				var entry = node.Entry;
-
 				var target = new FileInfo(absolutePath);
 
 				if (!target.Directory.Exists) target.Directory.Create();
 
-				using (Stream zs = this._pak.GetInputStream(entry))
+				#region Dump Raw File
+
+				using (var dataStream = node.Stream)
 				{
-					using (Stream s = new MemoryStream())
+					dataStream.Seek(0, SeekOrigin.Begin);
+
+					using (FileStream fs = File.Create(absolutePath))
 					{
-						await zs.CopyToAsync(s, 4096);
-						
-						using (BinaryReader br = new BinaryReader(s))
-						{
-							#region Check for CryXmlB
-
-							s.Seek(0, SeekOrigin.Begin);
-
-							var peek = br.PeekChar();
-
-							if (peek == 'C')
-							{
-								String header = br.ReadFString(7);
-
-								if (header == "CryXml" || header == "CryXmlB" || header == "CRY3SDK")
-								{
-									s.Seek(0, SeekOrigin.Begin);
-
-									var xml = unforge.CryXmlSerializer.ReadStream(s, unforge.ByteOrderEnum.AutoDetect, false);
-
-									xml.Save(absolutePath);
-
-									return;
-								}
-							}
-
-							#endregion
-
-							// TODO: Check for DataForge
-
-							#region Dump Raw File
-
-							s.Seek(0, SeekOrigin.Begin);
-
-							using (FileStream fs = File.Create(absolutePath))
-							{
-								await s.CopyToAsync(fs, 4096);
-							}
-
-							#endregion
-						}
+						await dataStream.CopyToAsync(fs, 4096);
 					}
 				}
+
+				#endregion
 			}
 		}
 
-		private async Task ExtractNodeAsync(ZipFileTreeItem node, String outputRoot, String rootPath)
+		private async Task ExtractNodeAsync(IBranchItem node, String outputRoot, String rootPath)
 		{
 			if (rootPath == null)
 			{
@@ -194,21 +147,7 @@ namespace unp4k.gui
 					rootPath = Path.GetDirectoryName(node.RelativePath);
 				}
 			}
-
-			foreach (var child in node.Children)
-			{
-				await this.ExtractNodeAsync(child, outputRoot, rootPath);
-			}
-		}
-
-		private async Task ExtractNodeAsync(DirectoryTreeItem node, String outputRoot, String rootPath)
-		{
-			// Determine the root of the extraction
-			if (rootPath == null)
-			{
-				rootPath = node.RelativePath;
-			}
-
+			
 			foreach (var child in node.Children)
 			{
 				await this.ExtractNodeAsync(child, outputRoot, rootPath);

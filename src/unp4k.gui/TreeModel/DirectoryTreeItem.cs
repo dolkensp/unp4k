@@ -1,14 +1,14 @@
 ﻿using ICSharpCode.SharpZipLib.Zip;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Windows.Media;
 
 namespace unp4k.gui.TreeModel
 {
-	public class DirectoryTreeItem : TreeItem
+	public class DirectoryTreeItem : TreeItem, IBranchItem
 	{
-		public override TreeItem Parent { get; }
-		public override String Title { get; }
+		public virtual Boolean Expanded { get; set; } = false;
 
 		public override String SortKey => $"__{this.Title.ToLowerInvariant()}";
 		public override ImageSource Icon => IconManager.GetCachedFolderIcon(
@@ -16,12 +16,7 @@ namespace unp4k.gui.TreeModel
 			iconSize: IconManager.IconSize.Large,
 			folderType: IconManager.FolderType.Closed);
 
-		internal List<ZipEntry> Nodes { get; } = new List<ZipEntry> { };
-
-		public DirectoryTreeItem(String name, TreeItem parent)
-		{
-			this.Title = name;
-			this.Parent = parent;
-		}
+		public DirectoryTreeItem(String title, ITreeItem parent)
+			: base(title, parent) { }
 	}
 }
