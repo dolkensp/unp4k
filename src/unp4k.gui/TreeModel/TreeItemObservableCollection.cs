@@ -16,58 +16,48 @@ namespace unp4k.gui.TreeModel
 			new DataForgeFormatFactory { },
 			new CryXmlFormatFactory { }
 		};
-
-		public void AddEntry(ZipFile archive, ZipEntry entry, ITreeItem parent = null)
+		
+		public ITreeItem AddStream(Func<Stream> @delegate, String fullPath, ITreeItem parent = null)
 		{
-			IStreamTreeItem treeItem = new StreamTreeItem(Path.GetFileName(entry.Name), parent, () => archive.GetInputStream(entry));
+			var path = Path.GetDirectoryName(fullPath).Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
 
-			this.AddEntry(treeItem, entry.Name.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries), 0, parent);
-		}
+			if (path.Length > 0) parent = this.GetParentRelativePath(path, parent);
 
-		public void AddEntry(IStreamTreeItem treeItem, String fullPath, ITreeItem parent = null)
-		{
-			this.AddEntry(treeItem, fullPath.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries), 0, parent);
-		}
+			if (parent == null) return null;
 
-		private void AddEntry(IStreamTreeItem treeItem, String[] fullPath, Int32 startIndex, ITreeItem parent = null)
-		{
-			var path = fullPath.Skip(startIndex).ToArray();
+			IStreamTreeItem streamItem = new StreamTreeItem(Path.GetFileName(fullPath), parent, @delegate);
 
-			var key = path[0];
-
-			// file - add the original entry
-			if (path.Length == 1)
+			foreach (var factory in factories)
 			{
-				foreach (var factory in factories)
-				{
-					treeItem = factory.Handle(treeItem);
-				}
-
-				treeItem.Parent = parent;
-
-				this.Add(treeItem);
+				streamItem = factory.Handle(streamItem);
 			}
 
-			// directory - add a directory entry
-			if (path.Length > 1)
-			{
-				var directory = this
-					.OfType<DirectoryTreeItem>()
-					.Where(d => d.Title == key)
-					.FirstOrDefault();
+			parent.Children.Add(streamItem);
 
-				if (directory == null)
-				{
-					directory = new DirectoryTreeItem(key, parent);
-
-					this.Add(directory);
-				}
-
-				// directory.AllChildren.Add(treeItem);
-				directory.Children.AddEntry(treeItem, fullPath, startIndex + 1, directory);
-			}
+			return streamItem;
 		}
 
+		private ITreeItem GetParentRelativePath(String[] fullPath, ITreeItem parent = null)
+		{
+			if (fullPath.Length == 0) return parent;
+
+			var key = fullPath[0];
+
+			var directory = this
+				.OfType<DirectoryTreeItem>()
+				.Where(d => d.Title == key)
+				.FirstOrDefault();
+
+			if (directory == null)
+			{
+				directory = new DirectoryTreeItem(key, parent);
+
+				this.Add(directory);
+			}
+
+			return directory.Children.GetParentRelativePath(fullPath.Skip(1).ToArray(), directory);
+		}
+		
 		public void Touch()
 		{
 			foreach (var item in this)

@@ -6,29 +6,60 @@ using System.Windows.Media;
 using System.Globalization;
 using System.Diagnostics;
 using unp4k.gui.Extensions;
+using System.Windows.Controls;
+using System.Threading.Tasks;
 
 namespace unp4k.gui.TreeModel
 {
 	public class ZipFileTreeItem : TreeItem, IBranchItem
 	{
-		public virtual ZipFile Archive { get; }
+		// public virtual ZipFile Archive { get; }
 
 		public virtual Boolean Expanded { get; set; } = false;
 
 		public override String RelativePath => String.Empty;
-		public override ImageSource Icon => IconManager.GetCachedFileIcon(
-			path: this.Title, 
-			iconSize: IconManager.IconSize.Large);
+
+		private ImageSource _icon;
+		public override ImageSource Icon =>
+			this._icon = this._icon ??
+			IconManager.GetCachedFileIcon(
+				path: this.Title,
+				iconSize: IconManager.IconSize.Large);
 
 		public ZipFileTreeItem(ZipFile zipFile, String name = null, ITreeItem parent = null)
 			: base(zipFile.GetArchiveName(name), parent)
 		{
-			this.Archive = zipFile;
+			var sw = new Stopwatch { };
+			var maxIndex = zipFile.Count - 1;
+			var lastIndex = 0L;
+			var timeTaken = 0L;
 
-			foreach (ZipEntry entry in this.Archive)
+			var oldProgress = ArchiveExplorer.RegisterProgress(async (ProgressBar barProgress) =>
 			{
-				this.Children.AddEntry(this.Archive, entry, this);
+				barProgress.Maximum = maxIndex;
+				barProgress.Value = lastIndex;
+
+				await ArchiveExplorer.UpdateStatus($"Loading file {lastIndex:#,##0}/{maxIndex:#,##0} from archive");
+
+				await Task.CompletedTask;
+			});
+
+			sw.Start();
+
+			foreach (ZipEntry entry in zipFile)
+			{
+				this.Children.AddStream(() => zipFile.GetInputStream(entry), entry.Name, this);
+
+				lastIndex = entry.ZipFileIndex;
 			}
+
+			sw.Stop();
+
+			timeTaken = sw.ElapsedMilliseconds;
+
+			ArchiveExplorer.RegisterProgress(oldProgress);
+
+			ArchiveExplorer.UpdateStatus($"Loaded {this.Title} in {timeTaken:#,000}ms").Wait();
 		}
 	}
 }

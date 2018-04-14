@@ -9,43 +9,51 @@ using ICSharpCode.SharpZipLib.Zip;
 using unp4k.gui.Plugins;
 using unp4k.gui.Extensions;
 using System.Windows.Media;
+using System.Windows.Controls;
+using System.Diagnostics;
 
 namespace unp4k.gui.TreeModel
 {
-	public class DataForgeTreeItem : StreamTreeItem, IStreamTreeItem, IBranchItem
+	public class DataForgeTreeItem : StreamTreeItem, IStreamTreeItem, IBranchItem, ITreeItem
 	{
-		public override IEnumerable<IStreamTreeItem> AllChildren => this.Children.SelectMany(c => c.AllChildren).OfType<IStreamTreeItem>().With(this);
-
-		private unforge.DataForge DataForge { get; }
-
-		public Boolean Expanded { get; set; }
+		public override String RelativePath => this.Parent.RelativePath;
+		public virtual Boolean Expanded { get; set; }
 
 		public DataForgeTreeItem(String title, ITreeItem parent, unforge.DataForge dataForge)
 			: base(title, parent, () => dataForge.GetStream())
+
 		{
-			this.DataForge = dataForge;
+			var maxIndex = dataForge.Length - 1;
+			var lastIndex = 0L;
 
-			foreach ((String FileName, XmlDocument XmlDocument) entry in this.DataForge)
+			var oldProgress = ArchiveExplorer.RegisterProgress(async (ProgressBar barProgress) =>
 			{
-				IStreamTreeItem treeItem = new StreamTreeItem(Path.GetFileName(entry.FileName), new BranchProxy(this), () =>
-				{
-					var outStream = new MemoryStream { };
-					entry.XmlDocument.Save(outStream);
-					return outStream;
-				});
+				barProgress.Maximum = maxIndex;
+				barProgress.Value = lastIndex;
 
-				// this.AllChildren.Add(treeItem);
-				this.Children.AddEntry(treeItem, entry.FileName, this);
+				await ArchiveExplorer.UpdateStatus($"Deserializing file {lastIndex:#,##0}/{maxIndex:#,##0} from dataforge");
+
+				await Task.CompletedTask;
+			});
+
+			foreach ((String FileName, XmlDocument XmlDocument) entry in dataForge)
+			{
+				this.Children.AddStream(
+					() => entry.XmlDocument.GetStream(),
+					entry.FileName,
+					this);
+
+				lastIndex++;
 			}
+
+			ArchiveExplorer.RegisterProgress(oldProgress);
 		}
 	}
 
-	public class CryXmlTreeItem : StreamTreeItem, IStreamTreeItem
+	public class CryXmlTreeItem : StreamTreeItem, IStreamTreeItem, ITreeItem
 	{
 		public CryXmlTreeItem(IStreamTreeItem node, XmlDocument xml)
-			: base(node.Title, node.Parent, () => { var outStream = new MemoryStream { }; xml.Save(outStream); return outStream; })
-		{
-			// TODO: Extract contents into this.Children here
-		}
+			: base(node.Title, node.Parent, () => xml.GetStream())
+		{ }
 	}
 }

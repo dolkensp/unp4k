@@ -24,8 +24,6 @@ namespace unp4k.gui.TreeModel
 			path: this.Title,
 			iconSize: IconManager.IconSize.Large);
 
-		public override IEnumerable<IStreamTreeItem> AllChildren => new [] { this };
-
 		private Func<Stream> _streamDelegate;
 
 		//private Func<Stream> GetSeekableDelegate(Stream stream)
@@ -134,7 +132,7 @@ namespace unp4k.gui.Plugins
 	{
 		public IStreamTreeItem Handle(IStreamTreeItem node)
 		{
-			if (Path.GetExtension(node.RelativePath).Equals(".dcb", StringComparison.InvariantCultureIgnoreCase))
+			if (Path.GetExtension(node.Title).Equals(".dcb", StringComparison.InvariantCultureIgnoreCase))
 			{
 				using (var dataStream = node.Stream)
 				{

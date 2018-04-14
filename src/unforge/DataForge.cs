@@ -479,6 +479,8 @@ namespace unforge
 			}
 		}
 
+		public Int32 Length => this.RecordDefinitionTable.Length;
+
 #if !NETSTANDARD2_0
 		public void CompileSerializationAssembly(String assemblyName = "HoloXPLOR.Data.DataForge")
         {

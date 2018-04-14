@@ -56,11 +56,15 @@ namespace unp4k.gui
 		private TreeExtractor _extractor;
 		private ZipFileTreeItem _root;
 
+		private static ArchiveExplorer _instance;
+
 		public const Int32 FILTER_DELAY = 250;
 		public const Int32 FILTER_PING = 50;
 
 		public ArchiveExplorer()
 		{
+			ArchiveExplorer._instance = this;
+
 			InitializeComponent();
 
 			this.Icon = IconManager.GetCachedFileIcon("data.zip", IconManager.IconSize.Large);
@@ -84,13 +88,34 @@ namespace unp4k.gui
 						}
 
 						var filterText = this._lastFilterText;
-						
+
+						var sw = new Stopwatch();
+
+						sw.Start();
+
 						await this.NotifyNodesAsync(this._root);
+
+						sw.Stop();
+
+						Debug.WriteLine($"Filter took {sw.ElapsedMilliseconds}ms");
 						
 						this._activeFilterText = filterText;
 
 						await Task.Delay(FILTER_PING);
 					}
+				}
+			}).Start();
+
+			new Thread(async () =>
+			{
+				while (true)
+				{
+					await this.Dispatcher.Invoke(async () =>
+					{
+						await ArchiveExplorer._updateDelegate(this.barProgress);
+					});
+
+					await Task.Delay(100);
 				}
 			}).Start();
 		}
@@ -110,6 +135,30 @@ namespace unp4k.gui
 			}
 		}
 
+		private static Func<ProgressBar, Task> _updateDelegate = async (ProgressBar barProgress) =>
+		{
+			await Task.CompletedTask;
+		};
+
+		public static Func<ProgressBar, Task> RegisterProgress(Func<ProgressBar, Task> @delegate)
+		{
+			var oldDelegate = ArchiveExplorer._updateDelegate;
+
+			ArchiveExplorer._updateDelegate = @delegate;
+
+			return oldDelegate;
+		}
+
+		public static async Task UpdateStatus(String message)
+		{
+			await ArchiveExplorer._instance.Dispatcher.Invoke(async () =>
+			{
+				ArchiveExplorer._instance.lblProgress.Text = message;
+
+				await Task.CompletedTask;
+			});
+		}
+
 		public async Task OpenP4kAsync(String path)
 		{
 			TreeView treeView = this.trvFileExplorer;
@@ -118,7 +167,7 @@ namespace unp4k.gui
 			var pak = new ZipFile(pakFile);
 
 			var root = new ZipFileTreeItem(pak, Path.GetFileName(path));
-
+			
 			var filter = this._lastFilterText;
 
 			if (filter.Equals("Filter...", StringComparison.InvariantCultureIgnoreCase)) filter = null;
@@ -146,6 +195,8 @@ namespace unp4k.gui
 				this._root = root;
 
 				treeView.Items.Add(root);
+
+				await Task.CompletedTask;
 			});
 		}
 
@@ -410,6 +461,12 @@ namespace unp4k.gui
 		private void trvFileExplorer_SelectedItemChanged(Object sender, RoutedPropertyChangedEventArgs<Object> e)
 		{
 			var node = e.OriginalSource as TreeViewItem;
+		}
+
+		private void cmdFilterArchive_Executed(object sender, ExecutedRoutedEventArgs e)
+		{
+			txtFilter.Focus();
+			txtFilter.SelectAll();
 		}
 	}
 }

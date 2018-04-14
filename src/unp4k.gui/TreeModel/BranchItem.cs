@@ -12,27 +12,10 @@ namespace unp4k.gui.TreeModel
 		Boolean Expanded { get; set; }
 	}
 
-	public class BranchProxy : ITreeItem
+	public abstract class BranchItem : TreeItem, IBranchItem
 	{
-		public TreeItem Archive { get; }
+		public virtual Boolean Expanded { get; set; }
 
-		public String Title => String.Empty;
-
-		public ImageSource Icon => this.Archive.Icon;
-
-		public String RelativePath => this.Parent.RelativePath;
-
-		public ITreeItem Parent { get; set; }
-
-		public String SortKey => this.Archive.SortKey;
-
-		public TreeItemObservableCollection Children => this.Archive.Children;
-
-		public IEnumerable<IStreamTreeItem> AllChildren => this.Archive.AllChildren;
-
-		public BranchProxy(TreeItem node)
-		{
-			this.Archive = node;
-		}
+		public BranchItem(String title, ITreeItem parent) : base(title, parent) { }
 	}
 }

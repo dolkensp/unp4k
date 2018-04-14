@@ -20,7 +20,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -89,6 +89,7 @@
     <Compile Include="Extensions\ListExtensions.cs" />
     <Compile Include="Extensions\ParserExtensions.cs" />
     <Compile Include="Extensions\PathManipulationExtensions.cs" />
+    <Compile Include="Extensions\XmlDocumentExtensions.cs" />
     <Compile Include="Extensions\ZipFileExtensions.cs" />
     <Compile Include="Plugins\IFormatFactory.cs" />
     <Compile Include="TreeExtractor.cs" />
@@ -96,7 +97,6 @@
     <Compile Include="TreeModel\DataForgeTreeItem.cs" />
     <Compile Include="TreeModel\DirectoryTreeItem.cs" />
     <Compile Include="TreeModel\TreeItem.cs" />
-    <Compile Include="TreeModel\ZipEntryTreeItem.cs" />
     <Compile Include="TreeModel\ZipFileTreeItem.cs" />
     <Compile Include="TreeModel\TreeItemObservableCollection.cs" />
     <Page Include="ArchiveExplorer.xaml">
