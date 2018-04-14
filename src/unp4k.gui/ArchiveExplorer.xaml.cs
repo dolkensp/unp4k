@@ -97,7 +97,7 @@ namespace unp4k.gui
 
 						sw.Stop();
 
-						Debug.WriteLine($"Filter took {sw.ElapsedMilliseconds}ms");
+						await ArchiveExplorer.UpdateStatus($"Filter took {sw.ElapsedMilliseconds:#,##0}ms");
 						
 						this._activeFilterText = filterText;
 

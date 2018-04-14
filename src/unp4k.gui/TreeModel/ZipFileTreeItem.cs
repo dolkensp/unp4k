@@ -30,6 +30,9 @@ namespace unp4k.gui.TreeModel
 			: base(zipFile.GetArchiveName(name), parent)
 		{
 			var sw = new Stopwatch { };
+
+			sw.Start();
+
 			var maxIndex = zipFile.Count - 1;
 			var lastIndex = 0L;
 			var timeTaken = 0L;
@@ -43,8 +46,6 @@ namespace unp4k.gui.TreeModel
 
 				await Task.CompletedTask;
 			});
-
-			sw.Start();
 
 			foreach (ZipEntry entry in zipFile)
 			{
