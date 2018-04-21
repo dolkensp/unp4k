@@ -25,7 +25,7 @@ namespace unp4k.gui.TreeModel
 		public virtual String Title { get; }
 
 		public virtual ImageSource Icon => null;
-
+		
 		private String _sortKey;
 		public virtual String SortKey =>
 			this._sortKey = this._sortKey ?? 

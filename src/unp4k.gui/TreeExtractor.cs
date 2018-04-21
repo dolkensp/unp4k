@@ -11,6 +11,13 @@ using unp4k.gui.Plugins;
 
 namespace unp4k.gui
 {
+	public enum ExtractModeEnum
+	{
+		New,
+		NewOrLatest,
+		Overwrite,
+	}
+
 	public class TreeExtractor
 	{
 		private ZipFile _pak;
@@ -35,6 +42,8 @@ namespace unp4k.gui
 				result = true;
 			}
 
+			var extractMode = ExtractModeEnum.NewOrLatest;
+
 			if (String.IsNullOrWhiteSpace(path))
 			{
 				if (selectedItem is IStreamTreeItem)
@@ -49,6 +58,8 @@ namespace unp4k.gui
 
 					result = dlg.ShowDialog();
 					path = dlg.FileName;
+
+					extractMode = ExtractModeEnum.Overwrite;
 				}
 
 				else if (selectedItem is IBranchItem)
@@ -62,12 +73,14 @@ namespace unp4k.gui
 
 					result = dlg.ShowDialog();
 					path = dlg.SelectedPath;
+
+					extractMode = ExtractModeEnum.NewOrLatest;
 				}
 			}
 
 			if (result == true)
 			{
-				await this.ExtractNodeAsync(selectedItem, path);
+				await this.ExtractNodeAsync(selectedItem, path, extractMode);
 
 				if (useTemp) System.Diagnostics.Process.Start(path);
 			}
@@ -75,19 +88,19 @@ namespace unp4k.gui
 			await Task.CompletedTask;
 		}
 
-		private async Task ExtractNodeAsync(ITreeItem node, String outputRoot, String rootPath = null)
+		private async Task ExtractNodeAsync(ITreeItem node, String outputRoot, ExtractModeEnum extractMode, String rootPath = null)
 		{
 			// Early exit if we don't match the filter
 			if (!this.Filter(node)) return;
 
 			if (node is IStreamTreeItem leaf)
 			{
-				await this.ExtractNodeAsync(leaf, outputRoot, rootPath);
+				await this.ExtractNodeAsync(leaf, outputRoot, extractMode, rootPath);
 			}
 
 			if (node is IBranchItem branch)
 			{
-				await this.ExtractNodeAsync(branch, outputRoot, rootPath);
+				await this.ExtractNodeAsync(branch, outputRoot,extractMode, rootPath);
 			}
 			
 			// else
@@ -96,7 +109,7 @@ namespace unp4k.gui
 			// }
 		}
 
-		private async Task ExtractNodeAsync(IStreamTreeItem node, String outputRoot, String rootPath)
+		private async Task ExtractNodeAsync(IStreamTreeItem node, String outputRoot, ExtractModeEnum extractMode, String rootPath)
 		{
 			var forgeFactory = new DataForgeFormatFactory { };
 			var cryxmlFactory = new CryXmlFormatFactory { };
@@ -120,6 +133,16 @@ namespace unp4k.gui
 
 				if (!target.Directory.Exists) target.Directory.Create();
 
+				if (target.Exists)
+				{
+					switch (extractMode)
+					{
+						case ExtractModeEnum.New: return;
+						case ExtractModeEnum.NewOrLatest: if (target.LastWriteTimeUtc >= node.LastWriteTimeUtc) return; break;
+						case ExtractModeEnum.Overwrite: break;
+					}
+				}
+
 				#region Dump Raw File
 
 				using (var dataStream = node.Stream)
@@ -130,13 +153,15 @@ namespace unp4k.gui
 					{
 						await dataStream.CopyToAsync(fs, 4096);
 					}
+
+					target.LastWriteTimeUtc = node.LastWriteTimeUtc;
 				}
 
 				#endregion
 			}
 		}
 
-		private async Task ExtractNodeAsync(IBranchItem node, String outputRoot, String rootPath)
+		private async Task ExtractNodeAsync(IBranchItem node, String outputRoot, ExtractModeEnum extractMode, String rootPath)
 		{
 			if (rootPath == null)
 			{
@@ -150,7 +175,7 @@ namespace unp4k.gui
 			
 			foreach (var child in node.Children)
 			{
-				await this.ExtractNodeAsync(child, outputRoot, rootPath);
+				await this.ExtractNodeAsync(child, outputRoot, extractMode, rootPath);
 			}
 		}
 	}

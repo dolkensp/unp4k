@@ -96,6 +96,7 @@
     <Compile Include="TreeModel\BranchItem.cs" />
     <Compile Include="TreeModel\DataForgeTreeItem.cs" />
     <Compile Include="TreeModel\DirectoryTreeItem.cs" />
+    <Compile Include="TreeModel\StreamTreeItem.cs" />
     <Compile Include="TreeModel\TreeItem.cs" />
     <Compile Include="TreeModel\ZipFileTreeItem.cs" />
     <Compile Include="TreeModel\TreeItemObservableCollection.cs" />
