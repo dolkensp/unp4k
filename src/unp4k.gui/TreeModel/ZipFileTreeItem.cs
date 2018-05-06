@@ -49,7 +49,7 @@ namespace unp4k.gui.TreeModel
 
 			foreach (ZipEntry entry in zipFile)
 			{
-				this.Children.AddStream(() => zipFile.GetInputStream(entry), entry.Name, this);
+				this.Children.AddStream(() => zipFile.GetInputStream(entry), entry.Name, this, entry.DateTime.ToUniversalTime());
 
 				lastIndex = entry.ZipFileIndex;
 			}

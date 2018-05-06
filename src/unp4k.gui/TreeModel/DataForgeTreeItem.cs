@@ -19,8 +19,8 @@ namespace unp4k.gui.TreeModel
 		public override String RelativePath => this.Parent.RelativePath;
 		public virtual Boolean Expanded { get; set; }
 
-		public DataForgeTreeItem(String title, ITreeItem parent, unforge.DataForge dataForge)
-			: base(title, parent, () => dataForge.GetStream())
+		public DataForgeTreeItem(IStreamTreeItem node, unforge.DataForge dataForge)
+			: base(node.Title, node.Parent, node.LastWriteTimeUtc, () => dataForge.GetStream())
 
 		{
 			var sw = new Stopwatch { };
@@ -46,8 +46,9 @@ namespace unp4k.gui.TreeModel
 				this.Children.AddStream(
 					() => entry.XmlDocument.GetStream(),
 					entry.FileName,
-					this);
-
+					this,
+					node.LastWriteTimeUtc);
+				
 				lastIndex++;
 			}
 
@@ -64,7 +65,7 @@ namespace unp4k.gui.TreeModel
 	public class CryXmlTreeItem : StreamTreeItem, IStreamTreeItem, ITreeItem
 	{
 		public CryXmlTreeItem(IStreamTreeItem node, XmlDocument xml)
-			: base(node.Title, node.Parent, () => xml.GetStream())
+			: base(node.Title, node.Parent, node.LastWriteTimeUtc, () => xml.GetStream())
 		{ }
 	}
 }

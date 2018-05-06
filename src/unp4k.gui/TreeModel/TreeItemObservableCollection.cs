@@ -17,7 +17,7 @@ namespace unp4k.gui.TreeModel
 			new CryXmlFormatFactory { }
 		};
 		
-		public ITreeItem AddStream(Func<Stream> @delegate, String fullPath, ITreeItem parent = null)
+		public ITreeItem AddStream(Func<Stream> @delegate, String fullPath, ITreeItem parent, DateTime lastWriteTimeUtc)
 		{
 			var path = Path.GetDirectoryName(fullPath).Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -25,7 +25,7 @@ namespace unp4k.gui.TreeModel
 
 			if (parent == null) return null;
 
-			IStreamTreeItem streamItem = new StreamTreeItem(Path.GetFileName(fullPath), parent, @delegate);
+			IStreamTreeItem streamItem = new StreamTreeItem(Path.GetFileName(fullPath), parent, lastWriteTimeUtc, @delegate);
 
 			foreach (var factory in factories)
 			{
