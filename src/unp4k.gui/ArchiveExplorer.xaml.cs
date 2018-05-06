@@ -278,7 +278,12 @@ namespace unp4k.gui
 			if (selectedItem == null) return;
 
 			// Move to background thread
-			new Thread(async () => await this._extractor.ExtractNodeAsync(selectedItem, false)).Start();
+			new Thread(async () =>
+			{
+				var result = await this._extractor.ExtractNodeAsync(selectedItem, false);
+
+				// TODO: Handle false(error) results
+			}).Start();
 
 			await Task.CompletedTask;
 		}
@@ -290,7 +295,12 @@ namespace unp4k.gui
 			if (selectedItem == null) return;
 
 			// Move to background thread
-			new Thread(async () => await this._extractor.ExtractNodeAsync(selectedItem, true)).Start();
+			new Thread(async () =>
+			{
+				var result = await this._extractor.ExtractNodeAsync(selectedItem, true);
+
+				// TODO: Handle false(error) results
+			}).Start();
 
 			await Task.CompletedTask;
 		}
@@ -376,6 +386,10 @@ namespace unp4k.gui
 		{
 			Dispatcher.Invoke(() =>
 			{
+				if (node == null) return;
+
+				if (node.Children == null) return;
+
 				node.Children.Touch();
 			});
 

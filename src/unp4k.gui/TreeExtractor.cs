@@ -8,6 +8,8 @@ using Path = System.IO.Path;
 using unp4k.gui.Extensions;
 using unp4k.gui.TreeModel;
 using unp4k.gui.Plugins;
+using Zstd.Net;
+using System.Diagnostics;
 
 namespace unp4k.gui
 {
@@ -22,9 +24,9 @@ namespace unp4k.gui
 			this.Filter = filter;
 		}
 
-		public async Task ExtractNodeAsync(ITreeItem selectedItem, Boolean useTemp = false)
+		public async Task<Boolean> ExtractNodeAsync(ITreeItem selectedItem, Boolean useTemp = false)
 		{
-			if (selectedItem == null) return;
+			if (selectedItem == null) return false;
 
 			Boolean? result = false;
 			String path = String.Empty;
@@ -67,36 +69,38 @@ namespace unp4k.gui
 
 			if (result == true)
 			{
-				await this.ExtractNodeAsync(selectedItem, path);
+				result &= await this.ExtractNodeAsync(selectedItem, path);
 
 				if (useTemp) System.Diagnostics.Process.Start(path);
 			}
 
-			await Task.CompletedTask;
+			return result ?? false;
 		}
 
-		private async Task ExtractNodeAsync(ITreeItem node, String outputRoot, String rootPath = null)
+		private async Task<Boolean> ExtractNodeAsync(ITreeItem node, String outputRoot, String rootPath = null)
 		{
 			// Early exit if we don't match the filter
-			if (!this.Filter(node)) return;
+			if (!this.Filter(node)) return true;
 
 			if (node is IStreamTreeItem leaf)
 			{
-				await this.ExtractNodeAsync(leaf, outputRoot, rootPath);
+				return await this.ExtractNodeAsync(leaf, outputRoot, rootPath);
 			}
 
 			if (node is IBranchItem branch)
 			{
-				await this.ExtractNodeAsync(branch, outputRoot, rootPath);
+				return await this.ExtractNodeAsync(branch, outputRoot, rootPath);
 			}
-			
+
+			return false;
+
 			// else
 			// {
 			// 	throw new NotSupportedException($"Node type not supported. Node type: {node.GetType().Name}");
 			// }
 		}
 
-		private async Task ExtractNodeAsync(IStreamTreeItem node, String outputRoot, String rootPath)
+		private async Task<Boolean> ExtractNodeAsync(IStreamTreeItem node, String outputRoot, String rootPath)
 		{
 			var forgeFactory = new DataForgeFormatFactory { };
 			var cryxmlFactory = new CryXmlFormatFactory { };
@@ -122,22 +126,34 @@ namespace unp4k.gui
 
 				#region Dump Raw File
 
-				using (var dataStream = node.Stream)
+				try
 				{
-					dataStream.Seek(0, SeekOrigin.Begin);
 
-					using (FileStream fs = File.Create(absolutePath))
+					using (var dataStream = node.Stream)
 					{
-						await dataStream.CopyToAsync(fs, 4096);
+						dataStream.Seek(0, SeekOrigin.Begin);
+
+						using (FileStream fs = File.Create(absolutePath))
+						{
+							await dataStream.CopyToAsync(fs, 4096);
+						}
 					}
+				}
+				catch (ZStdException ex)
+				{
+					return false;
 				}
 
 				#endregion
 			}
+
+			return true;
 		}
 
-		private async Task ExtractNodeAsync(IBranchItem node, String outputRoot, String rootPath)
+		private async Task<Boolean> ExtractNodeAsync(IBranchItem node, String outputRoot, String rootPath)
 		{
+			var result = true;
+
 			if (rootPath == null)
 			{
 				rootPath = String.Empty;
@@ -150,8 +166,10 @@ namespace unp4k.gui
 			
 			foreach (var child in node.Children)
 			{
-				await this.ExtractNodeAsync(child, outputRoot, rootPath);
+				result &= await this.ExtractNodeAsync(child, outputRoot, rootPath);
 			}
+
+			return result;
 		}
 	}
 }
