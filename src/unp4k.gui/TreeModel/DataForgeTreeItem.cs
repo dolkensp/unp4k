@@ -28,7 +28,6 @@ namespace unp4k.gui.TreeModel
 
 			var maxIndex = dataForge.Length - 1;
 			var lastIndex = 0L;
-			var timeTaken = 0L;
 
 			var oldProgress = ArchiveExplorer.RegisterProgress(async (ProgressBar barProgress) =>
 			{
@@ -53,11 +52,9 @@ namespace unp4k.gui.TreeModel
 
 			sw.Stop();
 
-			timeTaken = sw.ElapsedMilliseconds;
-
 			ArchiveExplorer.RegisterProgress(oldProgress);
 
-			ArchiveExplorer.UpdateStatus($"Deserialized {this.Text} in {timeTaken:#,000}ms").Wait();
+			ArchiveExplorer.UpdateStatus($"Deserialized {this.Text} in {sw.ElapsedMilliseconds:#,000}ms").Wait();
 		}
 	}
 

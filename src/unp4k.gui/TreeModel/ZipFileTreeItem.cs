@@ -15,8 +15,6 @@ namespace unp4k.gui.TreeModel
 {
 	public class ZipFileTreeItem : TreeItem, IBranchItem
 	{
-		// public virtual ZipFile Archive { get; }
-
 		public virtual Boolean Expanded { get; set; } = false;
 
 		public override String RelativePath => String.Empty;
@@ -56,11 +54,7 @@ namespace unp4k.gui.TreeModel
 				entryList.Add(entry);	
 			}
 
-			foreach (var entry in entryList.OrderBy(e => {
-				var parts = e.Name.ToLowerInvariant().Split(new[] { '/', '\\' });
-
-				return String.Join("/", parts.Take(parts.Length - 1).Select(d => $"_{d}").Append(parts.Last()));
-				}))
+			foreach (var entry in entryList)
 			{
 				this.AddStream(entry.Name, () => zipFile.GetInputStream(entry), entry.DateTime.ToUniversalTime(), entry.Size);
 

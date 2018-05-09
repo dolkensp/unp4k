@@ -39,9 +39,9 @@ namespace unp4k.gui.TreeModel
 		public ITreeItem ParentTreeItem => this.Parent as ITreeItem;
 		
 		private String _sortKey;
-		public virtual String SortKey =>
-			this._sortKey = this._sortKey ?? 
-			this.Title.ToLowerInvariant();
+		public virtual String SortKey => 
+			this._sortKey = this._sortKey ??
+			$"{this.ParentTreeItem?.SortKey}\\{this.Text}".Trim('\\');
 
 		private String _relativePath;
 		public virtual String RelativePath =>

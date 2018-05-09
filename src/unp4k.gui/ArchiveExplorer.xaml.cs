@@ -1,30 +1,18 @@
-﻿using ICSharpCode.SharpZipLib.Core;
-using ICSharpCode.SharpZipLib.Zip;
+﻿using ICSharpCode.SharpZipLib.Zip;
 using ICSharpCode.TreeView;
-using Microsoft.Win32;
 using Ookii.Dialogs.Wpf;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Windows.Threading;
 using unp4k.gui.Extensions;
 using unp4k.gui.TreeModel;
 using Path = System.IO.Path;
@@ -175,7 +163,7 @@ namespace unp4k.gui
 			var root = new ZipFileTreeItem(pak, Path.GetFileName(path));
 			
 			var filter = this._lastFilterText;
-
+			
 			if (filter.Equals("Filter...", StringComparison.InvariantCultureIgnoreCase)) filter = null;
 
 			await this.Dispatcher.Invoke(async () =>
@@ -199,6 +187,9 @@ namespace unp4k.gui
 				this._root = root;
 
 				treeView.Root = root;
+
+				CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(treeView.ItemsSource);
+				view.SortDescriptions.Add(new SortDescription(nameof(ITreeItem.SortKey), ListSortDirection.Ascending));
 
 				await Task.CompletedTask;
 			});
@@ -265,7 +256,9 @@ namespace unp4k.gui
 			{
 				foreach (ITreeItem selectedItem in selectedItems)
 				{
-					await this._extractor.ExtractNodeAsync(selectedItem, false);
+					var result = await this._extractor.ExtractNodeAsync(selectedItem, false);
+					
+					// TODO: Handle false(error) results
 				}
 			}).Start();
 
@@ -279,10 +272,14 @@ namespace unp4k.gui
 			// Move to background thread
 			new Thread(async () =>
 			{
+				var result = true;
+				
 				foreach (ITreeItem selectedItem in selectedItems)
 				{
-					await this._extractor.ExtractNodeAsync(selectedItem, true);
+					result &= await this._extractor.ExtractNodeAsync(selectedItem, true);
 				}
+				
+				// TODO: Handle false(error) results
 			}).Start();
 
 			await Task.CompletedTask;
@@ -348,16 +345,6 @@ namespace unp4k.gui
 		
 		private async Task NotifyNodesAsync(ITreeItem node)
 		{
-			// Dispatcher.Invoke(() =>
-			// {
-			// 	node.Children.Touch();
-			// });
-			// 
-			// if (node is IBranchItem branchItem && branchItem.Expanded)
-			// {
-			// 	node.Children.AsParallel().ForAll(async item => await this.NotifyNodesAsync(item));
-			// }
-
 			await Task.CompletedTask;
 		}
 

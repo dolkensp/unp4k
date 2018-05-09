@@ -12,8 +12,8 @@ namespace unp4k.gui.TreeModel
 
 		private String _sortKey;
 		public override String SortKey =>
-			this._sortKey = this._sortKey ?? 
-			$"__{this.Title.ToLowerInvariant()}";
+			this._sortKey = this._sortKey ??
+			$"{this.ParentTreeItem?.SortKey}\\__{this.Text}".Trim('\\');
 
 		private ImageSource _icon;
 		public override Object Icon =>

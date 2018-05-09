@@ -166,9 +166,12 @@ namespace Zstd.Net
 
 		internal static void CheckError(UIntPtr x)
 		{
-			if (Zstd.Library.IsError(x) == 0) return;
-			Debug.WriteLine(Zstd.Library.GetErrorName(x));
-			throw new ZStdException(Zstd.Library.GetErrorName(x));
+			var code = Zstd.Library.IsError(x);
+			if (code == 0) return;
+
+			throw new ZStdException($"Error {x}:{code}");
+			// Debug.WriteLine(Zstd.Library.GetErrorName(x));
+			// throw new ZStdException(Zstd.Library.GetErrorName(x));
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
