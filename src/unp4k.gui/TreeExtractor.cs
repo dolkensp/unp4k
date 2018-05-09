@@ -10,6 +10,8 @@ using unp4k.gui.TreeModel;
 using unp4k.gui.Plugins;
 using Zstd.Net;
 using System.Diagnostics;
+using System.Windows.Controls;
+using System.Linq;
 
 namespace unp4k.gui
 {
@@ -30,6 +32,9 @@ namespace unp4k.gui
 			this._pak = pak;
 			this.Filter = filter;
 		}
+
+		private Int32 _filesSelected;
+		private Int32 _filesExtracted;
 
 		public async Task<Boolean> ExtractNodeAsync(ITreeItem selectedItem, Boolean useTemp = false)
 		{
@@ -82,12 +87,48 @@ namespace unp4k.gui
 
 			if (result == true)
 			{
+				this._filesSelected = await this.CountNodesAsync(selectedItem);
+				this._filesExtracted = 0;
+
+				var oldProgress = ArchiveExplorer.RegisterProgress(async (ProgressBar barProgress) =>
+				{
+					barProgress.Maximum = this._filesSelected + 1; // Add 1 as we increment early
+					barProgress.Value = this._filesExtracted;
+
+					await ArchiveExplorer.UpdateStatus($"Extracting file {this._filesExtracted:#,##0}/{this._filesSelected:#,##0} from archive");
+
+					await Task.CompletedTask;
+				});
+
+				var sw = new Stopwatch();
+
+				sw.Start();
+
 				result &= await this.ExtractNodeAsync(selectedItem, path, extractMode);
+
+				sw.Stop();
+
+				await ArchiveExplorer.UpdateStatus($"Extracted {this._filesExtracted:#,##0} files in {sw.ElapsedMilliseconds:#,000}ms");
+
+				ArchiveExplorer.RegisterProgress(oldProgress);
 
 				if (useTemp) System.Diagnostics.Process.Start(path);
 			}
 
 			return result ?? false;
+		}
+
+		private async Task<Int32> CountNodesAsync(ITreeItem node)
+		{
+			// Early exit if we don't match the filter
+			if (!this.Filter(node)) return 0;
+
+			await Task.CompletedTask;
+
+			return node.AllChildren
+				.OfType<IStreamTreeItem>()
+				.Where(n => this.Filter(n))
+				.Count();
 		}
 
 		private async Task<Boolean> ExtractNodeAsync(ITreeItem node, String outputRoot, ExtractModeEnum extractMode, String rootPath = null)
@@ -115,6 +156,8 @@ namespace unp4k.gui
 
 		private async Task<Boolean> ExtractNodeAsync(IStreamTreeItem node, String outputRoot, ExtractModeEnum extractMode, String rootPath)
 		{
+			this._filesExtracted += 1;
+
 			var forgeFactory = new DataForgeFormatFactory { };
 			var cryxmlFactory = new CryXmlFormatFactory { };
 
