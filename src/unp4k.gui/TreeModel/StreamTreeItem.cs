@@ -14,15 +14,17 @@ namespace unp4k.gui.TreeModel
 	public interface IStreamTreeItem : ITreeItem
 	{
 		Stream Stream { get; }
-		DateTime LastWriteTimeUtc { get; }
+		DateTime LastModifiedUtc { get; }
+		Int64 StreamLength { get; }
 	}
 
 	public class StreamTreeItem : TreeItem, IStreamTreeItem
 	{
 		public Stream Stream => this._streamDelegate();
-		public virtual DateTime LastWriteTimeUtc { get; }
+		public virtual DateTime LastModifiedUtc { get; }
+		public virtual Int64 StreamLength { get; }
 
-		public override ImageSource Icon => IconManager.GetCachedFileIcon(
+		public override Object Icon => IconManager.GetCachedFileIcon(
 			path: this.Title,
 			iconSize: IconManager.IconSize.Large);
 
@@ -56,10 +58,11 @@ namespace unp4k.gui.TreeModel
 		// 	this._streamDelegate = this.GetSeekableDelegate(stream);
 		// }
 
-		public StreamTreeItem(String title, ITreeItem parent, DateTime lastWriteTimeUtc, Func<Stream> @delegate)
-			: base(title, parent)
+		public StreamTreeItem(String title, Func<Stream> @delegate, DateTime lastModifiedUtc, Int64 streamLength)
+			: base(title)
 		{
-			this.LastWriteTimeUtc = lastWriteTimeUtc;
+			this.StreamLength = streamLength;
+			this.LastModifiedUtc = lastModifiedUtc;
 
 			this._streamDelegate = () =>
 			{

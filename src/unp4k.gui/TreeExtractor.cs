@@ -1,6 +1,7 @@
 ﻿using ICSharpCode.SharpZipLib.Zip;
 using Ookii.Dialogs.Wpf;
 using System;
+using System.Linq;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,7 +53,7 @@ namespace unp4k.gui
 					{
 						FileName = selectedItem.Title,
 						OverwritePrompt = true,
-						Title = $"Export {selectedItem.Title} File",
+						Title = $"Export {selectedItem.Text} File",
 						Filter = $"Selected File|{Path.GetExtension(selectedItem.Title)}",
 					};
 
@@ -66,7 +67,7 @@ namespace unp4k.gui
 				{
 					var dlg = new VistaFolderBrowserDialog
 					{
-						Description = $"Export {selectedItem.Title} Directory",
+						Description = $"Export {selectedItem.Text} Directory",
 						UseDescriptionForTitle = true,
 						SelectedPath = selectedItem.Title,
 					};
@@ -138,7 +139,7 @@ namespace unp4k.gui
 					switch (extractMode)
 					{
 						case ExtractModeEnum.New: return;
-						case ExtractModeEnum.NewOrLatest: if (target.LastWriteTimeUtc >= node.LastWriteTimeUtc) return; break;
+						case ExtractModeEnum.NewOrLatest: if (target.LastWriteTimeUtc >= node.LastModifiedUtc) return; break;
 						case ExtractModeEnum.Overwrite: break;
 					}
 				}
@@ -154,7 +155,7 @@ namespace unp4k.gui
 						await dataStream.CopyToAsync(fs, 4096);
 					}
 
-					target.LastWriteTimeUtc = node.LastWriteTimeUtc;
+					target.LastWriteTimeUtc = node.LastModifiedUtc;
 				}
 
 				#endregion
@@ -173,7 +174,7 @@ namespace unp4k.gui
 				}
 			}
 			
-			foreach (var child in node.Children)
+			foreach (var child in node.Children.OfType<ITreeItem>())
 			{
 				await this.ExtractNodeAsync(child, outputRoot, extractMode, rootPath);
 			}

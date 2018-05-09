@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:unp4k.gui"
         xmlns:model="clr-namespace:unp4k.gui.TreeModel"
+        xmlns:sd="http://icsharpcode.net/sharpdevelop/treeview"
         mc:Ignorable="d"
         Title="unp4k by /u/alluran"
 		MinHeight="400"
@@ -38,11 +39,21 @@
 				<KeyGesture>ENTER</KeyGesture>
 			</RoutedUICommand.InputGestures>
 		</RoutedUICommand>
+		<ContextMenu x:Key="mnuLeaf" StaysOpen="True">
+			<MenuItem Command="{StaticResource OpenFile}" />
+			<MenuItem Command="{StaticResource ExtractFile}" />
+		</ContextMenu>
+		<Style x:Key="HeaderStyle" TargetType="GridViewColumnHeader">
+			<Setter Property="Padding" Value="5, 0, 5, 0" />
+			<Setter Property="MinWidth" Value="200" />
+			<Setter Property="HorizontalAlignment" Value="Stretch" />
+			<Setter Property="HorizontalContentAlignment" Value="Left" />
+		</Style>
 	</Window.Resources>
 	<Window.CommandBindings>
-		<CommandBinding Command="{StaticResource OpenArchive}" Executed="cmdOpenArchive_Executed" />
-		<CommandBinding Command="{StaticResource ExtractFile}" Executed="cmdExtractFile_Executed" />
 		<CommandBinding Command="{StaticResource OpenFile}" Executed="cmdOpenFile_Executed" />
+		<CommandBinding Command="{StaticResource ExtractFile}" Executed="cmdExtractFile_Executed" />
+		<CommandBinding Command="{StaticResource OpenArchive}" Executed="cmdOpenArchive_Executed" />
 		<CommandBinding Command="{StaticResource FilterArchive}" Executed="cmdFilterArchive_Executed"/>
 		<CommandBinding Command="{StaticResource ExitApplication}" Executed="cmdExitApplication_Executed" />
 	</Window.CommandBindings>
@@ -80,45 +91,47 @@
 				 GotFocus="txtFilter_GotFocus"
 				 LostFocus="txtFilter_LostFocus"
 				 TextChanged="txtFilter_TextChanged" />
-		<TreeView x:Name="trvFileExplorer"
-				  Grid.Row="4"
-				  Grid.Column="1"
-				  AllowDrop="True"
-				  Drop="trvFileExplorer_Drop"
-				  PreviewMouseDown="trvFileExplorer_PreviewMouseDown"
-				  MouseMove="trvFileExplorer_MouseMove"
-				  MouseDoubleClick="trvFileExplorer_MouseDoubleClick"
-				  SelectedItemChanged="trvFileExplorer_SelectedItemChanged"
-				  TreeViewItem.Expanded="trvFileExplorer_Expanded"
-				  TreeViewItem.Collapsed="trvFileExplorer_Collapsed">
-			<TreeView.Resources>
-				<HierarchicalDataTemplate DataType="{x:Type model:TreeItem}" ItemsSource="{Binding Children}">
-					<StackPanel Orientation="Horizontal" Margin="2">
-						<Image Source="{Binding Icon}" Width="16" Height="16" SnapsToDevicePixels="True"/>
-						<TextBlock Text="{Binding Title}" Margin="5,0" />
-						<StackPanel.ContextMenu>
-							<ContextMenu StaysOpen="True">
-								<MenuItem Command="{StaticResource OpenFile}" />
-								<MenuItem Command="{StaticResource ExtractFile}" />
-							</ContextMenu>
-						</StackPanel.ContextMenu>
-					</StackPanel>
-				</HierarchicalDataTemplate>
-				<DataTemplate DataType="{x:Type model:StreamTreeItem}">
-					<StackPanel Orientation="Horizontal" Margin="2">
-						<Image Source="{Binding Icon}" Width="16" Height="16" SnapsToDevicePixels="True"/>
-						<TextBlock Text="{Binding Title}" Margin="5,0" />
-						<TextBlock Text="{Binding LastWriteTimeUtc,StringFormat=yyyy-MM-dd HH:mm:ss}" Margin="5,0" TextAlignment="Right" />
-						<StackPanel.ContextMenu>
-							<ContextMenu StaysOpen="True">
-								<MenuItem Command="{StaticResource OpenFile}" />
-								<MenuItem Command="{StaticResource ExtractFile}" />
-							</ContextMenu>
-						</StackPanel.ContextMenu>
-					</StackPanel>
-				</DataTemplate>
-			</TreeView.Resources>
-		</TreeView>
+
+		<sd:SharpTreeView ShowAlternation="True"
+						  x:Name="trvFileExploder"
+						  Grid.Row="4"
+						  Grid.Column="1"
+						  SelectionChanged="trvFileExploder_SelectionChanged"
+						  SelectionMode="Extended">
+			<ListView.View>
+				<sd:SharpGridView>
+					<GridView.Columns>
+						<GridViewColumn Header="Name" HeaderContainerStyle="{StaticResource HeaderStyle}">
+							<GridViewColumn.CellTemplate>
+								<DataTemplate>
+									<sd:SharpTreeNodeView ContextMenu="{StaticResource mnuLeaf}" MouseDoubleClick="trvFileExploder_MouseDoubleClick" />
+								</DataTemplate>
+							</GridViewColumn.CellTemplate>
+						</GridViewColumn>
+						<GridViewColumn Header="Date modified" HeaderContainerStyle="{StaticResource HeaderStyle}">
+							<GridViewColumn.CellTemplate>
+								<DataTemplate DataType="StreamTreeItem">
+									<StackPanel Orientation="Vertical">
+										<TextBlock Text="{Binding LastModifiedUtc,StringFormat=g}" TextAlignment="Right" />
+									</StackPanel>
+								</DataTemplate>
+							</GridViewColumn.CellTemplate>
+						</GridViewColumn>
+						<GridViewColumn Header="Size" HeaderContainerStyle="{StaticResource HeaderStyle}">
+							<GridViewColumn.CellTemplate>
+								<DataTemplate DataType="StreamTreeItem">
+									<StackPanel Orientation="Vertical">
+										<TextBlock Text="{Binding StreamLength,StringFormat=#\,##0}" TextAlignment="Right" />
+									</StackPanel>
+								</DataTemplate>
+							</GridViewColumn.CellTemplate>
+						</GridViewColumn>
+					</GridView.Columns>
+				</sd:SharpGridView>
+			</ListView.View>
+
+		</sd:SharpTreeView>
+
 		<ProgressBar Name="barProgress" VerticalContentAlignment="Center" Grid.Column="1" Grid.Row="6" />
 		<TextBlock Name="lblProgress" VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Column="1" Grid.Row="6" Text="Ready" />
 	</Grid>

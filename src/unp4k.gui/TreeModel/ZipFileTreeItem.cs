@@ -8,6 +8,8 @@ using System.Diagnostics;
 using unp4k.gui.Extensions;
 using System.Windows.Controls;
 using System.Threading.Tasks;
+using System.IO;
+using unp4k.gui.Plugins;
 
 namespace unp4k.gui.TreeModel
 {
@@ -20,14 +22,14 @@ namespace unp4k.gui.TreeModel
 		public override String RelativePath => String.Empty;
 
 		private ImageSource _icon;
-		public override ImageSource Icon =>
+		public override Object Icon =>
 			this._icon = this._icon ??
 			IconManager.GetCachedFileIcon(
 				path: this.Title,
 				iconSize: IconManager.IconSize.Large);
 
-		public ZipFileTreeItem(ZipFile zipFile, String name = null, ITreeItem parent = null)
-			: base(zipFile.GetArchiveName(name), parent)
+		public ZipFileTreeItem(ZipFile zipFile, String name = null)
+			: base(zipFile.GetArchiveName(name))
 		{
 			var sw = new Stopwatch { };
 
@@ -47,9 +49,20 @@ namespace unp4k.gui.TreeModel
 				await Task.CompletedTask;
 			});
 
+			var entryList = new List<ZipEntry> { };
+
 			foreach (ZipEntry entry in zipFile)
 			{
-				this.Children.AddStream(() => zipFile.GetInputStream(entry), entry.Name, this, entry.DateTime.ToUniversalTime());
+				entryList.Add(entry);	
+			}
+
+			foreach (var entry in entryList.OrderBy(e => {
+				var parts = e.Name.ToLowerInvariant().Split(new[] { '/', '\\' });
+
+				return String.Join("/", parts.Take(parts.Length - 1).Select(d => $"_{d}").Append(parts.Last()));
+				}))
+			{
+				this.AddStream(entry.Name, () => zipFile.GetInputStream(entry), entry.DateTime.ToUniversalTime(), entry.Size);
 
 				lastIndex = entry.ZipFileIndex;
 			}
@@ -60,7 +73,7 @@ namespace unp4k.gui.TreeModel
 
 			ArchiveExplorer.RegisterProgress(oldProgress);
 
-			ArchiveExplorer.UpdateStatus($"Loaded {this.Title} in {timeTaken:#,000}ms").Wait();
+			ArchiveExplorer.UpdateStatus($"Loaded {this.Text} in {timeTaken:#,000}ms").Wait();
 		}
 	}
 }

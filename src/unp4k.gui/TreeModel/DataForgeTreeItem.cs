@@ -16,12 +16,11 @@ namespace unp4k.gui.TreeModel
 {
 	public class DataForgeTreeItem : StreamTreeItem, IStreamTreeItem, IBranchItem, ITreeItem
 	{
-		public override String RelativePath => this.Parent.RelativePath;
+		public override String RelativePath => this.ParentTreeItem.RelativePath;
 		public virtual Boolean Expanded { get; set; }
 
 		public DataForgeTreeItem(IStreamTreeItem node, unforge.DataForge dataForge)
-			: base(node.Title, node.Parent, node.LastWriteTimeUtc, () => dataForge.GetStream())
-
+			: base(node.Title, () => dataForge.GetStream(), node.LastModifiedUtc, dataForge.OuterXML.Length)
 		{
 			var sw = new Stopwatch { };
 
@@ -43,11 +42,11 @@ namespace unp4k.gui.TreeModel
 
 			foreach ((String FileName, XmlDocument XmlDocument) entry in dataForge)
 			{
-				this.Children.AddStream(
-					() => entry.XmlDocument.GetStream(),
+				this.AddStream(
 					entry.FileName,
-					this,
-					node.LastWriteTimeUtc);
+					() => entry.XmlDocument.GetStream(),
+					node.LastModifiedUtc,
+					entry.XmlDocument.OuterXml.Length);
 				
 				lastIndex++;
 			}
@@ -58,14 +57,14 @@ namespace unp4k.gui.TreeModel
 
 			ArchiveExplorer.RegisterProgress(oldProgress);
 
-			ArchiveExplorer.UpdateStatus($"Deserialized {this.Title} in {timeTaken:#,000}ms").Wait();
+			ArchiveExplorer.UpdateStatus($"Deserialized {this.Text} in {timeTaken:#,000}ms").Wait();
 		}
 	}
 
 	public class CryXmlTreeItem : StreamTreeItem, IStreamTreeItem, ITreeItem
 	{
 		public CryXmlTreeItem(IStreamTreeItem node, XmlDocument xml)
-			: base(node.Title, node.Parent, node.LastWriteTimeUtc, () => xml.GetStream())
+			: base(node.Title, () => xml.GetStream(), node.LastModifiedUtc, xml.OuterXml.Length)
 		{ }
 	}
 }

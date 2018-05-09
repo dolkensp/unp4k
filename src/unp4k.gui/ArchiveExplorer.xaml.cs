@@ -1,5 +1,6 @@
 ﻿using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
+using ICSharpCode.TreeView;
 using Microsoft.Win32;
 using Ookii.Dialogs.Wpf;
 using System;
@@ -69,7 +70,7 @@ namespace unp4k.gui
 
 			this.Icon = IconManager.GetCachedFileIcon("data.zip", IconManager.IconSize.Large);
 
-			trvFileExplorer.Focus();
+			trvFileExploder.Focus();
 
 			new Thread(async () =>
 			{
@@ -93,7 +94,12 @@ namespace unp4k.gui
 
 						sw.Start();
 
-						await this.NotifyNodesAsync(this._root);
+						foreach (var child in this._root.AllChildren)
+						{
+							child.IsHidden = !this.Filter(child);
+						}
+
+						// await this.NotifyNodesAsync(this._root);
 
 						sw.Stop();
 
@@ -145,7 +151,7 @@ namespace unp4k.gui
 			var oldDelegate = ArchiveExplorer._updateDelegate;
 
 			ArchiveExplorer._updateDelegate = @delegate;
-
+			
 			return oldDelegate;
 		}
 
@@ -161,7 +167,7 @@ namespace unp4k.gui
 
 		public async Task OpenP4kAsync(String path)
 		{
-			TreeView treeView = this.trvFileExplorer;
+			var treeView = this.trvFileExploder;
 
 			var pakFile = File.OpenRead(path);
 			var pak = new ZipFile(pakFile);
@@ -174,8 +180,6 @@ namespace unp4k.gui
 
 			await this.Dispatcher.Invoke(async () =>
 			{
-				treeView.Items.Clear();
-
 				if (this._pak != null)
 				{
 					this._pak.Close();
@@ -194,7 +198,7 @@ namespace unp4k.gui
 				this._extractor = new TreeExtractor(pak, this.Filter);
 				this._root = root;
 
-				treeView.Items.Add(root);
+				treeView.Root = root;
 
 				await Task.CompletedTask;
 			});
@@ -223,34 +227,15 @@ namespace unp4k.gui
 
 		private void trvFileExplorer_Expanded(object sender, RoutedEventArgs e)
 		{
-			var node = e.OriginalSource as TreeViewItem;
+			var node = (e.OriginalSource as TreeViewItem)?.DataContext as TreeItem;
 
 			if (node != null)
 			{
-				node.Items.SortDescriptions.Clear();
-				node.Items.SortDescriptions.Add(new SortDescription("SortKey", ListSortDirection.Ascending));
-
-				node.Items.Filter = this.Filter;
-
-				if (node.DataContext is IBranchItem branchItem)
-				{
-					branchItem.Expanded = true;
-				}
+				node.Children.Sort((SharpTreeNode x1, SharpTreeNode x2) => String.Compare($"{x1.Text}", $"{x2.Text}", true));
 			}
 		}
 
-		private void trvFileExplorer_Collapsed(object sender, RoutedEventArgs e)
-		{
-			var node = e.OriginalSource as TreeViewItem;
-
-			if (node != null)
-			{
-				if (node.DataContext is IBranchItem branchItem)
-				{
-					branchItem.Expanded = false;
-				}
-			}
-		}
+		private void trvFileExplorer_Collapsed(object sender, RoutedEventArgs e) { }
 
 		private async void cmdOpenArchive_Executed(Object sender, ExecutedRoutedEventArgs e)
 		{
@@ -273,31 +258,39 @@ namespace unp4k.gui
 
 		private async void cmdExtractFile_Executed(Object sender, ExecutedRoutedEventArgs e)
 		{
-			var selectedItem = trvFileExplorer.SelectedItem as ITreeItem;
-			
-			if (selectedItem == null) return;
+			var selectedItems = trvFileExploder.SelectedItems;
 
 			// Move to background thread
-			new Thread(async () => await this._extractor.ExtractNodeAsync(selectedItem, false)).Start();
+			new Thread(async () =>
+			{
+				foreach (ITreeItem selectedItem in selectedItems)
+				{
+					await this._extractor.ExtractNodeAsync(selectedItem, false);
+				}
+			}).Start();
 
 			await Task.CompletedTask;
 		}
 
 		private async void cmdOpenFile_Executed(Object sender, ExecutedRoutedEventArgs e)
 		{
-			var selectedItem = trvFileExplorer.SelectedItem as IStreamTreeItem;
-
-			if (selectedItem == null) return;
+			var selectedItems = trvFileExploder.SelectedItems;
 
 			// Move to background thread
-			new Thread(async () => await this._extractor.ExtractNodeAsync(selectedItem, true)).Start();
+			new Thread(async () =>
+			{
+				foreach (ITreeItem selectedItem in selectedItems)
+				{
+					await this._extractor.ExtractNodeAsync(selectedItem, true);
+				}
+			}).Start();
 
 			await Task.CompletedTask;
 		}
 
 		#region Mouse Support
 
-		private async void trvFileExplorer_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+		private async void trvFileExploder_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 		{
 			var selectedNode = e.OriginalSource as TreeViewItem;
 
@@ -346,26 +339,7 @@ namespace unp4k.gui
 		// }
 
 		#endregion
-
-		#region Inbound Drag and Drop Support
-
-		private async void trvFileExplorer_Drop(object sender, DragEventArgs e)
-		{
-			if (e.Data.GetDataPresent(DataFormats.FileDrop))
-			{
-				String[] files = (String[])e.Data.GetData(DataFormats.FileDrop);
-
-				var path = files.Where(f => Path.GetExtension(f).Equals(".p4k", StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
-
-				if (!String.IsNullOrWhiteSpace(path))
-				{
-					await this.OpenP4kAsync(path);
-				}
-			}
-		}
-
-		#endregion
-
+			
 		#region Filter Support
 		
 		private DateTime? _lastFilterTime;
@@ -374,15 +348,15 @@ namespace unp4k.gui
 		
 		private async Task NotifyNodesAsync(ITreeItem node)
 		{
-			Dispatcher.Invoke(() =>
-			{
-				node.Children.Touch();
-			});
-
-			if (node is IBranchItem branchItem && branchItem.Expanded)
-			{
-				node.Children.AsParallel().ForAll(async item => await this.NotifyNodesAsync(item));
-			}
+			// Dispatcher.Invoke(() =>
+			// {
+			// 	node.Children.Touch();
+			// });
+			// 
+			// if (node is IBranchItem branchItem && branchItem.Expanded)
+			// {
+			// 	node.Children.AsParallel().ForAll(async item => await this.NotifyNodesAsync(item));
+			// }
 
 			await Task.CompletedTask;
 		}
@@ -422,51 +396,50 @@ namespace unp4k.gui
 
 		#endregion
 
-		#region Outbound Drag and Drop Support
+		//#region Outbound Drag and Drop Support
 
-		private Point _start;
+		//private Point _start;
 
-		private void trvFileExplorer_PreviewMouseDown(object sender, MouseButtonEventArgs e)
-		{
-			this._start = e.GetPosition(null);
-		}
+		//private void trvFileExplorer_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+		//{
+		//	this._start = e.GetPosition(null);
+		//}
 
-		private void trvFileExplorer_MouseMove(object sender, MouseEventArgs e)
-		{
-			if (e.LeftButton != MouseButtonState.Pressed) return;
-			if (this.trvFileExplorer.SelectedItem == null) return;
+		//private void trvFileExplorer_MouseMove(object sender, MouseEventArgs e)
+		//{
+		//	if (e.LeftButton != MouseButtonState.Pressed) return;
+		//	if (this.trvFileExplorer.SelectedItem == null) return;
 
-			Point mpos = e.GetPosition(null);
-			Vector diff = this._start - mpos;
+		//	Point mpos = e.GetPosition(null);
+		//	Vector diff = this._start - mpos;
 
-			if (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance &&
-				Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
-			{
-				// right about here you get the file urls of the selected items.
-				// should be quite easy, if not, ask.
-				String[] files = new String[] { };
-				String dataFormat = DataFormats.FileDrop;
-				DataObject dataObject = new DataObject(dataFormat, files);
-				DragDrop.DoDragDrop(this.trvFileExplorer, dataObject, DragDropEffects.Move);
-			}
-		}
+		//	if (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance &&
+		//		Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+		//	{
+		//		// right about here you get the file urls of the selected items.
+		//		// should be quite easy, if not, ask.
+		//		String[] files = new String[] { };
+		//		String dataFormat = DataFormats.FileDrop;
+		//		DataObject dataObject = new DataObject(dataFormat, files);
+		//		DragDrop.DoDragDrop(this.trvFileExplorer, dataObject, DragDropEffects.Move);
+		//	}
+		//}
 
-		#endregion
+		//#endregion
 		
 		private void cmdExitApplication_Executed(Object sender, ExecutedRoutedEventArgs e)
 		{
 			Application.Current.Shutdown();
 		}
 
-		private void trvFileExplorer_SelectedItemChanged(Object sender, RoutedPropertyChangedEventArgs<Object> e)
-		{
-			var node = e.OriginalSource as TreeViewItem;
-		}
-
 		private void cmdFilterArchive_Executed(object sender, ExecutedRoutedEventArgs e)
 		{
 			txtFilter.Focus();
 			txtFilter.SelectAll();
+		}
+
+		private void trvFileExploder_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		{
 		}
 	}
 }

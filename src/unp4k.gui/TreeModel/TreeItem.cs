@@ -4,27 +4,39 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Windows.Media;
+using ICSharpCode.TreeView;
+using System.IO;
+using unp4k.gui.Plugins;
 
 namespace unp4k.gui.TreeModel
 {
 	public interface ITreeItem
 	{
 		String Title { get; }
-		ImageSource Icon { get; }
 		String SortKey { get; }
-
 		String RelativePath { get; }
 
-		ITreeItem Parent { get; }
-		TreeItemObservableCollection Children { get; }
+		ITreeItem ParentTreeItem { get; }
 		IEnumerable<IStreamTreeItem> AllChildren { get; }
+		
+		SharpTreeNodeCollection Children { get; }
+		SharpTreeNode Parent { get; }
+		Object Text { get; }
+		Object Icon { get; }
+		Object ToolTip { get; }
+		Int32 Level { get; }
+		Boolean IsRoot { get; }
+		Boolean IsHidden { get; set; }
+		Boolean IsVisible { get; }
+		Boolean IsSelected { get; set; }
 	}
 
-	public abstract class TreeItem : ITreeItem
+	public interface IBranchItem : ITreeItem { }
+
+	public abstract class TreeItem : SharpTreeNode, ITreeItem
 	{
 		public virtual String Title { get; }
-
-		public virtual ImageSource Icon => null;
+		public ITreeItem ParentTreeItem => this.Parent as ITreeItem;
 		
 		private String _sortKey;
 		public virtual String SortKey =>
@@ -34,24 +46,94 @@ namespace unp4k.gui.TreeModel
 		private String _relativePath;
 		public virtual String RelativePath =>
 			this._relativePath = this._relativePath ?? 
-			$"{this.Parent.RelativePath}\\{this.Title}".Trim('\\');
+			$"{this.ParentTreeItem?.RelativePath}\\{this.Text}".Trim('\\');
 
-		public virtual ITreeItem Parent { get; }
-
-		public virtual TreeItemObservableCollection Children { get; } = new TreeItemObservableCollection { };
-
-		private IStreamTreeItem[] _allChildren;
+		private IEnumerable<IStreamTreeItem> _allChildren;
 		public virtual IEnumerable<IStreamTreeItem> AllChildren =>
 			this._allChildren = this._allChildren ??
 			this.Children
-				.SelectMany(c => c.AllChildren.OfType<ITreeItem>().Union(new[] { c }))
+				.OfType<ITreeItem>()
+				.SelectMany(c => c.AllChildren.Union(new[] { c }))
 				.OfType<IStreamTreeItem>()
 				.ToArray();
 
-		public TreeItem(String title, ITreeItem parent)
+		public override Object Text => this.Title;
+
+		internal TreeItem(String title)
 		{
 			this.Title = title;
-			this.Parent = parent;
+		}
+
+		// TODO: Factory selection
+		private IFormatFactory[] factories = new IFormatFactory[] {
+			new DataForgeFormatFactory { },
+			new CryXmlFormatFactory { }
+		};
+
+		public ITreeItem AddStream(String fullPath, Func<Stream> @delegate, DateTime lastModifiedUtc, Int64 streamLength)
+		{
+			var path = Path.GetDirectoryName(fullPath).Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
+
+			var parent = this.GetParentRelativePath(path);
+
+			if (parent == null) return null;
+
+			var streamItem = new StreamTreeItem(Path.GetFileName(fullPath), @delegate, lastModifiedUtc, streamLength);
+
+			foreach (var factory in factories)
+			{
+				streamItem = factory.Handle(streamItem) as StreamTreeItem;
+			}
+
+			parent.Children.Add(streamItem);
+
+			return streamItem;
+		}
+
+		internal ITreeItem GetParentRelativePath(String[] fullPath)
+		{
+			if (fullPath.Length == 0) return this;
+
+			var key = fullPath[0];
+
+			var directory = this
+				.Children
+				.OfType<DirectoryTreeItem>()
+				.Where(d => d.Title == key)
+				.FirstOrDefault();
+
+			if (directory == null)
+			{
+				directory = new DirectoryTreeItem(key);
+
+				this.Children.Add(directory);
+			}
+
+			return directory.GetParentRelativePath(fullPath.Skip(1).ToArray());
+		}
+
+		public void Sort()
+		{
+			if (this.Children.Count > 1)
+			{
+				this.Children.Sort((x1, x2) =>
+				{
+					if (x1 is TreeItem t1)
+					{
+						if (x2 is TreeItem t2)
+						{
+							return String.Compare(t1.SortKey, t2.SortKey, StringComparison.InvariantCultureIgnoreCase);
+						}
+					}
+
+					return String.Compare($"{x1.Text}", $"{x2.Text}", StringComparison.InvariantCultureIgnoreCase);
+				});
+			}
+
+			foreach (var child in this.Children.OfType<TreeItem>())
+			{
+				child.Sort();
+			}
 		}
 	}
 }

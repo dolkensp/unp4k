@@ -16,14 +16,14 @@ namespace unp4k.gui.TreeModel
 			$"__{this.Title.ToLowerInvariant()}";
 
 		private ImageSource _icon;
-		public override ImageSource Icon =>
+		public override Object Icon =>
 			this._icon = this._icon ?? 
 			IconManager.GetCachedFolderIcon(
 				path: this.RelativePath, 
 				iconSize: IconManager.IconSize.Large,
 				folderType: IconManager.FolderType.Closed);
 
-		public DirectoryTreeItem(String title, ITreeItem parent)
-			: base(title, parent) { }
+		public DirectoryTreeItem(String title)
+			: base(title) { }
 	}
 }

@@ -35,7 +35,7 @@ namespace unp4k.gui.Plugins
 					{
 						try
 						{
-							Debug.WriteLine($"Checking {node.Title}");
+							Debug.WriteLine($"Checking {node.Text}");
 
 							var peek = br.PeekChar();
 

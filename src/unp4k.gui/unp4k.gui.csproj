@@ -34,6 +34,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ICSharpCode.TreeView, Version=4.2.0.8752, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\lib\ICSharpCode.TreeView.dll</HintPath>
+    </Reference>
     <Reference Include="Ookii.Dialogs.Wpf, Version=1.0.0.0, Culture=neutral, PublicKeyToken=0c15020868fd6249, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Ookii.Dialogs.1.0\lib\net35\Ookii.Dialogs.Wpf.dll</HintPath>
     </Reference>
@@ -93,13 +97,11 @@
     <Compile Include="Extensions\ZipFileExtensions.cs" />
     <Compile Include="Plugins\IFormatFactory.cs" />
     <Compile Include="TreeExtractor.cs" />
-    <Compile Include="TreeModel\BranchItem.cs" />
     <Compile Include="TreeModel\DataForgeTreeItem.cs" />
     <Compile Include="TreeModel\DirectoryTreeItem.cs" />
     <Compile Include="TreeModel\StreamTreeItem.cs" />
     <Compile Include="TreeModel\TreeItem.cs" />
     <Compile Include="TreeModel\ZipFileTreeItem.cs" />
-    <Compile Include="TreeModel\TreeItemObservableCollection.cs" />
     <Page Include="ArchiveExplorer.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

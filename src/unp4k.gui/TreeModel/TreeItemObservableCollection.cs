@@ -1,4 +1,5 @@
 ﻿using ICSharpCode.SharpZipLib.Zip;
+using ICSharpCode.TreeView;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -9,54 +10,10 @@ using unp4k.gui.Plugins;
 
 namespace unp4k.gui.TreeModel
 {
-	public class TreeItemObservableCollection : ObservableCollection<ITreeItem>
+	public class TreeItemFactory
 	{
-		// TODO: Factory selection
-		private IFormatFactory[] factories = new IFormatFactory[] {
-			new DataForgeFormatFactory { },
-			new CryXmlFormatFactory { }
-		};
-		
-		public ITreeItem AddStream(Func<Stream> @delegate, String fullPath, ITreeItem parent, DateTime lastWriteTimeUtc)
-		{
-			var path = Path.GetDirectoryName(fullPath).Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
+		public TreeItemFactory Instance { get; } = new TreeItemFactory { };
 
-			if (path.Length > 0) parent = this.GetParentRelativePath(path, parent);
-
-			if (parent == null) return null;
-
-			IStreamTreeItem streamItem = new StreamTreeItem(Path.GetFileName(fullPath), parent, lastWriteTimeUtc, @delegate);
-
-			foreach (var factory in factories)
-			{
-				streamItem = factory.Handle(streamItem);
-			}
-
-			parent.Children.Add(streamItem);
-
-			return streamItem;
-		}
-
-		private ITreeItem GetParentRelativePath(String[] fullPath, ITreeItem parent = null)
-		{
-			if (fullPath.Length == 0) return parent;
-
-			var key = fullPath[0];
-
-			var directory = this
-				.OfType<DirectoryTreeItem>()
-				.Where(d => d.Title == key)
-				.FirstOrDefault();
-
-			if (directory == null)
-			{
-				directory = new DirectoryTreeItem(key, parent);
-
-				this.Add(directory);
-			}
-
-			return directory.Children.GetParentRelativePath(fullPath.Skip(1).ToArray(), directory);
-		}
 		
 		public void Touch()
 		{
