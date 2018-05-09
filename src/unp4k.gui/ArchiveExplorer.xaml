@@ -43,11 +43,26 @@
 			<MenuItem Command="{StaticResource OpenFile}" />
 			<MenuItem Command="{StaticResource ExtractFile}" />
 		</ContextMenu>
-		<Style x:Key="HeaderStyle" TargetType="GridViewColumnHeader">
+		<Style x:Key="hdrModified" TargetType="GridViewColumnHeader">
 			<Setter Property="Padding" Value="5, 0, 5, 0" />
-			<Setter Property="MinWidth" Value="200" />
+			<Setter Property="MinWidth" Value="100" />
 			<Setter Property="HorizontalAlignment" Value="Stretch" />
 			<Setter Property="HorizontalContentAlignment" Value="Left" />
+			<EventSetter Event="Click" Handler="hdrSort_ClickAsync" />
+		</Style>
+		<Style x:Key="hdrSize" TargetType="GridViewColumnHeader">
+			<Setter Property="Padding" Value="5, 0, 5, 0" />
+			<Setter Property="MinWidth" Value="100" />
+			<Setter Property="HorizontalAlignment" Value="Stretch" />
+			<Setter Property="HorizontalContentAlignment" Value="Left" />
+			<EventSetter Event="Click" Handler="hdrSort_ClickAsync" />
+		</Style>
+		<Style x:Key="hdrName" TargetType="GridViewColumnHeader">
+			<Setter Property="Padding" Value="5, 0, 5, 0" />
+			<Setter Property="MinWidth" Value="300" />
+			<Setter Property="HorizontalAlignment" Value="Stretch" />
+			<Setter Property="HorizontalContentAlignment" Value="Left" />
+			<EventSetter Event="Click" Handler="hdrSort_ClickAsync" />
 		</Style>
 	</Window.Resources>
 	<Window.CommandBindings>
@@ -101,27 +116,27 @@
 			<ListView.View>
 				<sd:SharpGridView>
 					<GridView.Columns>
-						<GridViewColumn Header="Name" HeaderContainerStyle="{StaticResource HeaderStyle}">
+						<GridViewColumn Header="Name" HeaderContainerStyle="{StaticResource hdrName}">
 							<GridViewColumn.CellTemplate>
 								<DataTemplate>
 									<sd:SharpTreeNodeView ContextMenu="{StaticResource mnuLeaf}" MouseDoubleClick="trvFileExploder_MouseDoubleClick" />
 								</DataTemplate>
 							</GridViewColumn.CellTemplate>
 						</GridViewColumn>
-						<GridViewColumn Header="Date modified" HeaderContainerStyle="{StaticResource HeaderStyle}">
+						<GridViewColumn Header="Date modified" HeaderContainerStyle="{StaticResource hdrModified}">
 							<GridViewColumn.CellTemplate>
 								<DataTemplate DataType="StreamTreeItem">
 									<StackPanel Orientation="Vertical">
-										<TextBlock Text="{Binding LastModifiedUtc,StringFormat=g}" TextAlignment="Right" />
+										<TextBlock Text="{Binding LastModifiedUtc,StringFormat=g}" TextAlignment="Right" ContextMenu="{StaticResource mnuLeaf}" />
 									</StackPanel>
 								</DataTemplate>
 							</GridViewColumn.CellTemplate>
 						</GridViewColumn>
-						<GridViewColumn Header="Size" HeaderContainerStyle="{StaticResource HeaderStyle}">
+						<GridViewColumn Header="Size" HeaderContainerStyle="{StaticResource hdrSize}">
 							<GridViewColumn.CellTemplate>
 								<DataTemplate DataType="StreamTreeItem">
 									<StackPanel Orientation="Vertical">
-										<TextBlock Text="{Binding StreamLength,StringFormat=#\,##0}" TextAlignment="Right" />
+										<TextBlock Text="{Binding StreamLength,StringFormat=#\,##0}" TextAlignment="Right" ContextMenu="{StaticResource mnuLeaf}" />
 									</StackPanel>
 								</DataTemplate>
 							</GridViewColumn.CellTemplate>

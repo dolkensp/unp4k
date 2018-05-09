@@ -249,7 +249,9 @@ namespace unp4k.gui
 
 		private async void cmdExtractFile_Executed(Object sender, ExecutedRoutedEventArgs e)
 		{
-			var selectedItems = trvFileExploder.SelectedItems;
+			var selectedItems = trvFileExploder.SelectedItems
+				.OfType<ITreeItem>()
+				.ToArray();
 
 			// Move to background thread
 			new Thread(async () =>
@@ -267,7 +269,9 @@ namespace unp4k.gui
 
 		private async void cmdOpenFile_Executed(Object sender, ExecutedRoutedEventArgs e)
 		{
-			var selectedItems = trvFileExploder.SelectedItems;
+			var selectedItems = trvFileExploder.SelectedItems
+				.OfType<ITreeItem>()
+				.ToArray();
 
 			// Move to background thread
 			new Thread(async () =>
@@ -427,6 +431,11 @@ namespace unp4k.gui
 
 		private void trvFileExploder_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
+		}
+
+		private async void hdrSort_ClickAsync(object sender, RoutedEventArgs e)
+		{
+
 		}
 	}
 }

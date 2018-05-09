@@ -19,6 +19,9 @@ namespace unp4k.gui.TreeModel
 
 		public override String RelativePath => String.Empty;
 
+		public override DateTime LastModifiedUtc => this.AllChildren.OfType<IStreamTreeItem>().Max(t => t.LastModifiedUtc);
+		public override Int64 StreamLength => this.AllChildren.OfType<IStreamTreeItem>().Sum(t => t.StreamLength);
+
 		private ImageSource _icon;
 		public override Object Icon =>
 			this._icon = this._icon ??

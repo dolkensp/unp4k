@@ -14,21 +14,20 @@ namespace unp4k.gui.TreeModel
 	public interface IStreamTreeItem : ITreeItem
 	{
 		Stream Stream { get; }
-		DateTime LastModifiedUtc { get; }
-		Int64 StreamLength { get; }
 	}
 
 	public class StreamTreeItem : TreeItem, IStreamTreeItem
 	{
 		public Stream Stream => this._streamDelegate();
-		public virtual DateTime LastModifiedUtc { get; }
-		public virtual Int64 StreamLength { get; }
 
 		public override Object Icon => IconManager.GetCachedFileIcon(
 			path: this.Title,
 			iconSize: IconManager.IconSize.Large);
 
 		private Func<Stream> _streamDelegate;
+
+		public override DateTime LastModifiedUtc { get; }
+		public override Int64 StreamLength { get; }
 
 		//private Func<Stream> GetSeekableDelegate(Stream stream)
 		//{

@@ -18,7 +18,7 @@ namespace unp4k.gui.TreeModel
 	{
 		public override String RelativePath => this.ParentTreeItem.RelativePath;
 		public virtual Boolean Expanded { get; set; }
-
+		
 		public DataForgeTreeItem(IStreamTreeItem node, unforge.DataForge dataForge)
 			: base(node.Title, () => dataForge.GetStream(), node.LastModifiedUtc, dataForge.OuterXML.Length)
 		{

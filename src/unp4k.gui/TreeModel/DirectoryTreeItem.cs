@@ -10,6 +10,9 @@ namespace unp4k.gui.TreeModel
 	{
 		public virtual Boolean Expanded { get; set; } = false;
 
+		public override DateTime LastModifiedUtc => this.AllChildren.OfType<IStreamTreeItem>().Max(t => t.LastModifiedUtc);
+		public override Int64 StreamLength => this.AllChildren.OfType<IStreamTreeItem>().Sum(t => t.StreamLength);
+
 		private String _sortKey;
 		public override String SortKey =>
 			this._sortKey = this._sortKey ??

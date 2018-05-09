@@ -16,6 +16,9 @@ namespace unp4k.gui.TreeModel
 		String SortKey { get; }
 		String RelativePath { get; }
 
+		DateTime LastModifiedUtc { get; }
+		Int64 StreamLength { get; }
+
 		ITreeItem ParentTreeItem { get; }
 		IEnumerable<IStreamTreeItem> AllChildren { get; }
 		
@@ -58,6 +61,9 @@ namespace unp4k.gui.TreeModel
 				.ToArray();
 
 		public override Object Text => this.Title;
+
+		public abstract DateTime LastModifiedUtc { get; }
+		public abstract Int64 StreamLength { get; }
 
 		internal TreeItem(String title)
 		{

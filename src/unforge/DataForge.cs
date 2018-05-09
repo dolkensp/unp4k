@@ -28,45 +28,45 @@ namespace unforge
 	{
         internal BinaryReader _br;
 
-        public Boolean IsLegacy { get; set; }
-        public Int32 FileVersion { get; set; }
+        internal Boolean IsLegacy { get; set; }
+        internal Int32 FileVersion { get; set; }
 
-        public DataForgeStructDefinition[] StructDefinitionTable { get; set; }
-        public DataForgePropertyDefinition[] PropertyDefinitionTable { get; set; }
-        public DataForgeEnumDefinition[] EnumDefinitionTable { get; set; }
-        public DataForgeDataMapping[] DataMappingTable { get; set; }
-        public DataForgeRecord[] RecordDefinitionTable { get; set; }
-        public DataForgeStringLookup[] EnumOptionTable { get; set; }
-        public DataForgeString[] ValueTable { get; set; }
+        internal DataForgeStructDefinition[] StructDefinitionTable { get; set; }
+        internal DataForgePropertyDefinition[] PropertyDefinitionTable { get; set; }
+        internal DataForgeEnumDefinition[] EnumDefinitionTable { get; set; }
+        internal DataForgeDataMapping[] DataMappingTable { get; set; }
+        internal DataForgeRecord[] RecordDefinitionTable { get; set; }
+        internal DataForgeStringLookup[] EnumOptionTable { get; set; }
+        internal DataForgeString[] ValueTable { get; set; }
 
-        public DataForgeReference[] Array_ReferenceValues { get; set; }
-        public DataForgeGuid[] Array_GuidValues { get; set; }
-        public DataForgeStringLookup[] Array_StringValues { get; set; }
-        public DataForgeLocale[] Array_LocaleValues { get; set; }
-        public DataForgeEnum[] Array_EnumValues { get; set; }
-        public DataForgeInt8[] Array_Int8Values { get; set; }
-        public DataForgeInt16[] Array_Int16Values { get; set; }
-        public DataForgeInt32[] Array_Int32Values { get; set; }
-        public DataForgeInt64[] Array_Int64Values { get; set; }
-        public DataForgeUInt8[] Array_UInt8Values { get; set; }
-        public DataForgeUInt16[] Array_UInt16Values { get; set; }
-        public DataForgeUInt32[] Array_UInt32Values { get; set; }
-        public DataForgeUInt64[] Array_UInt64Values { get; set; }
-        public DataForgeBoolean[] Array_BooleanValues { get; set; }
-        public DataForgeSingle[] Array_SingleValues { get; set; }
-        public DataForgeDouble[] Array_DoubleValues { get; set; }
-        public DataForgePointer[] Array_StrongValues { get; set; }
-        public DataForgePointer[] Array_WeakValues { get; set; }
+        internal DataForgeReference[] Array_ReferenceValues { get; set; }
+        internal DataForgeGuid[] Array_GuidValues { get; set; }
+        internal DataForgeStringLookup[] Array_StringValues { get; set; }
+        internal DataForgeLocale[] Array_LocaleValues { get; set; }
+        internal DataForgeEnum[] Array_EnumValues { get; set; }
+        internal DataForgeInt8[] Array_Int8Values { get; set; }
+        internal DataForgeInt16[] Array_Int16Values { get; set; }
+        internal DataForgeInt32[] Array_Int32Values { get; set; }
+        internal DataForgeInt64[] Array_Int64Values { get; set; }
+        internal DataForgeUInt8[] Array_UInt8Values { get; set; }
+        internal DataForgeUInt16[] Array_UInt16Values { get; set; }
+        internal DataForgeUInt32[] Array_UInt32Values { get; set; }
+        internal DataForgeUInt64[] Array_UInt64Values { get; set; }
+        internal DataForgeBoolean[] Array_BooleanValues { get; set; }
+        internal DataForgeSingle[] Array_SingleValues { get; set; }
+        internal DataForgeDouble[] Array_DoubleValues { get; set; }
+        internal DataForgePointer[] Array_StrongValues { get; set; }
+        internal DataForgePointer[] Array_WeakValues { get; set; }
 
-        public Dictionary<UInt32, String> ValueMap { get; set; }
-        public Dictionary<UInt32, List<XmlElement>> DataMap { get; set; }
-        public List<ClassMapping> Require_ClassMapping { get; set; }
-        public List<ClassMapping> Require_StrongMapping { get; set; }
-        public List<ClassMapping> Require_WeakMapping1 { get; set; }
-        public List<ClassMapping> Require_WeakMapping2 { get; set; }
-        public List<XmlElement> DataTable { get; set; }
+        internal Dictionary<UInt32, String> ValueMap { get; set; }
+        internal Dictionary<UInt32, List<XmlElement>> DataMap { get; set; }
+        internal List<ClassMapping> Require_ClassMapping { get; set; }
+        internal List<ClassMapping> Require_StrongMapping { get; set; }
+        internal List<ClassMapping> Require_WeakMapping1 { get; set; }
+        internal List<ClassMapping> Require_WeakMapping2 { get; set; }
+        internal List<XmlElement> DataTable { get; set; }
 
-        public U[] ReadArray<U>(Int32 arraySize) where U : _DataForgeSerializable
+        internal U[] ReadArray<U>(Int32 arraySize) where U : _DataForgeSerializable
         {
             if (arraySize == -1)
             {
@@ -221,10 +221,18 @@ namespace unforge
         }
 
         private XmlDocument _xmlDocument = new XmlDocument();
-        public XmlElement CreateElement(String name) { return this._xmlDocument.CreateElement(name); }
-        public XmlAttribute CreateAttribute(String name) { return this._xmlDocument.CreateAttribute(name); }
-        public String OuterXML { get { return this._xmlDocument.OuterXml; } }
-        public XmlNodeList ChildNodes { get { return this._xmlDocument.DocumentElement.ChildNodes; } }
+
+		internal XmlElement CreateElement(String name) { return this._xmlDocument.CreateElement(name); }
+        internal XmlAttribute CreateAttribute(String name) { return this._xmlDocument.CreateAttribute(name); }
+
+        public String OuterXML
+		{
+			get
+			{
+				if (String.IsNullOrWhiteSpace(this._xmlDocument?.InnerXml)) this.Compile();
+				return this._xmlDocument.OuterXml;
+			}
+		}
 
         public void Save(String filename)
         {
@@ -251,7 +259,7 @@ namespace unforge
 			this._xmlDocument.Save(filename);
         }
 
-		public void Compile()
+		internal void Compile()
 		{
 			var root = this._xmlDocument.CreateElement("DataForge");
 			this._xmlDocument.AppendChild(root);
