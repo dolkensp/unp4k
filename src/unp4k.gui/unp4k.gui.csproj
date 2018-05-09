@@ -93,6 +93,7 @@
     <Compile Include="Extensions\ListExtensions.cs" />
     <Compile Include="Extensions\ParserExtensions.cs" />
     <Compile Include="Extensions\PathManipulationExtensions.cs" />
+    <Compile Include="Extensions\SharpTreeViewExtensions.cs" />
     <Compile Include="Extensions\XmlDocumentExtensions.cs" />
     <Compile Include="Extensions\ZipFileExtensions.cs" />
     <Compile Include="Plugins\IFormatFactory.cs" />

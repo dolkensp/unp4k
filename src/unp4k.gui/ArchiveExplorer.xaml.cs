@@ -188,8 +188,8 @@ namespace unp4k.gui
 
 				treeView.Root = root;
 
-				CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(treeView.ItemsSource);
-				view.SortDescriptions.Add(new SortDescription(nameof(ITreeItem.SortKey), ListSortDirection.Ascending));
+				treeView.ClearSort();
+				treeView.AddSort(new SortDescription(nameof(ITreeItem.SortKey), ListSortDirection.Ascending));
 
 				await Task.CompletedTask;
 			});
