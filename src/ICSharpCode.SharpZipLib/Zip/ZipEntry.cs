@@ -245,7 +245,7 @@ namespace ICSharpCode.SharpZipLib.Zip
 		{
 			get
 			{
-				return this.ExtraData[168] > 0x00;
+				return this.ExtraData.Length >= 168 && this.ExtraData[168] > 0x00;
 				// return this.RsaKey != null;
 			}
 		}
