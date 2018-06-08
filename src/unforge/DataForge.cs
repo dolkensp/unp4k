@@ -79,60 +79,61 @@ namespace unforge
                     select data).ToArray();
         }
 
-        public DataForge(BinaryReader br, Boolean legacy = false)
-        {
-            this._br = br;
-            var temp00 = this._br.ReadInt32();
-            this.FileVersion = this._br.ReadInt32();
-            this.IsLegacy = legacy;
+		public DataForge(BinaryReader br, Boolean legacy = false)
+		{
+			this._br = br;
+			var temp00 = this._br.ReadInt32();
+			this.FileVersion = this._br.ReadInt32();
+			this.IsLegacy = legacy;
 
-            this.Require_ClassMapping = new List<ClassMapping> { };
-            this.Require_StrongMapping = new List<ClassMapping> { };
-            this.Require_WeakMapping1 = new List<ClassMapping> { };
-            this.Require_WeakMapping2 = new List<ClassMapping> { };
+			this.Require_ClassMapping = new List<ClassMapping> { };
+			this.Require_StrongMapping = new List<ClassMapping> { };
+			this.Require_WeakMapping1 = new List<ClassMapping> { };
+			this.Require_WeakMapping2 = new List<ClassMapping> { };
 
-            if (!this.IsLegacy)
-            {
-                var atemp1 = this._br.ReadUInt16();
-                var atemp2 = this._br.ReadUInt16();
-                var atemp3 = this._br.ReadUInt16();
-                var atemp4 = this._br.ReadUInt16();
-            }
+			if (!this.IsLegacy)
+			{
+				var atemp1 = this._br.ReadUInt16();
+				var atemp2 = this._br.ReadUInt16();
+				var atemp3 = this._br.ReadUInt16();
+				var atemp4 = this._br.ReadUInt16();
+			}
 
-            var structDefinitionCount = this._br.ReadUInt16(); var temp03 = this._br.ReadUInt16();  // 0x02d3
-            var propertyDefinitionCount = this._br.ReadUInt16(); var temp04 = this._br.ReadUInt16();  // 0x0602
-            var enumDefinitionCount = this._br.ReadUInt16(); var temp05 = this._br.ReadUInt16();  // 0x0041 : 0x0002 ??? 0xbbad
-            var dataMappingCount = this._br.ReadUInt16(); var temp06 = this._br.ReadUInt16();  // 0x013c
-            var recordDefinitionCount = this._br.ReadUInt16(); var temp07 = this._br.ReadUInt16();  // 0x0b35
+			var structDefinitionCount = this._br.ReadInt32();
+			var propertyDefinitionCount = this._br.ReadInt32();
+			var enumDefinitionCount = this._br.ReadInt32();
+			var dataMappingCount = this._br.ReadInt32();
+			var recordDefinitionCount = this._br.ReadInt32();
 
-            var booleanValueCount = this._br.ReadUInt16(); var temp16 = this._br.ReadUInt16();  // 0x0014 - Boolean
-            var int8ValueCount = this._br.ReadUInt16(); var temp08 = this._br.ReadUInt16();  // 0x0014 - Int8
-            var int16ValueCount = this._br.ReadUInt16(); var temp09 = this._br.ReadUInt16();  // 0x0014 - Int16
-            var int32ValueCount = this._br.ReadUInt16(); var temp11 = this._br.ReadUInt16();  // 0x0024 - Int64
-            var int64ValueCount = this._br.ReadUInt16(); var temp10 = this._br.ReadUInt16();  // 0x0014 - Int32
-            var uint8ValueCount = this._br.ReadUInt16(); var temp12 = this._br.ReadUInt16();  // 0x0014 - UInt8
-            var uint16ValueCount = this._br.ReadUInt16(); var temp13 = this._br.ReadUInt16();  // 0x0014 - UInt16
-            var uint32ValueCount = this._br.ReadUInt16(); var temp15 = this._br.ReadUInt16();  // 0x0014 - UInt64
-            var uint64ValueCount = this._br.ReadUInt16(); var temp14 = this._br.ReadUInt16();  // 0x0014 - UInt32
+			var booleanValueCount = this._br.ReadInt32();
+			var int8ValueCount = this._br.ReadInt32();
+			var int16ValueCount = this._br.ReadInt32();
+			var int32ValueCount = this._br.ReadInt32();
+			var int64ValueCount = this._br.ReadInt32();
+			var uint8ValueCount = this._br.ReadInt32();
+			var uint16ValueCount = this._br.ReadInt32();
+			var uint32ValueCount = this._br.ReadInt32();
+			var uint64ValueCount = this._br.ReadInt32();
 
-            var singleValueCount = this._br.ReadUInt16(); var temp17 = this._br.ReadUInt16();  // 0x003c - Single
-            var doubleValueCount = this._br.ReadUInt16(); var temp18 = this._br.ReadUInt16();  // 0x0014 - Double
-            var guidValueCount = this._br.ReadUInt16(); var temp19 = this._br.ReadUInt16();  // 0x0014 - Guid Array Values
-            var stringValueCount = this._br.ReadUInt16(); var temp20 = this._br.ReadUInt16();  // 0x0076 - String Array Values
-            var localeValueCount = this._br.ReadUInt16(); var temp21 = this._br.ReadUInt16();  // 0x0034 - Locale Array Values
-            var enumValueCount = this._br.ReadUInt16(); var temp22 = this._br.ReadUInt16();  // 0x006e - Enum Array Values
-            var strongValueCount = this._br.ReadUInt16(); var temp23 = this._br.ReadUInt16();  // 0x1cf3 - ??? Class Array Values
-            var weakValueCount = this._br.ReadUInt16(); var temp24 = this._br.ReadUInt16();  // 0x079d - ??? Pointer Array Values
+			var singleValueCount = this._br.ReadInt32();
+			var doubleValueCount = this._br.ReadInt32();
+			var guidValueCount = this._br.ReadInt32();
+			var stringValueCount = this._br.ReadInt32();
+			var localeValueCount = this._br.ReadInt32();
+			var enumValueCount = this._br.ReadInt32();
+			var strongValueCount = this._br.ReadInt32();
+			var weakValueCount = this._br.ReadInt32();
 
-            var referenceValueCount = this._br.ReadUInt16(); var temp25 = this._br.ReadUInt16();  // 0x0026 - Reference Array Values
-            var enumOptionCount = this._br.ReadUInt16(); var temp26 = this._br.ReadUInt16();  // 0x0284 - Enum Options
-            var textLength = this._br.ReadUInt32(); var temp27 = (this.IsLegacy) ? 0 : this._br.ReadUInt32();  // 0x2e45 : 0x00066e4b
+			var referenceValueCount = this._br.ReadInt32();
+			var enumOptionCount = this._br.ReadInt32();
+			var textLength = this._br.ReadUInt32();
+			var unknown = (this.IsLegacy) ? 0 : this._br.ReadUInt32();
 
-            this.StructDefinitionTable = this.ReadArray<DataForgeStructDefinition>(structDefinitionCount);
-            this.PropertyDefinitionTable = this.ReadArray<DataForgePropertyDefinition>(propertyDefinitionCount);
-            this.EnumDefinitionTable = this.ReadArray<DataForgeEnumDefinition>(enumDefinitionCount);
-            this.DataMappingTable = this.ReadArray<DataForgeDataMapping>(dataMappingCount);
-            this.RecordDefinitionTable = this.ReadArray<DataForgeRecord>(recordDefinitionCount);
+			this.StructDefinitionTable = this.ReadArray<DataForgeStructDefinition>(structDefinitionCount);
+			this.PropertyDefinitionTable = this.ReadArray<DataForgePropertyDefinition>(propertyDefinitionCount);
+			this.EnumDefinitionTable = this.ReadArray<DataForgeEnumDefinition>(enumDefinitionCount);
+			this.DataMappingTable = this.ReadArray<DataForgeDataMapping>(dataMappingCount);
+			this.RecordDefinitionTable = this.ReadArray<DataForgeRecord>(recordDefinitionCount);
 
             this.Array_Int8Values = this.ReadArray<DataForgeInt8>(int8ValueCount);
             this.Array_Int16Values = this.ReadArray<DataForgeInt16>(int16ValueCount);
