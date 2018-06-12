@@ -33,7 +33,7 @@ namespace unp4k
 
 						if (args[1].StartsWith("*.")) args[1] = args[1].Substring(1);                                                                                           // Enable *.ext format for extensions
 
-						if (args[1] == "*.*" ||                                                                                                                                 // Searching for everything
+						if (args[1] == ".*" ||                                                                                                                                 // Searching for everything
 							args[1] == "*" ||                                                                                                                                   // Searching for everything
 							entry.Name.ToLowerInvariant().Contains(args[1].ToLowerInvariant()) ||                                                                               // Searching for keywords / extensions
 							(args[1].EndsWith("xml", StringComparison.InvariantCultureIgnoreCase) && entry.Name.EndsWith(".dcb", StringComparison.InvariantCultureIgnoreCase))) // Searching for XMLs - include game.dcb

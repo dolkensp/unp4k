@@ -490,7 +490,7 @@ namespace unforge
 
 		public Int32 Length => this.RecordDefinitionTable.Length;
 
-#if !NETSTANDARD2_0
+#if NET20 || NET35 || NET40 || NET45 || NET451 || NET452 || NET46 || NET461 || NET462 || NET47 || NET471 || NET472
 		public void CompileSerializationAssembly(String assemblyName = "HoloXPLOR.Data.DataForge")
         {
             CSharpCodeProvider provider = new CSharpCodeProvider();
