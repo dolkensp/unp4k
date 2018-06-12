@@ -1,8 +1,8 @@
 {
-  "profiles": {
-    "unp4k": {
-      "commandName": "Project",
-      "commandLineArgs": "D:\\Data.p4k"
-    }
-  }
+	"profiles": {
+		"unp4k": {
+			"commandName": "Project",
+			"commandLineArgs": "O:\\StarCitizen\\StarCitizenPTU\\LIVE\\Data.p4k"
+		}
+	}
 }

@@ -82,10 +82,15 @@ namespace unp4k.gui
 
 						sw.Start();
 
-						foreach (var child in this._root.AllChildren)
+						var allChildren = this._root.AllChildren.ToArray();
+
+						await this.Dispatcher.Invoke(async () =>
 						{
-							child.IsHidden = !this.Filter(child);
-						}
+							foreach (var child in allChildren)
+							{
+								child.IsHidden = !this.Filter(child);
+							}
+						});
 
 						// await this.NotifyNodesAsync(this._root);
 

@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
 using ICSharpCode.SharpZipLib.Zip.Compression;
+using System.Net.Http;
 
 namespace unp4k
 {
@@ -23,33 +24,72 @@ namespace unp4k
 			using (var pakFile = File.OpenRead(args[0]))
 			{
 				var pak = new ZipFile(pakFile);
-				
+
 				foreach (ZipEntry entry in pak)
 				{
-					var crypto = entry.IsAesCrypted ? "Crypt" : "Plain";
-
-					if (args[1] == "*.*" ||                                                                                                                                 // Searching for everything
-						args[1] == "*" ||                                                                                                                                   // Searching for everything
-						entry.Name.ToLowerInvariant().Contains(args[1].ToLowerInvariant()) ||                                                                               // Searching for keywords / extensions
-						(args[1].EndsWith("xml", StringComparison.InvariantCultureIgnoreCase) && entry.Name.EndsWith(".dcb", StringComparison.InvariantCultureIgnoreCase))) // Searching for XMLs - include game.dcb
+					try
 					{
-						var target = new FileInfo(entry.Name);
+						var crypto = entry.IsAesCrypted ? "Crypt" : "Plain";
 
-						if (!target.Directory.Exists) target.Directory.Create();
+						if (args[1].StartsWith("*.")) args[1] = args[1].Substring(1);                                                                                           // Enable *.ext format for extensions
 
-						if (!target.Exists)
+						if (args[1] == "*.*" ||                                                                                                                                 // Searching for everything
+							args[1] == "*" ||                                                                                                                                   // Searching for everything
+							entry.Name.ToLowerInvariant().Contains(args[1].ToLowerInvariant()) ||                                                                               // Searching for keywords / extensions
+							(args[1].EndsWith("xml", StringComparison.InvariantCultureIgnoreCase) && entry.Name.EndsWith(".dcb", StringComparison.InvariantCultureIgnoreCase))) // Searching for XMLs - include game.dcb
 						{
-							Console.WriteLine($"{entry.CompressionMethod} | {crypto} | {entry.Name}");
+							var target = new FileInfo(entry.Name);
 
-							using (Stream s = pak.GetInputStream(entry))
+							if (!target.Directory.Exists) target.Directory.Create();
+
+							if (!target.Exists)
 							{
-								byte[] buf = new byte[4096];
+								Console.WriteLine($"{entry.CompressionMethod} | {crypto} | {entry.Name}");
 
-								using (FileStream fs = File.Create(entry.Name))
+								using (Stream s = pak.GetInputStream(entry))
 								{
-									StreamUtils.Copy(s, fs, buf);
+									byte[] buf = new byte[4096];
+
+									using (FileStream fs = File.Create(entry.Name))
+									{
+										StreamUtils.Copy(s, fs, buf);
+									}
+								}
+
+								target.Delete();
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						Console.WriteLine($"Exception while extracting {entry.Name}: {ex.Message}");
+
+						try
+						{
+							using (var client = new HttpClient { })
+							{
+								// var server = "http://herald.holoxplor.local";
+								var server = "https://herald.holoxplor.space";
+
+								client.DefaultRequestHeaders.Add("client", "unp4k");
+
+								using (var content = new MultipartFormDataContent("UPLOAD----"))
+								{
+									content.Add(new StringContent($"{ex.Message}\r\n\r\n{ex.StackTrace}"), "exception", entry.Name);
+
+									using (var errorReport = client.PostAsync($"{server}/p4k/exception/{entry.Name}", content).Result)
+									{
+										if (errorReport.StatusCode == System.Net.HttpStatusCode.OK)
+										{
+											Console.WriteLine("This exception has been reported.");
+										}
+									}
 								}
 							}
+						}
+						catch (Exception)
+						{
+							Console.WriteLine("There was a problem whilst attempting to report this error.");
 						}
 					}
 				}

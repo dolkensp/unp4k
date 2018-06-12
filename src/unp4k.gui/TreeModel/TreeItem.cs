@@ -20,7 +20,7 @@ namespace unp4k.gui.TreeModel
 		Int64 StreamLength { get; }
 
 		ITreeItem ParentTreeItem { get; }
-		IEnumerable<IStreamTreeItem> AllChildren { get; }
+		IEnumerable<ITreeItem> AllChildren { get; }
 		
 		SharpTreeNodeCollection Children { get; }
 		SharpTreeNode Parent { get; }
@@ -51,13 +51,13 @@ namespace unp4k.gui.TreeModel
 			this._relativePath = this._relativePath ?? 
 			$"{this.ParentTreeItem?.RelativePath}\\{this.Text}".Trim('\\');
 
-		private IEnumerable<IStreamTreeItem> _allChildren;
-		public virtual IEnumerable<IStreamTreeItem> AllChildren =>
+		private IEnumerable<ITreeItem> _allChildren;
+		public virtual IEnumerable<ITreeItem> AllChildren =>
 			this._allChildren = this._allChildren ??
 			this.Children
 				.OfType<ITreeItem>()
 				.SelectMany(c => c.AllChildren.Union(new[] { c }))
-				.OfType<IStreamTreeItem>()
+				.OfType<ITreeItem>()
 				.ToArray();
 
 		public override Object Text => this.Title;
