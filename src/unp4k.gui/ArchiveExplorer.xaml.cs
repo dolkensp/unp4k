@@ -76,29 +76,32 @@ namespace unp4k.gui
 							now = this._lastFilterTime ?? DateTime.Now;
 						}
 
-						var filterText = this._lastFilterText;
-
-						var sw = new Stopwatch();
-
-						sw.Start();
-
-						var allChildren = this._root.AllChildren.ToArray();
-
-						await this.Dispatcher.Invoke(async () =>
+						if (this._root != null)
 						{
-							foreach (var child in allChildren)
+							var filterText = this._lastFilterText;
+
+							var sw = new Stopwatch();
+
+							sw.Start();
+
+							var allChildren = this._root.AllChildren.ToArray();
+
+							await this.Dispatcher.Invoke(async () =>
 							{
-								child.IsHidden = !this.Filter(child);
-							}
-						});
+								foreach (var child in allChildren)
+								{
+									child.IsHidden = !this.Filter(child);
+								}
+							});
 
-						// await this.NotifyNodesAsync(this._root);
+							// await this.NotifyNodesAsync(this._root);
 
-						sw.Stop();
+							sw.Stop();
 
-						await ArchiveExplorer.UpdateStatus($"Filter took {sw.ElapsedMilliseconds:#,##0}ms");
-						
-						this._activeFilterText = filterText;
+							await ArchiveExplorer.UpdateStatus($"Filter took {sw.ElapsedMilliseconds:#,##0}ms");
+
+							this._activeFilterText = filterText;
+						}
 
 						await Task.Delay(FILTER_PING);
 					}
