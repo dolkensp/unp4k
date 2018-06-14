@@ -56,7 +56,7 @@ namespace unp4k
 									}
 								}
 
-								target.Delete();
+								// target.Delete();
 							}
 						}
 					}

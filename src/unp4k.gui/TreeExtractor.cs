@@ -111,7 +111,7 @@ namespace unp4k.gui
 
 				ArchiveExplorer.RegisterProgress(oldProgress);
 
-				if (useTemp) System.Diagnostics.Process.Start(path);
+				if (useTemp && (File.Exists(path) || Directory.Exists(path))) System.Diagnostics.Process.Start(path);
 			}
 
 			return result ?? false;
