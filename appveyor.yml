@@ -11,9 +11,9 @@ version: 3.2.{build}-{branch}
 
 image: Visual Studio 2017
 
-#branches:
-#  only:
-#  - master
+branches:
+  only:
+  - master
 
 # Start builds on tags only (GitHub and BitBucket)
 # skip_non_tags: true
@@ -27,6 +27,9 @@ platform: Any CPU
 
 configuration: Release
 
+cache:
+  - packages -> **\packages.config
+
 before_build:
 - nuget restore
 
@@ -36,7 +39,8 @@ build:
   verbosity: minimal
 
 after_build:
-- copy src\unp4k\bin\Release\net47\win-x64\unp4k.exe src\unp4k.gui\bin\Release\unp4k.exe
+- cd src
+- copy unp4k\bin\Release\net47\win-x64\unp4k.exe unp4k.gui\bin\Release\unp4k.exe
 - erase *.pdb /s
 - erase *.exe.config /s
 - erase *.xml /s
@@ -49,7 +53,7 @@ after_build:
 artifacts:
   # backaging all tools
   - path: src\unp4k.gui\bin\$(configuration)
-    name: unp4k-tools
+    name: unp4k-tools-$(APPVEYOR_BUILD_VERSION)
 
 deploy:
   provider: GitHub
