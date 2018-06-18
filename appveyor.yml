@@ -39,13 +39,12 @@ build:
   verbosity: minimal
 
 after_build:
-- pushd src
+- cd src
 - copy unp4k\bin\Release\net47\win-x64\unp4k.exe unp4k.gui\bin\Release\unp4k.exe
 - erase *.pdb /s
 - erase *.exe.config /s
 - erase *.xml /s
 - erase System.Net.Http.dll /s
-- popd
 
 #---------------------------------#
 #      artifacts configuration    #
