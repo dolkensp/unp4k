@@ -11,9 +11,9 @@ version: 3.2.{build}-{branch}
 
 image: Visual Studio 2017
 
-#branches:
-#  only:
-#  - master
+branches:
+  only:
+  - master
 
 # Start builds on tags only (GitHub and BitBucket)
 # skip_non_tags: true
