@@ -11,9 +11,9 @@ version: 3.2.{build}-{branch}
 
 image: Visual Studio 2017
 
-#branches:
-#  only:
-#  - master
+branches:
+  only:
+  - master
 
 # Start builds on tags only (GitHub and BitBucket)
 # skip_non_tags: true
@@ -49,7 +49,7 @@ after_build:
 artifacts:
   # backaging all tools
   - path: src\unp4k.gui\bin\$(configuration)
-    name: unp4k-tools
+    name: unp4k-tools-$(APPVEYOR_BUILD_VERSION)
 
 deploy:
   provider: GitHub
