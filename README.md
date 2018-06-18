@@ -1,4 +1,4 @@
-# unp4k
+# unp4k [![Build status](https://ci.appveyor.com/api/projects/status/hkufa3njtl0x9v79/branch/master?svg=true)](https://ci.appveyor.com/project/dolkensp/unp4k/branch/master)
 Unp4k utilities for Star Citizen
 
 # Installation:
@@ -6,6 +6,8 @@ Unp4k utilities for Star Citizen
 2. Right click the zip and select *Properties*
 3. Under the *General* tab, check the *Unblock* checkbox at the bottom if it exists, and click ok
 4. Extract the selected zip to your desired installation directory
+
+NOTE: unforge currently requires [.Net Framework 4.6.2](https://www.microsoft.com/net/download/thank-you/net462) or greater to run. If you receive the error `Method not found: '!!0[] System.Array.Empty()'.` you will need to install this framework.
 
 # Quickstart:
 
