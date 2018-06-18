@@ -49,7 +49,7 @@ after_build:
 artifacts:
   # backaging all tools
   - path: src\unp4k.gui\bin\$(configuration)
-    name: unp4k-tools
+    name: unp4k-tools-$(APPVEYOR_BUILD_VERSION)
 
 deploy:
   provider: GitHub
