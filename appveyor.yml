@@ -36,26 +36,20 @@ build:
   verbosity: minimal
 
 after_build:
+- move src\unp4k\bin\$(configuration)\net47\win-x64\unp4k.exe src\unp4k.gui\bin\$(configuration)\net47\win-x64
 - erase *.pdb /s
 - erase *.exe.config /s
 - erase *.xml /s
+- erase System.Net.Http.dll /s
 
 #---------------------------------#
 #      artifacts configuration    #
 #---------------------------------#
 
 artifacts:
-  # pushing unforge
-  - path: src\unforge\bin\$(configuration)\net47\win-x64
-    name: unforge
-
-  # pushing unp4k.gui
+  # backaging all tools
   - path: src\unp4k.gui\bin\$(configuration)
-    name: unp4k.gui
-
-  # pushing unp4k
-  - path: src\unp4k\bin\$(configuration)\net47\win-x64
-    name: unp4k
+    name: unp4k-tools
 
 deploy:
   provider: GitHub
