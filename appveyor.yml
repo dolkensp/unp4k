@@ -27,6 +27,9 @@ platform: Any CPU
 
 configuration: Release
 
+cache:
+  - packages -> **\packages.config
+
 before_build:
 - nuget restore
 
