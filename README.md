@@ -2,7 +2,7 @@
 Unp4k utilities for Star Citizen
 
 # Installation:
-1. Download `unp4k-tools-3.2.0.zip`
+1. Download `unp4k-suite-v3.2.x.zip`
 2. Right click the zip and select *Properties*
 3. Under the *General* tab, check the *Unblock* checkbox at the bottom if it exists, and click ok
 4. Extract the selected zip to your desired installation directory
