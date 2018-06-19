@@ -45,6 +45,9 @@ after_build:
 - erase *.exe.config /s
 - erase *.xml /s
 - erase System.Net.Http.dll /s
+- erase System.Runtime.dll /s
+- erase System.IO.dll /s
+- erase System.Security.*.dll /s
 
 #---------------------------------#
 #      artifacts configuration    #
