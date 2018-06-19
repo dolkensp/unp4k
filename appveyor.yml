@@ -51,9 +51,17 @@ after_build:
 #---------------------------------#
 
 artifacts:
-  # backaging all tools
+  # packaging unp4k.gui
   - path: src\unp4k.gui\bin\$(CONFIGURATION)
-    name: unp4k-tools-v$(APPVEYOR_BUILD_VERSION)
+    name: unp4k-suite-v$(APPVEYOR_BUILD_VERSION)
+
+  # package unforge
+  - path: src\unforge\bin\%CONFIGURATION%\net47\win-x64
+    name: unforge-v$(APPVEYOR_BUILD_VERSION)
+
+  # package unp4k
+  - path: src\unp4k\bin\%CONFIGURATION%\net47\win-x64
+    name: unp4k-v$(APPVEYOR_BUILD_VERSION)
 
 deploy:
   provider: GitHub
