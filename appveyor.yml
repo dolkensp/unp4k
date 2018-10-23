@@ -1,0 +1,80 @@
+
+#---------------------------------#
+#      general configuration      #
+#---------------------------------#
+
+version: 3.3.{build}-{branch}
+
+#---------------------------------#
+#    environment configuration    #
+#---------------------------------#
+
+image: Visual Studio 2017
+
+branches:
+  only:
+  - master
+
+# Start builds on tags only (GitHub and BitBucket)
+# skip_non_tags: true
+skip_tags: true
+
+#---------------------------------#
+#       build configuration       #
+#---------------------------------#
+
+platform: Any CPU
+
+configuration: Release
+
+cache:
+  - packages -> **\packages.config
+
+before_build:
+- nuget restore
+
+build:
+  project: unp4k.sln
+  parallel: true
+  verbosity: minimal
+
+after_build:
+- cd src
+- copy unp4k\bin\%CONFIGURATION%\net47\win-x64\unp4k.exe unp4k.gui\bin\%CONFIGURATION%\unp4k.exe
+- erase *.pdb /s
+- erase *.exe.config /s
+- erase *.xml /s
+- erase System.Net.Http.dll /s
+- erase System.Runtime.dll /s
+- erase System.IO.dll /s
+- erase System.Security.*.dll /s
+
+#---------------------------------#
+#      artifacts configuration    #
+#---------------------------------#
+
+artifacts:
+  # packaging unp4k.gui
+  - path: src\unp4k.gui\bin\$(CONFIGURATION)
+    name: unp4k-suite-v$(APPVEYOR_BUILD_VERSION)
+
+  # package unforge
+  - path: src\unforge\bin\%CONFIGURATION%\net47\win-x64
+    name: unforge-v$(APPVEYOR_BUILD_VERSION)
+
+  # package unp4k
+  - path: src\unp4k\bin\%CONFIGURATION%\net47\win-x64
+    name: unp4k-v$(APPVEYOR_BUILD_VERSION)
+
+deploy:
+  provider: GitHub
+  auth_token:
+    secure: Yi3KGQnx6Ui4ise0Dss0CRYo4FXHnN9xqWfol7mbKk13e13QDPQgNVfjPHGAg0ec
+  artifact: /.*\.zip/
+  draft: false
+  prerelease: false
+  tag: v$(APPVEYOR_BUILD_VERSION)
+  release: unp4k Tools for Star Citizen
+  description: View [ReadMe](https://github.com/dolkensp/unp4k/blob/master/README.md) for more instructions.
+  on:
+    branch: master
