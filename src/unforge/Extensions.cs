@@ -16,6 +16,7 @@ using System.Security.Cryptography;
 using Dolkens.Framework.BinaryExtensions;
 using System.Xml.XPath;
 using unforge;
+using System.Text.RegularExpressions;
 
 namespace Dolkens.Framework.BinaryExtensions
 {
@@ -163,13 +164,15 @@ namespace Dolkens.Framework.BinaryExtensions
             return new Guid(a, b, c, d, e, f, g, h, i, j, k);
         }
 
-        #endregion
+		#endregion
 
-        #region Xml Extensions
+		#region Xml Extensions
+
+		private static Regex cleanString = new Regex("[^a-zA-Z0-9.]");
 
         public static XmlElement Rename(this XmlElement element, String name)
         {
-            var buffer = element.OwnerDocument.CreateElement(name.Replace(" ", "_"));
+            var buffer = element.OwnerDocument.CreateElement(cleanString.Replace(name, "_"));
 
             while (element.ChildNodes.Count > 0)
             {
