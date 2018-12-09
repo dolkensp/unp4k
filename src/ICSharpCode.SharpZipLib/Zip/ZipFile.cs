@@ -744,60 +744,10 @@ namespace ICSharpCode.SharpZipLib.Zip
 
 			if (entries_[entryIndex].IsAesCrypted == true)
 			{
-				var md5 = MD5.Create();
-
-				if (String.IsNullOrWhiteSpace(this.md5_))
+				result = CreateAndInitAesDecryptionStream(result, entries_[entryIndex]);
+				if (result == null)
 				{
-					var lastEntry = this.entries_.OrderBy(e => e.Offset).Last();
-					var finalOffset = lastEntry.Offset + lastEntry.CompressedSize;
-					var hashData = new PartialInputStream(this, finalOffset, this.baseStream_.Length - finalOffset);
-					this.md5_ = md5.ComputeHash(hashData).ToHex();
-				}
-
-				var version = this.md5_;
-
-				using (var client = new HttpClient { })
-				{
-					// var server = "http://herald.holoxplor.local";
-					var server = "https://herald.holoxplor.space";
-
-					client.DefaultRequestHeaders.Add("client", "ICSharpCode.SharpZipLib");
-
-					var hash = md5.ComputeHash(result).ToHex();
-					result.Seek(0, SeekOrigin.Begin);
-
-					var filename = entries_[entryIndex].Name;
-
-					using (var hashCheck = client.GetAsync($"{server}/p4k/decrypt/{version}/{hash}/{filename}").Result)
-					{
-						var remoteStream = result;
-
-						if (hashCheck.StatusCode == System.Net.HttpStatusCode.NotFound)
-						{
-							using (var content = new MultipartFormDataContent("UPLOAD----"))
-							{
-								content.Add(new StreamContent(result), "file", entries_[entryIndex].Name);
-
-								using (var remoteDecrypt = client.PostAsync($"{server}/p4k/decrypt/{version}/{hash}", content).Result)
-								{
-									if (remoteDecrypt.StatusCode == System.Net.HttpStatusCode.OK)
-									{
-										remoteStream = remoteDecrypt.Content.ReadAsStreamAsync().Result;
-										var remoteBuffer = new Byte[remoteStream.Length];
-										StreamUtils.ReadFully(remoteStream, remoteBuffer);
-										result = new MemoryStream(remoteBuffer);
-									}
-								}
-							}
-						}
-						else
-						{
-							remoteStream = hashCheck.Content.ReadAsStreamAsync().Result;
-							var remoteBuffer = new Byte[remoteStream.Length];
-							StreamUtils.ReadFully(remoteStream, remoteBuffer);
-							result = new MemoryStream(remoteBuffer);
-						}
-					}
+					throw new ZipException("Unable to decrypt this entry");
 				}
 			}
 
@@ -821,8 +771,16 @@ namespace ICSharpCode.SharpZipLib.Zip
 				case CompressionMethod.ZStd:
 					var buffBytes = new Byte[4];
 
-					// result.CanSeek 
-					if (true && result.Read(buffBytes, 0, 4) > 0)
+					// This is necessary because CIG uses compression method 100, but that doesn't always mean zstd
+					if (!result.CanSeek)
+					{
+						var buffer = new MemoryStream();
+						result.CopyTo(buffer);
+						buffer.Seek(0, SeekOrigin.Begin);
+						result = buffer;
+					}
+
+					if (result.CanSeek && result.Read(buffBytes, 0, 4) > 0)
 					{
 						if (Zstd.Net.InputStream.IsZstdStream(buffBytes, result.Length))
 						{
@@ -3166,6 +3124,21 @@ namespace ICSharpCode.SharpZipLib.Zip
 		long LocateEntry(ZipEntry entry)
 		{
 			return TestLocalHeader(entry, HeaderTest.Extract);
+		}
+
+		Stream CreateAndInitAesDecryptionStream(Stream baseStream, ZipEntry entry)
+		{
+			using (Aes aes = new AesManaged())
+			{
+				aes.Key = this.key;
+				aes.IV = new byte[16];
+				aes.Mode = CipherMode.CBC;
+				aes.Padding = PaddingMode.None;
+
+				var cipher = aes.CreateDecryptor();
+
+				return new CryptoStream(baseStream, cipher, CryptoStreamMode.Read);
+			}
 		}
 
 		Stream CreateAndInitDecryptionStream(Stream baseStream, ZipEntry entry)
