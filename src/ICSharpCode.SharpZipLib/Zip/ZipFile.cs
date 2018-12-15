@@ -771,15 +771,6 @@ namespace ICSharpCode.SharpZipLib.Zip
 				case CompressionMethod.ZStd:
 					var buffBytes = new Byte[4];
 
-					// This is necessary because CIG uses compression method 100, but that doesn't always mean zstd
-					if (!result.CanSeek)
-					{
-						var buffer = new MemoryStream();
-						result.CopyTo(buffer);
-						buffer.Seek(0, SeekOrigin.Begin);
-						result = buffer;
-					}
-
 					if (result.CanSeek && result.Read(buffBytes, 0, 4) > 0)
 					{
 						if (Zstd.Net.InputStream.IsZstdStream(buffBytes, result.Length))
@@ -3137,7 +3128,19 @@ namespace ICSharpCode.SharpZipLib.Zip
 
 				var cipher = aes.CreateDecryptor();
 
-				return new CryptoStream(baseStream, cipher, CryptoStreamMode.Read);
+				var crypto = new CryptoStream(baseStream, cipher, CryptoStreamMode.Read);
+
+				var buffer = new MemoryStream();
+				crypto.CopyTo(buffer);
+
+				// Trim NULL off end of stream
+				buffer.Seek(-1, SeekOrigin.End);
+				while (buffer.Position > 1 && buffer.ReadByte() == 0) buffer.Seek(-2, SeekOrigin.Current);
+				buffer.SetLength(buffer.Position - 1);
+
+				buffer.Seek(0, SeekOrigin.Begin);
+
+				return buffer;
 			}
 		}
 
