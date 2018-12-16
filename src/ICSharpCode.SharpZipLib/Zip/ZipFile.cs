@@ -3136,7 +3136,7 @@ namespace ICSharpCode.SharpZipLib.Zip
 				// Trim NULL off end of stream
 				buffer.Seek(-1, SeekOrigin.End);
 				while (buffer.Position > 1 && buffer.ReadByte() == 0) buffer.Seek(-2, SeekOrigin.Current);
-				buffer.SetLength(buffer.Position - 1);
+				buffer.SetLength(buffer.Position);
 
 				buffer.Seek(0, SeekOrigin.Begin);
 
