@@ -18,7 +18,6 @@ NOTE: unforge currently requires [.Net Framework 4.6.2](https://www.microsoft.co
 1. Launch a command line, and navigate to the unp4k directory
 2. Execute `unp4k.exe c:\path\to\data.p4k [filter]` where filter is a keyword used to filter the results (the default filter is `*.*`)
 
-NOTE: This version of unp4k offloads decryption of encrypted files to a remote webserver.
 NOTE: The filter does not fully support wildcards. To extract files of a certain type, you may use `*.ext` as the filter, but no further wildcard functionality exists.
 
 # Basic GUI Usage:
