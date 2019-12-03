@@ -101,6 +101,9 @@ namespace Dolkens.Framework.BinaryExtensions
 
             binaryReader.BaseStream.Seek(nul, SeekOrigin.Begin);
 
+			// Why is this necessary?
+			if (stringLength > chars.Length) stringLength = chars.Length;
+
             // If there is actually a string to read
             if (stringLength > 0)
             {
