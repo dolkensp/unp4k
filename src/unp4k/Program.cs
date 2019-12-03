@@ -17,13 +17,16 @@ namespace unp4k
 	{
 		static void Main(string[] args)
 		{
+			var key = new Byte[] { 0x5E, 0x7A, 0x20, 0x02, 0x30, 0x2E, 0xEB, 0x1A, 0x3B, 0xB6, 0x17, 0xC3, 0x0F, 0xDE, 0x1E, 0x47 };
+
 			if (args.Length == 0) args = new[] { @"Data.p4k" };
 
 			if (args.Length == 1) args = new[] { args[0], "*.*" };
 
 			using (var pakFile = File.OpenRead(args[0]))
 			{
-				var pak = new ZipFile(pakFile) { Key = new Byte[] { 0x5E, 0x7A, 0x20, 0x02, 0x30, 0x2E, 0xEB, 0x1A, 0x3B, 0xB6, 0x17, 0xC3, 0x0F, 0xDE, 0x1E, 0x47 } };
+				var pak = new ZipFile(pakFile) { Key = key };
+				byte[] buf = new byte[4096];
 
 				foreach (ZipEntry entry in pak)
 				{
@@ -48,8 +51,6 @@ namespace unp4k
 
 								using (Stream s = pak.GetInputStream(entry))
 								{
-									byte[] buf = new byte[4096];
-
 									using (FileStream fs = File.Create(entry.Name))
 									{
 										StreamUtils.Copy(s, fs, buf);
