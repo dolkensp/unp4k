@@ -1,8 +1,12 @@
-﻿using System;
+﻿using AdvancedDLSupport;
+using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
+[assembly: InternalsVisibleTo("DLSupportDynamicAssembly")]
 
 namespace Zstd.Net
 {
@@ -37,17 +41,17 @@ namespace Zstd.Net
 		{
 			_inputStream = inputStream;
 			_leaveOpen = leaveOpen;
-			_zst = Zstd.Library.CreateDStream();
-			Zstd.CheckError(Zstd.Library.InitDStream(_zst));
-			_inputBuffer.Size = Zstd.Library.DStreamInSize();
+			_zst = Zstd.Library.ZSTD_createDStream();
+			Zstd.CheckError(Zstd.Library.ZSTD_initDStream(_zst));
+			_inputBuffer.Size = Zstd.Library.ZSTD_DStreamInSize();
 			_inputBufferArray = new byte[(int)_inputBuffer.Size.ToUInt32()];
-			_outputBuffer.Size = Zstd.Library.DStreamOutSize();
+			_outputBuffer.Size = Zstd.Library.ZSTD_DStreamOutSize();
 		}
 
 		protected override void Dispose(bool disposing)
 		{
 			if (_closed) return;
-			Zstd.CheckError(Zstd.Library.FreeDStream(_zst));
+			Zstd.CheckError(Zstd.Library.ZSTD_freeDStream(_zst));
 			if (!_leaveOpen) _inputStream.Dispose();
 			_closed = true;
 			base.Dispose(disposing);
@@ -96,7 +100,7 @@ namespace Zstd.Net
 					_outputBuffer.Position = UIntPtr.Zero;
 					_outputBuffer.Size = new UIntPtr((uint)count);
 					_outputBuffer.Data = Marshal.UnsafeAddrOfPinnedArrayElement(buffer, offset);
-					Zstd.CheckError(Zstd.Library.DecompressStream(_zst, _outputBuffer, _inputBuffer));
+					Zstd.CheckError(Zstd.Library.ZSTD_decompressStream(_zst, _outputBuffer, _inputBuffer));
 					var bytesProduced = (int)_outputBuffer.Position.ToUInt32();
 					if (bytesProduced == 0 && _depleted) break;
 					retVal += bytesProduced;
@@ -160,13 +164,35 @@ namespace Zstd.Net
 
 		static Zstd()
 		{
-			if (Environment.Is64BitProcess) Zstd.Library = new Zstd_x64 { };
-			else Zstd.Library = new Zstd_x86 { };
+			try
+			{
+				// Detect which DLL version we need for Windows
+				if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+				{
+					var PATH = Environment.GetEnvironmentVariable("PATH");
+					var CD = typeof(Zstd).Assembly.Location.TrimEnd('\\', '/');
+
+					if (Environment.Is64BitProcess) Environment.SetEnvironmentVariable("PATH", $"{PATH};{CD}\x64");
+					else Environment.SetEnvironmentVariable("PATH", $"{PATH};{CD}/x86");
+				}
+
+				var activator = new NativeLibraryBuilder { };
+				Zstd.Library = activator.ActivateInterface<IImportZstd>("libzstd");
+			} catch (Exception ex) {
+				do
+				{
+					Console.WriteLine(ex.Message);
+					Console.WriteLine(ex.Source);
+					ex = ex.InnerException;
+				} while (ex != null);
+
+				throw;
+			}
 		}
 
 		internal static void CheckError(UIntPtr x)
 		{
-			var code = Zstd.Library.IsError(x);
+			var code = Zstd.Library.ZSTD_isError(x);
 			if (code == 0) return;
 
 			throw new ZStdException($"Error {x}:{code}");
@@ -182,271 +208,31 @@ namespace Zstd.Net
 			public UIntPtr Position;
 		}
 
-		// https://github.com/facebook/zstd/blob/dev/lib/zstd.h
-		// https://facebook.github.io/zstd/zstd_manual.html
-		// https://github.com/facebook/zstd/blob/master/doc/zstd_compression_format.md
-
 		internal interface IImportZstd
 		{
-			Int32 GetMaxCompessionLevel();
-			Int32 GetVersionNumber();
-			String GetVersionString();
-
-			Int32 IsError(UIntPtr code);
-			String GetErrorName(UIntPtr code);
-
-			IntPtr CreateCStream();
-			UIntPtr FreeCStream(IntPtr zcs);
-			UIntPtr InitCStream(IntPtr zcs, int compressionLevel);
-			UIntPtr CompressStream(IntPtr zcs, Buffer outputBuffer, Buffer inputBuffer);
-			UIntPtr CStreamInSize();
-			UIntPtr CStreamOutSize();
-
-			IntPtr CreateDStream();
-			UIntPtr FreeDStream(IntPtr zcs);
-			UIntPtr InitDStream(IntPtr zcs);
-			UIntPtr DecompressStream(IntPtr zcs, Buffer outputBuffer, Buffer inputBuffer);
-			UIntPtr DStreamInSize();
-			UIntPtr DStreamOutSize();
-
-			UIntPtr FlushStream(IntPtr zcs, Buffer outputBuffer);
-			UIntPtr EndStream(IntPtr zcs, Buffer outputBuffer);
-		}
-
-		private class Zstd_x64 : IImportZstd
-		{
-			#region DllImports
-
-			private const String DllName = @"x64\libzstd";
-
-			[DllImport(DllName, EntryPoint = "ZSTD_maxCLevel", CallingConvention = CallingConvention.Cdecl)]
-			private static extern Int32 zstd_GetMaxCompessionLevel();
-
-			[DllImport(DllName, EntryPoint = "ZSTD_versionNumber", CallingConvention = CallingConvention.Cdecl)]
-			private static extern Int32 zstd_GetVersionNumber();
-
-			//[DllImport(DllName, EntryPoint = "ZSTD_versionString", CallingConvention = CallingConvention.Cdecl)]
-			//public static extern string zstd_versionString();
-
-			[DllImport(DllName, EntryPoint = "ZSTD_isError", CallingConvention = CallingConvention.Cdecl)]
-			private static extern Int32 zstd_isError(UIntPtr code);
-
-			[DllImport(DllName, EntryPoint = "ZSTD_getErrorName", CallingConvention = CallingConvention.Cdecl)]
-			private static extern String zstd_getErrorName(UIntPtr code);
-
-			[DllImport(DllName, EntryPoint = "ZSTD_createCStream", CallingConvention = CallingConvention.Cdecl)]
-			private static extern IntPtr zstd_createCStream();
-
-			[DllImport(DllName, EntryPoint = "ZSTD_freeCStream", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_freeCStream(IntPtr zcs);
-
-			[DllImport(DllName, EntryPoint = "ZSTD_initCStream", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_initCStream(IntPtr zcs, int compressionLevel);
-
-			[DllImport(DllName, EntryPoint = "ZSTD_compressStream", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_compressStream(IntPtr zcs,
-				[MarshalAs(UnmanagedType.LPStruct)] Buffer outputBuffer,
-				[MarshalAs(UnmanagedType.LPStruct)] Buffer inputBuffer);
-
-			[DllImport(DllName, EntryPoint = "ZSTD_flushStream", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_flushStream(IntPtr zcs,
-				[MarshalAs(UnmanagedType.LPStruct)] Buffer outputBuffer);
-
-			[DllImport(DllName, EntryPoint = "ZSTD_endStream", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_endStream(IntPtr zcs,
-				[MarshalAs(UnmanagedType.LPStruct)] Buffer outputBuffer);
-
-			[DllImport(DllName, EntryPoint = "ZSTD_CStreamInSize", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_CStreamInSize();
-
-			[DllImport(DllName, EntryPoint = "ZSTD_CStreamOutSize", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_CStreamOutSize();
-
-			[DllImport(DllName, EntryPoint = "ZSTD_createDStream", CallingConvention = CallingConvention.Cdecl)]
-			private static extern IntPtr zstd_createDStream();
-
-			[DllImport(DllName, EntryPoint = "ZSTD_freeDStream", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_freeDStream(IntPtr zcs);
-
-			[DllImport(DllName, EntryPoint = "ZSTD_initDStream", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_initDStream(IntPtr zcs);
-
-			[DllImport(DllName, EntryPoint = "ZSTD_decompressStream", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_decompressStream(IntPtr zcs,
-				[MarshalAs(UnmanagedType.LPStruct)] Buffer outputBuffer,
-				[MarshalAs(UnmanagedType.LPStruct)] Buffer inputBuffer);
-
-			[DllImport(DllName, EntryPoint = "ZSTD_DStreamInSize", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_DStreamInSize();
-
-			[DllImport(DllName, EntryPoint = "ZSTD_CStreamOutSize", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_DStreamOutSize();
-
-			#endregion
-
-			#region IImportZstd Implementation
-
-			public Int32 GetMaxCompessionLevel() { return zstd_GetMaxCompessionLevel(); }
-
-			public Int32 GetVersionNumber() { return zstd_GetVersionNumber(); }
-
-			public String GetVersionString()
-			{
-				var n = zstd_GetVersionNumber();
-				return string.Format("{0}.{1}.{2}", n / 10000, (n % 10000) / 100, n % 100);
-			}
-
-			public Int32 IsError(UIntPtr code) { return zstd_isError(code); }
-
-			public String GetErrorName(UIntPtr code) { return zstd_getErrorName(code); }
-
-			public IntPtr CreateCStream() { return zstd_createCStream(); }
-
-			public UIntPtr FreeCStream(IntPtr zcs) { return zstd_freeCStream(zcs); }
-
-			public UIntPtr InitCStream(IntPtr zcs, int compressionLevel) { return zstd_initCStream(zcs, compressionLevel); }
-
-			public UIntPtr CompressStream(IntPtr zcs, Buffer outputBuffer, Buffer inputBuffer) { return zstd_compressStream(zcs, outputBuffer, inputBuffer); }
-
-			public UIntPtr FlushStream(IntPtr zcs, Buffer outputBuffer) { return zstd_flushStream(zcs, outputBuffer); }
-
-			public UIntPtr EndStream(IntPtr zcs, Buffer outputBuffer) { return zstd_endStream(zcs, outputBuffer); }
-
-			public UIntPtr CStreamInSize() { return zstd_CStreamInSize(); }
-
-			public UIntPtr CStreamOutSize() { return zstd_CStreamOutSize(); }
-
-			public IntPtr CreateDStream() { return zstd_createDStream(); }
-
-			public UIntPtr FreeDStream(IntPtr zcs) { return zstd_freeDStream(zcs); }
-
-			public UIntPtr InitDStream(IntPtr zcs) { return zstd_initDStream(zcs); }
-
-			public UIntPtr DecompressStream(IntPtr zcs, Buffer outputBuffer, Buffer inputBuffer) { return zstd_decompressStream(zcs, outputBuffer, inputBuffer); }
-
-			public UIntPtr DStreamInSize() { return zstd_DStreamInSize(); }
-
-			public UIntPtr DStreamOutSize() { return zstd_DStreamOutSize(); }
-
-			#endregion
-		}
-
-		private class Zstd_x86 : IImportZstd
-		{
-			#region DllImports
-
-			private const String DllName = @"x86\libzstd";
-
-			[DllImport(DllName, EntryPoint = "ZSTD_maxCLevel", CallingConvention = CallingConvention.Cdecl)]
-			private static extern Int32 zstd_GetMaxCompessionLevel();
-
-			[DllImport(DllName, EntryPoint = "ZSTD_versionNumber", CallingConvention = CallingConvention.Cdecl)]
-			private static extern Int32 zstd_GetVersionNumber();
-
-			//[DllImport(DllName, EntryPoint = "ZSTD_versionString", CallingConvention = CallingConvention.Cdecl)]
-			//public static extern string zstd_versionString();
-
-			[DllImport(DllName, EntryPoint = "ZSTD_isError", CallingConvention = CallingConvention.Cdecl)]
-			private static extern Int32 zstd_isError(UIntPtr code);
-
-			[DllImport(DllName, EntryPoint = "ZSTD_getErrorName", CallingConvention = CallingConvention.Cdecl)]
-			private static extern String zstd_getErrorName(UIntPtr code);
-
-			[DllImport(DllName, EntryPoint = "ZSTD_createCStream", CallingConvention = CallingConvention.Cdecl)]
-			private static extern IntPtr zstd_createCStream();
-
-			[DllImport(DllName, EntryPoint = "ZSTD_freeCStream", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_freeCStream(IntPtr zcs);
-
-			[DllImport(DllName, EntryPoint = "ZSTD_initCStream", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_initCStream(IntPtr zcs, int compressionLevel);
-
-			[DllImport(DllName, EntryPoint = "ZSTD_compressStream", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_compressStream(IntPtr zcs,
-				[MarshalAs(UnmanagedType.LPStruct)] Buffer outputBuffer,
-				[MarshalAs(UnmanagedType.LPStruct)] Buffer inputBuffer);
-
-			[DllImport(DllName, EntryPoint = "ZSTD_flushStream", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_flushStream(IntPtr zcs,
-				[MarshalAs(UnmanagedType.LPStruct)] Buffer outputBuffer);
-
-			[DllImport(DllName, EntryPoint = "ZSTD_endStream", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_endStream(IntPtr zcs,
-				[MarshalAs(UnmanagedType.LPStruct)] Buffer outputBuffer);
-
-			[DllImport(DllName, EntryPoint = "ZSTD_CStreamInSize", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_CStreamInSize();
-
-			[DllImport(DllName, EntryPoint = "ZSTD_CStreamOutSize", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_CStreamOutSize();
-
-			[DllImport(DllName, EntryPoint = "ZSTD_createDStream", CallingConvention = CallingConvention.Cdecl)]
-			private static extern IntPtr zstd_createDStream();
-
-			[DllImport(DllName, EntryPoint = "ZSTD_freeDStream", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_freeDStream(IntPtr zcs);
-
-			[DllImport(DllName, EntryPoint = "ZSTD_initDStream", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_initDStream(IntPtr zcs);
-
-			[DllImport(DllName, EntryPoint = "ZSTD_decompressStream", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_decompressStream(IntPtr zcs,
-				[MarshalAs(UnmanagedType.LPStruct)] Buffer outputBuffer,
-				[MarshalAs(UnmanagedType.LPStruct)] Buffer inputBuffer);
-
-			[DllImport(DllName, EntryPoint = "ZSTD_DStreamInSize", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_DStreamInSize();
-
-			[DllImport(DllName, EntryPoint = "ZSTD_CStreamOutSize", CallingConvention = CallingConvention.Cdecl)]
-			private static extern UIntPtr zstd_DStreamOutSize();
-
-			#endregion
-
-			#region IImportZstd Implementation
-
-			public Int32 GetMaxCompessionLevel() { return zstd_GetMaxCompessionLevel(); }
-
-			public Int32 GetVersionNumber() { return zstd_GetVersionNumber(); }
-
-			public String GetVersionString()
-			{
-				var n = zstd_GetVersionNumber();
-				return string.Format("{0}.{1}.{2}", n / 10000, (n % 10000) / 100, n % 100);
-			}
-
-			public Int32 IsError(UIntPtr code) { return zstd_isError(code); }
-
-			public String GetErrorName(UIntPtr code) { return zstd_getErrorName(code); }
-
-			public IntPtr CreateCStream() { return zstd_createCStream(); }
-
-			public UIntPtr FreeCStream(IntPtr zcs) { return zstd_freeCStream(zcs); }
-
-			public UIntPtr InitCStream(IntPtr zcs, int compressionLevel) { return zstd_initCStream(zcs, compressionLevel); }
-
-			public UIntPtr CompressStream(IntPtr zcs, Buffer outputBuffer, Buffer inputBuffer) { return zstd_compressStream(zcs, outputBuffer, inputBuffer); }
-
-			public UIntPtr FlushStream(IntPtr zcs, Buffer outputBuffer) { return zstd_flushStream(zcs, outputBuffer); }
-
-			public UIntPtr EndStream(IntPtr zcs, Buffer outputBuffer) { return zstd_endStream(zcs, outputBuffer); }
-
-			public UIntPtr CStreamInSize() { return zstd_CStreamInSize(); }
-
-			public UIntPtr CStreamOutSize() { return zstd_CStreamOutSize(); }
-
-			public IntPtr CreateDStream() { return zstd_createDStream(); }
-
-			public UIntPtr FreeDStream(IntPtr zcs) { return zstd_freeDStream(zcs); }
-
-			public UIntPtr InitDStream(IntPtr zcs) { return zstd_initDStream(zcs); }
-
-			public UIntPtr DecompressStream(IntPtr zcs, Buffer outputBuffer, Buffer inputBuffer) { return zstd_decompressStream(zcs, outputBuffer, inputBuffer); }
-
-			public UIntPtr DStreamInSize() { return zstd_DStreamInSize(); }
-
-			public UIntPtr DStreamOutSize() { return zstd_DStreamOutSize(); }
-
-			#endregion
+			Int32 ZSTD_maxCLevel();
+			Int32 ZSTD_versionNumber();
+			String ZSTD_versionString();
+
+			Int32 ZSTD_isError(UIntPtr code);
+			String ZSTD_getErrorName(UIntPtr code);
+
+			IntPtr ZSTD_createCStream();
+			UIntPtr ZSTD_freeCStream(IntPtr zcs);
+			UIntPtr ZSTD_initCStream(IntPtr zcs, int compressionLevel);
+			UIntPtr ZSTD_compressStream(IntPtr zcs, Buffer outputBuffer, Buffer inputBuffer);
+			UIntPtr ZSTD_CStreamInSize();
+			UIntPtr ZSTD_CStreamOutSize();
+
+			IntPtr ZSTD_createDStream();
+			UIntPtr ZSTD_freeDStream(IntPtr zcs);
+			UIntPtr ZSTD_initDStream(IntPtr zcs);
+			UIntPtr ZSTD_decompressStream(IntPtr zcs, Buffer outputBuffer, Buffer inputBuffer);
+			UIntPtr ZSTD_DStreamInSize();
+			UIntPtr ZSTD_DStreamOutSize();
+
+			UIntPtr ZSTD_flushStream(IntPtr zcs, Buffer outputBuffer);
+			UIntPtr ZSTD_endStream(IntPtr zcs, Buffer outputBuffer);
 		}
 	}
 }
