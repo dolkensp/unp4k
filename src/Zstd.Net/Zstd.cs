@@ -186,6 +186,8 @@ namespace Zstd.Net
 					ex = ex.InnerException;
 				} while (ex != null);
 
+				Console.WriteLine();
+				Console.WriteLine("Try placing libzstd compiled for your distribution in the bin directory alongside unp4k");
 				throw;
 			}
 		}
