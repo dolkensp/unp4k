@@ -1,22 +1,14 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFrameworks>net47;netcoreapp2.0;netcoreapp3.0;netstandard2.0</TargetFrameworks>
-		<RuntimeIdentifiers>win-x64;linux-x64;osx-x64</RuntimeIdentifiers>
+		<RuntimeIdentifiers>win-x64;win-x86;linux-x64;osx-x64</RuntimeIdentifiers>
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <OutputType>Exe</OutputType>
     <StartupObject>unforge.Program</StartupObject>
 		<PublishTrimmed>true</PublishTrimmed>
 		<PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
   
-  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-  </PropertyGroup>
-  
-  <ItemGroup Condition="'$(TargetFramework)'=='netcoreapp2.0'">
-    <PackageReference Include="Microsoft.NETCore.Portable.Compatibility" Version="1.0.1" />
-  </ItemGroup>
-
 </Project>

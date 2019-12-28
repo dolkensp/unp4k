@@ -5,14 +5,11 @@
 		<TargetFrameworks>net47;netcoreapp2.0;netcoreapp3.0;netstandard2.0</TargetFrameworks>
 		<RuntimeIdentifiers>win-x64;win-x86;linux-x64;osx-x64</RuntimeIdentifiers>
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <StartupObject>unp4k.Program</StartupObject>
+		<PlatformTarget>AnyCPU</PlatformTarget>
+		<StartupObject>unp4k.Program</StartupObject>
 		<PublishTrimmed>true</PublishTrimmed>
 		<PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)'=='netcoreapp2.0'">
-    <PackageReference Include="Microsoft.NETCore.Portable.Compatibility" Version="1.0.1" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ICSharpCode.SharpZipLib\ICSharpCode.SharpZipLib.csproj" />
