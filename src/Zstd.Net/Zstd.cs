@@ -166,18 +166,24 @@ namespace Zstd.Net
 		{
 			try
 			{
+				var activator = new NativeLibraryBuilder { };
+
 				// Detect which DLL version we need for Windows
 				if (Environment.OSVersion.Platform == PlatformID.Win32NT)
 				{
-					var PATH = Environment.GetEnvironmentVariable("PATH");
-					var CD = typeof(Zstd).Assembly.Location.TrimEnd('\\', '/');
-
-					if (Environment.Is64BitProcess) Environment.SetEnvironmentVariable("PATH", $"{PATH};{CD}\x64");
-					else Environment.SetEnvironmentVariable("PATH", $"{PATH};{CD}/x86");
+					if (Environment.Is64BitProcess)
+					{
+						Zstd.Library = activator.ActivateInterface<IImportZstd>("x64/libzstd");
+					}
+					else
+					{
+						Zstd.Library = activator.ActivateInterface<IImportZstd>("x86/libzstd");
+					}
 				}
-
-				var activator = new NativeLibraryBuilder { };
-				Zstd.Library = activator.ActivateInterface<IImportZstd>("libzstd");
+				else
+				{
+					Zstd.Library = activator.ActivateInterface<IImportZstd>("libzstd");
+				}
 			} catch (Exception ex) {
 				do
 				{
