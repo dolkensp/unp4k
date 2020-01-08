@@ -1,5 +1,5 @@
 # unp4k [![Build status](https://ci.appveyor.com/api/projects/status/hkufa3njtl0x9v79/branch/master?svg=true)](https://ci.appveyor.com/project/dolkensp/unp4k/branch/master)
-Unp4k utilities for Star Citizen
+These tools allow users to open, decrypt, and extract data from Star Citizen `.p4k` files.
 
 # Installation:
 1. Download `unp4k-suite-v3.3.x.zip`
@@ -28,3 +28,19 @@ NOTE: The filter does not fully support wildcards. To extract files of a certain
 4. Right click to extract/open files
 
 NOTE: unp4k.gui is early alpha, and has many crashes, and unfinished features. Use at your own risk
+
+# File Format Overview:
+
+The p4k files used by Star Citizen are Zip archives.
+
+Star Citizen supports data in multiple modes inside the archive, including STORE, DEFLATE, and custom support for ZSTD.
+
+Star Citizen also implements bespoke encryption over *some* of the data inside the archive - this can all be decrypted with the same public key that is utilized by CryEngine based games for various encryption routines within the engine.
+
+Inside the p4k file, XML files are often stored as CryXML rather than raw XML.
+
+CryXML is a basic serialized XML format which `unforge.exe` is able to deserialize.
+
+Inside the p4k file, there is also a `game.dcb` file, which is a bespoke database format, with similarities to CryXML.
+
+This is the product of what is known internally as "DataForge", and is also able to be converted/extracted using the `unforge.exe` tool.
