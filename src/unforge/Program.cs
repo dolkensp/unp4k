@@ -10,7 +10,12 @@ namespace unforge
     class Program
     {
 		static void Main(params String[] args)
-        {
+		{
+			var ci = System.Globalization.CultureInfo.InvariantCulture;
+			System.Threading.Thread.CurrentThread.CurrentCulture = ci;
+			System.Threading.Thread.CurrentThread.CurrentUICulture = ci;
+
+
             if (args.Length == 0)
             {
                 args = new String[] { "game.v4.dcb" };
