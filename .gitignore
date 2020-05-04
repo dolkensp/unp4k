@@ -253,3 +253,8 @@ paket-files/
 
 # Sample data
 .data/
+.fake
+.ionide
+
+.fake
+.ionide
