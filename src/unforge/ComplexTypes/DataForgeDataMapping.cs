@@ -16,8 +16,13 @@ namespace unforge
         public DataForgeDataMapping(DataForge documentRoot)
             : base(documentRoot)
         {
-            this.StructCount = this._br.ReadUInt32();
-            this.StructIndex = this._br.ReadUInt32();
+			if(this.DocumentRoot.FileVersion >= 5) {
+				this.StructCount = this._br.ReadUInt32();
+            	this.StructIndex = this._br.ReadUInt32();
+			} else {
+            	this.StructCount = this._br.ReadUInt16();
+            	this.StructIndex = this._br.ReadUInt16();
+			}
             this.NameOffset = documentRoot.StructDefinitionTable[this.StructIndex].NameOffset;
         }
 
