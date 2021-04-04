@@ -4,7 +4,7 @@ on:
   push:
 
 env:
-  UNP4K_VERSION: 3.13.${{ GITHUB_RUN_ID }}
+  UNP4K_VERSION: 3.13.${{ github.run_id }}
 
 jobs:
   build:
