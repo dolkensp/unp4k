@@ -96,7 +96,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./unp4k-suite.zip
+        asset_path: unp4k-suite.zip
         asset_name: unp4k-suite-v${{ env.UNP4K_VERSION }}.zip
         asset_content_type: application/zip
 
@@ -111,7 +111,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./unp4k.zip
+        asset_path: unp4k.zip
         asset_name: unp4k-v${{ env.UNP4K_VERSION }}.zip
         asset_content_type: application/zip
 
@@ -126,6 +126,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./unforge.zip
+        asset_path: unforge.zip
         asset_name: unforge-v${{ env.UNP4K_VERSION }}.zip
         asset_content_type: application/zip
