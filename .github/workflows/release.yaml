@@ -1,0 +1,127 @@
+name: Release
+
+on:
+  push:
+    branches:
+        - master
+  pull_request:
+      branches:
+          - master
+env:
+  UNP4K_VERSION: 3.13.${{ github.run_number }}
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup Nuget
+      uses: nuget/setup-nuget@v1
+      with:
+        nuget-version: '5.x'
+
+    - name: Setup MSBuild
+      id: setup_msbuild
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Restore dependencies
+      run: nuget restore
+
+    - name: Build
+      run: msbuild unp4k.sln /m /verbosity:minimal /p:Configuration=Release
+      
+    - name: Package
+      shell: cmd
+      run: |
+        cd src
+        copy unp4k\bin\Release\net47\win-x64\unp4k.exe unp4k.gui\bin\Release\unp4k.exe
+        erase *.pdb /s
+        erase *.exe.config /s
+        erase *.xml /s
+        erase System.Net.Http.dll /s
+        erase System.Runtime.dll /s
+        erase System.IO.dll /s
+        erase System.Security.*.dll /s
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: unp4k-suite-v${{ env.UNP4K_VERSION }}
+        path: src/unp4k.gui/bin/Release
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: unforge-v${{ env.UNP4K_VERSION }}
+        path: src/unforge/bin/Release/net47/win-x64
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: unp4k-v${{ env.UNP4K_VERSION }}
+        path: src/unp4k/bin/Release/net47/win-x64
+
+  release:
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'push')
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Load README
+      run: echo "README=$(cat README.md)" >> $GITHUB_ENV
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ env.UNP4K_VERSION }}
+        release_name: unp4k Tools for Star Citizen
+        body: ${{ env.README }}
+        draft: false
+        prerelease: false
+
+    - uses: actions/download-artifact@v2
+      with:
+        name: unp4k-suite-v${{ env.UNP4K_VERSION }}
+        path: unp4k-suite.zip
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./unp4k-suite.zip
+        asset_name: unp4k-suite-v${{ env.UNP4K_VERSION }}.zip
+        asset_content_type: application/zip
+
+    - uses: actions/download-artifact@v2
+      with:
+        name: unp4k-v${{ env.UNP4K_VERSION }}
+        path: unp4k.zip
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./unp4k.zip
+        asset_name: unp4k-v${{ env.UNP4K_VERSION }}.zip
+        asset_content_type: application/zip
+
+    - uses: actions/download-artifact@v2
+      with:
+        name: unforge-v${{ env.UNP4K_VERSION }}
+        path: unforge.zip
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./unforge.zip
+        asset_name: unforge-v${{ env.UNP4K_VERSION }}.zip
+        asset_content_type: application/zip
