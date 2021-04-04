@@ -65,6 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     if: (github.event_name == 'push')
     outputs:
+      id: ${{ steps.create_release.outputs.id }}
       upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
     - uses: actions/checkout@v2
@@ -84,10 +85,10 @@ jobs:
         tag_name: v${{ env.UNP4K_VERSION }}
         release_name: unp4k Tools for Star Citizen
         body: ${{ env.README }}
-        draft: false
+        draft: true
         prerelease: false
 
-  publish:
+  upload:
     needs: release
     runs-on: ubuntu-latest
     if: (github.event_name == 'push')
@@ -96,16 +97,16 @@ jobs:
       matrix:
         artifact: [ unp4k, unp4k-suite, unforge ]
     steps:
-    - name: Load
+    - name: Load Artifacts
       uses: actions/download-artifact@v2
       with:
         name: ${{ matrix.artifact }}-v${{ env.UNP4K_VERSION }}
         path: ${{ matrix.artifact }}
 
-    - name: Compress
+    - name: Compress Artifacts
       run: (cd ${{ matrix.artifact }} && zip -r ../${{ matrix.artifact }}.zip .)
 
-    - name: Upload
+    - name: Upload Artifacts
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -114,3 +115,15 @@ jobs:
         asset_path: ${{ matrix.artifact }}.zip
         asset_name: ${{ matrix.artifact }}-v${{ env.UNP4K_VERSION }}.zip
         asset_content_type: application/zip
+
+  publish:
+    needs: [ upload, release ]
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'push')
+    steps:
+    - name: Publish Release
+      uses: StuYarrow/publish-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        id: ${{ needs.release.outputs.id }}
