@@ -61,6 +61,7 @@ jobs:
         path: src/unp4k/bin/Release/net47/win-x64
 
   release:
+    needs: build
     runs-on: ubuntu-latest
     if: (github.event_name == 'push')
     steps:
