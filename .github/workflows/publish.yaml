@@ -10,16 +10,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - id: next_version
-      name: Get next version
-      uses: zwaldowski/semver-release-action@v1
-      env:
-        ACTIONS_ALLOW_UNSECURE_COMMANDS: true
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        bump: patch
-        dry_run: true
-
     - name: Setup Nuget
       uses: nuget/setup-nuget@v1
       with:
@@ -33,8 +23,11 @@ jobs:
       run: nuget restore
 
     - name: Build
+      run: msbuild unp4k.sln /m /verbosity:minimal /p:Configuration=Release
+      
+    - name: Package
+      shell: cmd
       run: |
-        msbuild unp4k.sln /m /verbosity:minimal /p:Configuration=Release
         cd src
         copy unp4k\bin\Release\net47\win-x64\unp4k.exe unp4k.gui\bin\Release\unp4k.exe
         erase *.pdb /s
@@ -44,6 +37,16 @@ jobs:
         erase System.Runtime.dll /s
         erase System.IO.dll /s
         erase System.Security.*.dll /s
+
+    - id: next_version
+      name: Get next version
+      uses: zwaldowski/semver-release-action@v1
+      env:
+        ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        bump: patch
+        dry_run: true
 
     - uses: actions/upload-artifact@v2
       with:
