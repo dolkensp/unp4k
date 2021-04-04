@@ -88,7 +88,10 @@ jobs:
     - uses: actions/download-artifact@v2
       with:
         name: unp4k-suite-v${{ env.UNP4K_VERSION }}
-        path: unp4k-suite.zip
+        path: unp4k-suite
+
+    - name: Compress unp4k-suite
+      run: zip -r unp4k-suite.zip unp4k-suite
 
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
@@ -103,7 +106,10 @@ jobs:
     - uses: actions/download-artifact@v2
       with:
         name: unp4k-v${{ env.UNP4K_VERSION }}
-        path: unp4k.zip
+        path: unp4k
+
+    - name: Compress unp4k
+      run: zip -r unp4k.zip unp4k
 
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
@@ -118,7 +124,10 @@ jobs:
     - uses: actions/download-artifact@v2
       with:
         name: unforge-v${{ env.UNP4K_VERSION }}
-        path: unforge.zip
+        path: unforge
+
+    - name: Compress unforge
+      run: zip -r unforge.zip unforge
 
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
