@@ -9,11 +9,18 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-
-    - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v0.9.7
+    
+    - name: 'Get Previous tag'
+      id: previoustag
+      uses: "WyriHaximus/github-action-get-previous-tag@v1"
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        
+    - name: 'Get next minor version'
+      id: semvers
+      uses: "WyriHaximus/github-action-next-semvers@v1"
       with:
-        versionSpec: '5.x'
+        version: ${{ steps.previoustag.outputs.tag }}
 
     - name: Determine Version
       id:   gitversion
@@ -46,15 +53,15 @@ jobs:
 
     - uses: actions/upload-artifact@v2
       with:
-        name: unp4k-suite-v${{ steps.gitversion.outputs.fullSemVer }}
+        name: unp4k-suite-v${{ steps.semvers.outputs.patch }}
         path: src/unp4k.gui/bin/Release
 
     - uses: actions/upload-artifact@v2
       with:
-        name: unforge-v${{ steps.gitversion.outputs.fullSemVer }}
+        name: unforge-v${{ steps.semvers.outputs.patch }}
         path: src/unforge/bin/Release/net47/win-x64
 
     - uses: actions/upload-artifact@v2
       with:
-        name: unp4k-v${{ steps.gitversion.outputs.fullSemVer }}
+        name: unp4k-v${{ steps.semvers.outputs.patch }}
         path: src/unp4k/bin/Release/net47/win-x64
