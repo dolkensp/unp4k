@@ -3,6 +3,9 @@ name: Compile and Publish
 on:
   push:
 
+env:
+  VERSION: 3.13.${ GITHUB_RUN_ID }
+
 jobs:
   build:
     runs-on: windows-latest
@@ -38,27 +41,17 @@ jobs:
         erase System.IO.dll /s
         erase System.Security.*.dll /s
 
-    - id: next_version
-      name: Get next version
-      uses: zwaldowski/semver-release-action@v1
-      env:
-        ACTIONS_ALLOW_UNSECURE_COMMANDS: true
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        bump: patch
-        dry_run: true
-
     - uses: actions/upload-artifact@v2
       with:
-        name: unp4k-suite-v${{ steps.next_version.outputs.version }}
+        name: unp4k-suite-v${{ env.VERSION }}
         path: src/unp4k.gui/bin/Release
 
     - uses: actions/upload-artifact@v2
       with:
-        name: unforge-v${{ steps.next_version.outputs.version }}
+        name: unforge-v${{ env.VERSION }}
         path: src/unforge/bin/Release/net47/win-x64
 
     - uses: actions/upload-artifact@v2
       with:
-        name: unp4k-v${{ steps.next_version.outputs.version }}
+        name: unp4k-v${{ env.VERSION }}
         path: src/unp4k/bin/Release/net47/win-x64
