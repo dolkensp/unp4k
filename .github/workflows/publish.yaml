@@ -4,7 +4,7 @@ on:
   push:
 
 env:
-  VERSION: 3.13.${ GITHUB_RUN_ID }
+  UNP4K_VERSION: 3.13.${{ GITHUB_RUN_ID }}
 
 jobs:
   build:
@@ -43,15 +43,15 @@ jobs:
 
     - uses: actions/upload-artifact@v2
       with:
-        name: unp4k-suite-v${{ env.VERSION }}
+        name: unp4k-suite-v${{ env.UNP4K_VERSION }}
         path: src/unp4k.gui/bin/Release
 
     - uses: actions/upload-artifact@v2
       with:
-        name: unforge-v${{ env.VERSION }}
+        name: unforge-v${{ env.UNP4K_VERSION }}
         path: src/unforge/bin/Release/net47/win-x64
 
     - uses: actions/upload-artifact@v2
       with:
-        name: unp4k-v${{ env.VERSION }}
+        name: unp4k-v${{ env.UNP4K_VERSION }}
         path: src/unp4k/bin/Release/net47/win-x64
