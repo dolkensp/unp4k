@@ -13,8 +13,9 @@ jobs:
     - id: next_version
       name: Get next version
       uses: zwaldowski/semver-release-action@v1
+      env:
+        ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       with:
-        prefix: v
         github_token: ${{ secrets.GITHUB_TOKEN }}
         bump: patch
         dry_run: true
