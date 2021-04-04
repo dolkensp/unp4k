@@ -9,22 +9,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    
-    - name: 'Get Previous tag'
-      id: previoustag
-      uses: "WyriHaximus/github-action-get-previous-tag@v1"
-      env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-        
-    - name: 'Get next minor version'
-      id: semvers
-      uses: "WyriHaximus/github-action-next-semvers@v1"
-      with:
-        version: ${{ steps.previoustag.outputs.tag }}
 
-    - name: Determine Version
-      id:   gitversion
-      uses: gittools/actions/gitversion/execute@v0.9.7
+    - id: next_version
+      name: Get next version
+      uses: zwaldowski/semver-release-action@v1
+      with:
+        prefix: v
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        bump: patch
+        dry_run: true
 
     - name: Setup Nuget
       uses: nuget/setup-nuget@v1
@@ -53,15 +46,15 @@ jobs:
 
     - uses: actions/upload-artifact@v2
       with:
-        name: unp4k-suite-v${{ steps.semvers.outputs.patch }}
+        name: unp4k-suite-v${{ steps.next_version.outputs.version }}
         path: src/unp4k.gui/bin/Release
 
     - uses: actions/upload-artifact@v2
       with:
-        name: unforge-v${{ steps.semvers.outputs.patch }}
+        name: unforge-v${{ steps.next_version.outputs.version }}
         path: src/unforge/bin/Release/net47/win-x64
 
     - uses: actions/upload-artifact@v2
       with:
-        name: unp4k-v${{ steps.semvers.outputs.patch }}
+        name: unp4k-v${{ steps.next_version.outputs.version }}
         path: src/unp4k/bin/Release/net47/win-x64
