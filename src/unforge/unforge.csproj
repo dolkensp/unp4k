@@ -5,9 +5,5 @@
     <OutputType>Exe</OutputType>
     <StartupObject>unforge.Program</StartupObject>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
   
 </Project>
