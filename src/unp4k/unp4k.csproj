@@ -12,8 +12,4 @@
     <PackageReference Include="Microsoft.NETCore.Portable.Compatibility" Version="1.0.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\ICSharpCode.SharpZipLib\ICSharpCode.SharpZipLib.csproj" />
-  </ItemGroup>
-
 </Project>
