@@ -32,7 +32,7 @@ namespace unp4k
                         if (!target.Directory.Exists) target.Directory.Create();
                         if (!target.Exists)
                         {
-                            Console.WriteLine($"{entry.CompressionMethod} | {entry.Name}");
+                            Console.WriteLine($"Extracting > {entry.Name}");
                             using ZipInputStream s = new(pak.GetInputStream(entry));
                             using FileStream fs = File.Create(entry.Name);
                             s.CopyTo(fs);
