@@ -1,30 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
+using System.Globalization;
+using System.Xml;
 
 namespace unforge
 {
-    class Program
+    internal static class Program
     {
-		static void Main(params String[] args)
+		internal static void Main(params string[] args)
 		{
-			var ci = System.Globalization.CultureInfo.InvariantCulture;
-			System.Threading.Thread.CurrentThread.CurrentCulture = ci;
-			System.Threading.Thread.CurrentThread.CurrentUICulture = ci;
-
+			Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+			Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
 
             if (args.Length == 0)
             {
-                args = new String[] { "game.v4.dcb" };
-                // args = new String[] { "wrld.xml" };
-                // args = new String[] { "Data" };
-                // args = new String[] { @"S:\Mods\BuildXPLOR\archive-3.0\661655\Data\game.dcb" };
+                args = new string[] { "game.v4.dcb" };
+                // args = new string[] { "wrld.xml" };
+                // args = new string[] { "Data" };
             }
 
-			if (args.Length < 1 || args.Length > 1)
+            if (args.Length < 1 || args.Length > 1)
 			{
 				Console.WriteLine("Usage: unforge.exe [infile]");
 				Console.WriteLine();
@@ -43,49 +40,38 @@ namespace unforge
             {
                 foreach (var file in Directory.GetFiles(args[0], "*.*", SearchOption.AllDirectories))
                 {
-                    if (new String[] { "ini", "txt" }.Contains(Path.GetExtension(file), StringComparer.InvariantCultureIgnoreCase)) continue;
-
+                    if (new string[] { "ini", "txt" }.Contains(Path.GetExtension(file), StringComparer.InvariantCultureIgnoreCase)) continue;
                     try
                     {
                         Console.WriteLine("Converting {0}", file.Replace(args[0], ""));
-
                         Smelter.Instance.Smelt(file);
                     }
                     catch (Exception) { }
                 }
             }
-            else
-            {
-                Smelter.Instance.Smelt(args[0]);
-            }
+            else Smelter.Instance.Smelt(args[0]);
         }
     }
 
 	public class Smelter
 	{
-		public static Smelter Instance => new Smelter { };
+		public static Smelter Instance => new();
+		private bool _overwrite;
 
-		private Boolean _overwrite;
-
-		public void Smelt(String path, Boolean overwrite = true)
+		public void Smelt(string path, bool overwrite = true)
 		{
-			this._overwrite = overwrite;
-
+			_overwrite = overwrite;
 			try
 			{
 				if (File.Exists(path))
 				{
 					if (Path.GetExtension(path) == ".dcb")
 					{
-						using (BinaryReader br = new BinaryReader(File.OpenRead(path)))
-						{
-							var legacy = new FileInfo(path).Length < 0x0e2e00;
-
-							var df = new DataForge(br, legacy);
-
-							df.Save(Path.ChangeExtension(path, "xml"));
-						}
-					}
+                        using BinaryReader br = new BinaryReader(File.OpenRead(path));
+                        bool legacy = new FileInfo(path).Length < 0x0e2e00;
+                        DataForge df = new DataForge(br, legacy);
+                        df.Save(Path.ChangeExtension(path, "xml"));
+                    }
 					else
 					{
 						if (!_overwrite)
@@ -96,17 +82,9 @@ namespace unforge
 								path = Path.ChangeExtension(path, "raw");
 							}
 						}
-
-						var xml = CryXmlSerializer.ReadFile(path);
-
-						if (xml != null)
-						{
-							xml.Save(Path.ChangeExtension(path, "xml"));
-						}
-						else
-						{
-							Console.WriteLine("{0} already in XML format", path);
-						}
+						XmlDocument xml = CryXmlSerializer.ReadFile(path);
+						if (xml != null) xml.Save(Path.ChangeExtension(path, "xml"));
+						else Console.WriteLine("{0} already in XML format", path);
 					}
 				}
 			}
