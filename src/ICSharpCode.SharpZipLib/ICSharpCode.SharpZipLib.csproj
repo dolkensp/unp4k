@@ -30,10 +30,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NETCore.Portable.Compatibility" Version="1.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Zstd.Net\Zstd.Net.csproj" />
   </ItemGroup>
 </Project>
