@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp2.0;net47</TargetFrameworks>
+	<TargetFramework>net6.0</TargetFramework>
     <StartupObject>unp4k.Program</StartupObject>
     <RuntimeIdentifiers>win-x64;win-x86</RuntimeIdentifiers>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
