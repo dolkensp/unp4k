@@ -41,7 +41,9 @@ namespace unp4k
                 }
                 catch (Exception ex)
                 {
+                    Console.WriteLine();
                     Console.WriteLine($"Exception while extracting {entry.Name}: {ex.Message}");
+                    Console.WriteLine();
                     /*
                      * TODO: This needs updating, not entirely sure how this works and it doesnt seem to work, for me anyway. A new experimental thing or something?
                      * Probably unwise to upload something like this to a server due to bandwidth costs/the abusability of it.
