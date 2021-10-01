@@ -11,8 +11,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Configuration", "S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "unp4k", "src\unp4k\unp4k.csproj", "{45633789-1DB1-44B9-B343-0B2DA2C1F71F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zstd.Net", "src\Zstd.Net\Zstd.Net.csproj", "{5922D4EC-8478-4B0D-8F92-7532F4F2CF81}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "unp4k.gui", "src\unp4k.gui\unp4k.gui.csproj", "{0F47C85F-B0C2-4E2B-A032-DBC4763B957A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "unforge", "src\unforge\unforge.csproj", "{273D3D56-F005-4ED5-BABB-FD88FBC3FC63}"
@@ -27,10 +25,6 @@ Global
 		{45633789-1DB1-44B9-B343-0B2DA2C1F71F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{45633789-1DB1-44B9-B343-0B2DA2C1F71F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{45633789-1DB1-44B9-B343-0B2DA2C1F71F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5922D4EC-8478-4B0D-8F92-7532F4F2CF81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5922D4EC-8478-4B0D-8F92-7532F4F2CF81}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5922D4EC-8478-4B0D-8F92-7532F4F2CF81}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5922D4EC-8478-4B0D-8F92-7532F4F2CF81}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0F47C85F-B0C2-4E2B-A032-DBC4763B957A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0F47C85F-B0C2-4E2B-A032-DBC4763B957A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F47C85F-B0C2-4E2B-A032-DBC4763B957A}.Release|Any CPU.ActiveCfg = Release|Any CPU
