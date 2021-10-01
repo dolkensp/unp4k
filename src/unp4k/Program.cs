@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 
 namespace unp4k
@@ -32,9 +31,9 @@ namespace unp4k
                         if (!target.Exists)
                         {
                             Console.WriteLine($"{entry.CompressionMethod} | {entry.Name}");
-                            using Stream s = pak.GetInputStream(entry);
+                            using ZipInputStream s = new ZipInputStream(pak.GetInputStream(entry));
                             using FileStream fs = File.Create(entry.Name);
-                            StreamUtils.Copy(s, fs, buf);
+                            s.CopyTo(fs);
                         }
                     }
                 }
