@@ -1,20 +1,9 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 using System.Xml;
-using System.Xml.Serialization;
 using DDRIT = Dolkens.Framework.BinaryExtensions.ExtensionMethods;
-using System.Security.Cryptography;
-using Dolkens.Framework.BinaryExtensions;
-using System.Xml.XPath;
 using unforge;
 using System.Text.RegularExpressions;
 

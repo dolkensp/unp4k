@@ -1,19 +1,13 @@
 ﻿#define NONULL
 
-using Microsoft.CSharp;
 using System;
-using System.CodeDom.Compiler;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Xml;
-using System.Xml.XPath;
 
 namespace unforge
 {
