@@ -6,7 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Configuration", "Solution Configuration", "{F1097E98-4DEB-4A0A-81EE-5CEC667EBDF0}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
-		.gitignore = .gitignore
+		appveyor.yml = appveyor.yml
+		lgtm.yml = lgtm.yml
+		LICENSE.txt = LICENSE.txt
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "unp4k", "src\unp4k\unp4k.csproj", "{45633789-1DB1-44B9-B343-0B2DA2C1F71F}"
@@ -14,6 +16,13 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "unp4k.gui", "src\unp4k.gui\unp4k.gui.csproj", "{0F47C85F-B0C2-4E2B-A032-DBC4763B957A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "unforge", "src\unforge\unforge.csproj", "{273D3D56-F005-4ED5-BABB-FD88FBC3FC63}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Git", "Git", "{97CEC351-CD72-46D6-BA54-EF31612F9F2D}"
+	ProjectSection(SolutionItems) = preProject
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,6 +45,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{97CEC351-CD72-46D6-BA54-EF31612F9F2D} = {F1097E98-4DEB-4A0A-81EE-5CEC667EBDF0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {06362D77-167B-4814-897B-1CE1AF745A90}
