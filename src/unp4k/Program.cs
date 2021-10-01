@@ -29,12 +29,12 @@ namespace unp4k
                         entry.Name.ToLowerInvariant().Contains(args[1].ToLowerInvariant()) ||                                                                               // Searching for keywords / extensions
                         (args[1].EndsWith("xml", StringComparison.InvariantCultureIgnoreCase) && entry.Name.EndsWith(".dcb", StringComparison.InvariantCultureIgnoreCase))) // Searching for XMLs - include game.dcb
                     {
-                        FileInfo target = new FileInfo(entry.Name);
+                        FileInfo target = new(entry.Name);
                         if (!target.Directory.Exists) target.Directory.Create();
                         if (!target.Exists)
                         {
                             Console.WriteLine($"{entry.CompressionMethod} | {entry.Name}");
-                            using ZipInputStream s = new ZipInputStream(pak.GetInputStream(entry));
+                            using ZipInputStream s = new(pak.GetInputStream(entry));
                             using FileStream fs = File.Create(entry.Name);
                             s.CopyTo(fs);
                         }
