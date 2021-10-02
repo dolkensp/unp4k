@@ -20,12 +20,6 @@ if (args.Length == 3)
         Console.ReadKey();
         return;
     }
-    if (Directory.GetFiles(args[1]).Length > 0)
-    {
-        Logger.LogError("Output path '" + args[1] + "' must be empty!");
-        Console.ReadKey();
-        return;
-    }
 }
 
 using FileStream pakFile = File.OpenRead(args[0]);
