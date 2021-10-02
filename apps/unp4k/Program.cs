@@ -51,7 +51,7 @@ foreach (ZipEntry entry in pak)
         {
             if (!target.Directory.Exists) new DirectoryInfo(Path.Join(outputPath is not null ? outputPath : "star_citizen_extraction",
                 target.Directory.FullName.Replace(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), string.Empty))).Create();
-            if (!target.Exists)
+            if (!target.Exists || target.Length == entry.Size)
             {
                 using FileStream fs = File.Create(Path.Join(outputPath is not null ? outputPath : "star_citizen_extraction", entry.Name));
                 try
