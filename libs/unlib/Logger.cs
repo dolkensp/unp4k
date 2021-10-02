@@ -55,7 +55,8 @@ public static class Logger
         if (pckg.ClearMode == 0)
         {
             if (!flag && PreviousMessageCount == 0) Console.Write("\n");
-            if (pckg.Level == 0 && PreviousMessageCount == 0) Console.Write("[" + pckg.PostTime.ToString("yyyy/MM/dd HH:mm:ss.fff") + "][INFO]:  " + pckg.Message);
+            if (pckg.Level == -1) Console.Write(pckg.Message);
+            else if (pckg.Level == 0 && PreviousMessageCount == 0) Console.Write("[" + pckg.PostTime.ToString("yyyy/MM/dd HH:mm:ss.fff") + "][INFO]:  " + pckg.Message);
             else if (pckg.Level == 0) ClearLine("[" + pckg.PostTime.ToString("yyyy/MM/dd HH:mm:ss.fff") + "][INFO]:  [" + PreviousMessageCount + " Duplicates] " + pckg.Message);
             else if (pckg.Level == 1 && PreviousMessageCount == 0) Console.Write("[" + pckg.PostTime.ToString("yyyy/MM/dd HH:mm:ss.fff") + "][WARN]:  " + pckg.Message);
             else if (pckg.Level == 1) ClearLine("[" + pckg.PostTime.ToString("yyyy/MM/dd HH:mm:ss.fff") + "][WARN]:  [" + PreviousMessageCount + " Duplicates] " + pckg.Message);
@@ -68,6 +69,14 @@ public static class Logger
         else if (pckg.ClearMode == 3) Console.Clear();
         else if (pckg.ClearMode == 2) Console.Write("\n");
         else if (pckg.ClearMode == 1) Console.Write(((!flag) ? "\n" : string.Empty) + pckg.Message);
+    }
+
+    public static void Log(object msg)
+    {
+        LogPackage pckg = default;
+        pckg.Level = -1;
+        pckg.Message = msg is not null ? msg.ToString() : "null";
+        PushLog(pckg);
     }
 
     public static void LogInfo(object msg)
