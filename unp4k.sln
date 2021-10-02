@@ -33,6 +33,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "unforge", "apps\unforge\unf
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "unlib", "libs\unlib\unlib.csproj", "{792EBFFB-2546-4491-B946-26F052E9E509}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Workflows", "Workflows", "{E0923082-1F43-4C41-8B0C-A73C0B3EE039}"
+	ProjectSection(SolutionItems) = preProject
+		build.yaml = build.yaml
+		.github\workflows\release.yaml = .github\workflows\release.yaml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +81,7 @@ Global
 		{C5D21B75-9D04-47C3-A9A8-A755B3264386} = {B19C9D53-D2FA-4346-B85A-EE475B661006}
 		{67A865DC-99FB-4BBE-854B-20CF8448BFC3} = {B19C9D53-D2FA-4346-B85A-EE475B661006}
 		{792EBFFB-2546-4491-B946-26F052E9E509} = {DA2A390A-7859-40FF-8D06-86859BBE85C0}
+		{E0923082-1F43-4C41-8B0C-A73C0B3EE039} = {97CEC351-CD72-46D6-BA54-EF31612F9F2D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {06362D77-167B-4814-897B-1CE1AF745A90}
