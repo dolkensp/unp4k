@@ -1,0 +1,3 @@
+[submodule "SharpZipLib"]
+	path = SharpZipLib
+	url = https://github.com/Star-Aether/SharpZipLib
