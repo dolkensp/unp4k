@@ -5,8 +5,7 @@ using unforge;
 Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
 
-if (args.Length == 0) args = new string[] { "game.v4.dcb" };
-if (args.Length < 1 || args.Length > 1)
+if (args.Length == 0)
 {
 	Logger.Log("################################################################################\n");
 	Logger.Log("                             unp4ck <> Star Citizen                             ");
@@ -22,10 +21,12 @@ if (args.Length < 1 || args.Length > 1)
 	Logger.Log(@"Windows Command Prompt: unforge " + '"' + "[optional-InFilePath]" + '"');
 	Logger.Log(@"Linux Terminal: ./unforge " + '"' + "[optional-InFilePath]" + '"');
 	Logger.Log("\n################################################################################");
+	Logger.Log("\nPress any key to exit.");
+	Console.ReadKey();
 	return;
 }
 
-if ((args.Length > 0) && Directory.Exists(args[0]))
+else if ((args.Length > 0) && Directory.Exists(args[0]))
 {
 	foreach (string file in Directory.GetFiles(args[0], "*.*", SearchOption.AllDirectories))
 	{
