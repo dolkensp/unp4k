@@ -1,6 +1,9 @@
 ﻿using System.Xml;
 using unforge;
 
+Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
+
 if (args.Length == 0)
 {
 	Logger.Log("################################################################################\n");
