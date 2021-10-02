@@ -21,7 +21,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Misc", "Misc", "{37E59179-ED8E-422D-AD47-3003A2B9C5C5}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
-		appveyor.yml = appveyor.yml
 		lgtm.yml = lgtm.yml
 		LICENSE.txt = LICENSE.txt
 	EndProjectSection
