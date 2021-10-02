@@ -1,4 +1,7 @@
 [*.cs]
 
 # CS8601: Possible null reference assignment.
-dotnet_diagnostic.CS8601.severity = error
+dotnet_diagnostic.CS8601.severity = silent
+
+# IDE0011: Add braces
+dotnet_diagnostic.IDE0011.severity = silent
