@@ -28,7 +28,7 @@ if ((args.Length > 0) && Directory.Exists(args[0]))
 		if (new string[] { "ini", "txt" }.Contains(Path.GetExtension(file), StringComparer.InvariantCultureIgnoreCase)) continue;
 		try
 		{
-			Console.WriteLine("Converting {0}", file.Replace(args[0], ""));
+			Logger.LogInfo($"Converting {file.Replace(args[0], "")}");
 			Smelter.Smelt(file);
 		}
 		catch (Exception e) 
@@ -68,7 +68,7 @@ static class Smelter
 					}
 					XmlDocument xml = CryXmlSerializer.ReadFile(path);
 					if (xml != null) xml.Save(Path.ChangeExtension(path, "xml"));
-					else Console.WriteLine("{0} already in XML format", path);
+					else Logger.LogInfo($"{path} already in XML format");
 				}
 			}
 		}
