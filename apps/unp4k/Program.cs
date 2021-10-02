@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 
 if (args.Length == 0) args = new[] { "Data.p4k", "*.*" };
@@ -33,6 +34,7 @@ ZipFile pak = new(pakFile)
     UseZip64 = UseZip64.Dynamic
 };
 pak.KeysRequired += (object sender, KeysRequiredEventArgs e) => e.Key = new byte[] { 0x5E, 0x7A, 0x20, 0x02, 0x30, 0x2E, 0xEB, 0x1A, 0x3B, 0xB6, 0x17, 0xC3, 0x0F, 0xDE, 0x1E, 0x47 };
+byte[] buf = new byte[4096];
 
 foreach (ZipEntry entry in pak)
 {
@@ -55,8 +57,8 @@ foreach (ZipEntry entry in pak)
                 try
                 {
                     Logger.LogInfo($"Extracting > {entry.Name}");
-                    using ZipInputStream s = new(pak.GetInputStream(entry,));
-                    s.CopyTo(fs);
+                    using Stream s = pak.GetInputStream(entry);
+                    StreamUtils.Copy(s, fs, buf);
                 }
                 catch (Exception e)
                 {
