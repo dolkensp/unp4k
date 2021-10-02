@@ -8,16 +8,16 @@ Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
 if (args.Length == 0) args = new string[] { "game.v4.dcb" };
 if (args.Length < 1 || args.Length > 1)
 {
-	Logger.LogInfo("Usage: unforge.exe [infile]");
-	Logger.NewLine();
-	Logger.LogInfo("Converts any Star Citizen binary file into an actual XML file.");
-	Logger.LogInfo("CryXml files (.xml) are saved as .raw in the original location.");
-	Logger.LogInfo("DataForge files (.dcb) are saved as .xml in the original location.");
-	Logger.NewLine();
-	Logger.LogInfo("Can also convert all compatible files in a directory, and it's");
-	Logger.LogInfo("sub-directories. In that case, all CryXml files are saved in-place,");
-	Logger.LogInfo("and any DataForge files are saved to both .xml and extracted to");
-	Logger.LogInfo("the original component locations.");
+	Logger.LogInfo("################################################################################\n");
+	Logger.LogInfo("Usage: unforge.exe [infile]\n");
+	Logger.LogInfo(
+		"Converts any Star Citizen binary file into an actual XML file.\n" +
+		"CryXml files (.xml) are saved as .raw in the original location.\n" +
+		"DataForge files (.dcb) are saved as .xml in the original location.\n\n" +
+		"Can also convert all compatible files in a directory, and it's sub-directories. In that case, all CryXml files are saved in-place, " +
+		"and any DataForge files are saved to both .xml and extracted to the original component locations."
+		);
+	Logger.LogInfo("\n################################################################################");
 	return;
 }
 
