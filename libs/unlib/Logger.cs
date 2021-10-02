@@ -106,6 +106,16 @@ public static class Logger
         PushLog(pckg);
     }
 
+#if DEBUG
+    public static void LogDebug(object msg)
+    {
+        LogPackage pckg = default;
+        pckg.PostTime = DateTime.Now;
+        pckg.Level = 3;
+        pckg.Message = msg is not null ? msg.ToString() : "null";
+        PushLog(pckg);
+    }
+#else
     public static void LogDebug(object msg)
     {
         LogPackage pckg = default;
@@ -114,6 +124,7 @@ public static class Logger
         pckg.Message = "Debug logs should not be called in Release mode!";
         PushLog(pckg);
     }
+#endif
 
     public static void LogException(Exception e)
     {
