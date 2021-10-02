@@ -25,7 +25,6 @@ if (args.Length == 0)
 	Console.ReadKey();
 	return;
 }
-
 else if ((args.Length > 0) && Directory.Exists(args[0]))
 {
 	foreach (string file in Directory.GetFiles(args[0], "*.*", SearchOption.AllDirectories))
@@ -56,9 +55,9 @@ static class Smelter
 			{
 				if (Path.GetExtension(path) == ".dcb")
 				{
-					using BinaryReader br = new BinaryReader(File.OpenRead(path));
+					using BinaryReader br = new(File.OpenRead(path));
 					bool legacy = new FileInfo(path).Length < 0x0e2e00;
-					DataForge df = new DataForge(br, legacy);
+					DataForge df = new(br, legacy);
 					df.Save(Path.ChangeExtension(path, "xml"));
 				}
 				else
