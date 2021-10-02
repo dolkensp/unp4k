@@ -106,6 +106,15 @@ public static class Logger
         PushLog(pckg);
     }
 
+    public static void LogException(Exception e)
+    {
+        LogPackage pckg = default;
+        pckg.PostTime = DateTime.Now;
+        pckg.Level = 3;
+        pckg.Message = $"Source: {e.Source}\n | Data: {e.Data}\n | Message: {e.Message}\n | StackTrace: {e.StackTrace}";
+        PushLog(pckg);
+    }
+
     public static void NewLine(int lines = 1)
     {
         if (lines < 1) lines = 1;

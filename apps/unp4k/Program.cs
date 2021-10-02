@@ -37,6 +37,6 @@ foreach (ZipEntry entry in pak)
     }
     catch (Exception e)
     {
-        Logger.LogError($"Source: {e.Source}\n | Message: {e.Message}\n | StackTrace: {e.StackTrace}\n | Data: {e.Data}");
+        Logger.LogException(e);
     }
 }
