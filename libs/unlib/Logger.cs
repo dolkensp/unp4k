@@ -130,7 +130,7 @@ public static class Logger
     {
         LogPackage pckg = default;
         pckg.PostTime = DateTime.Now;
-        pckg.Level = 3;
+        pckg.Level = 2;
         pckg.Message = $"Source: {e.Source}\n | Data: {e.Data}\n | Message: {e.Message}\n | StackTrace: {e.StackTrace}";
         PushLog(pckg);
     }
