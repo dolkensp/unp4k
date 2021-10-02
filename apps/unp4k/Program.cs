@@ -1,5 +1,5 @@
-﻿using ICSharpCode.SharpZipLib.Zip;
-using System.Reflection;
+﻿using System.Reflection;
+using ICSharpCode.SharpZipLib.Zip;
 
 if (args.Length == 0) args = new[] { "Data.p4k", "*.*" };
 else if (args.Length == 1) args = new[] { args[0], "*.*" };
@@ -36,34 +36,34 @@ pak.KeysRequired += (object sender, KeysRequiredEventArgs e) => e.Key = new byte
 
 foreach (ZipEntry entry in pak)
 {
-    try
+    string filter = args[^1];
+    string? outputPath = args.Length == 3 ? args[1] : null;
+    if (filter.StartsWith("*.")) filter = filter[1..];                                                                                                     // Enable *.ext format for extensions
+    if (filter == ".*" ||                                                                                                                                  // Searching for everything
+        filter == "*" ||                                                                                                                                   // Searching for everything
+        entry.Name.ToLowerInvariant().Contains(filter.ToLowerInvariant()) ||                                                                               // Searching for keywords / extensions
+        (filter.EndsWith("xml", StringComparison.InvariantCultureIgnoreCase) && entry.Name.EndsWith(".dcb", StringComparison.InvariantCultureIgnoreCase))) // Searching for XMLs - include game.dcb
     {
-        string filter = args[^1];
-        string? outputPath = args.Length == 3 ? args[1] : null;
-        if (filter.StartsWith("*.")) filter = filter[1..];                                                                                                     // Enable *.ext format for extensions
-        if (filter == ".*" ||                                                                                                                                  // Searching for everything
-            filter == "*" ||                                                                                                                                   // Searching for everything
-            entry.Name.ToLowerInvariant().Contains(filter.ToLowerInvariant()) ||                                                                               // Searching for keywords / extensions
-            (filter.EndsWith("xml", StringComparison.InvariantCultureIgnoreCase) && entry.Name.EndsWith(".dcb", StringComparison.InvariantCultureIgnoreCase))) // Searching for XMLs - include game.dcb
+        FileInfo target = new(entry.Name);
+        if (target.Directory is not null)
         {
-            FileInfo target = new(entry.Name);
-            if (target.Directory is not null)
+            if (!target.Directory.Exists) new DirectoryInfo(Path.Join(outputPath is not null ? outputPath : "star_citizen_extraction",
+                target.Directory.FullName.Replace(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), string.Empty))).Create();
+            if (!target.Exists)
             {
-                if (!target.Directory.Exists) new DirectoryInfo(Path.Join(outputPath is not null ? outputPath : "star_citizen_extraction",
-                    target.Directory.FullName.Replace(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), string.Empty))).Create();
-                if (!target.Exists)
+                using FileStream fs = File.Create(Path.Join(outputPath is not null ? outputPath : "star_citizen_extraction", entry.Name));
+                try
                 {
                     Logger.LogInfo($"Extracting > {entry.Name}");
-                    using ZipInputStream s = new(pak.GetInputStream(entry));
-                    using FileStream fs = File.Create(Path.Join(outputPath is not null ? outputPath : "star_citizen_extraction", entry.Name));
+                    using ZipInputStream s = new(pak.GetInputStream(entry,));
                     s.CopyTo(fs);
                 }
+                catch (Exception e)
+                {
+                    Logger.LogException(e);
+                }
             }
-            else throw new DirectoryNotFoundException($"A directory in '{target.FullName}' was not found.");
         }
-    }
-    catch (Exception e)
-    {
-        Logger.LogException(e);
+        else throw new DirectoryNotFoundException($"A directory in '{target.FullName}' was not found.");
     }
 }
