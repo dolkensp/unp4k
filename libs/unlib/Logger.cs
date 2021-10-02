@@ -25,7 +25,6 @@ public static class Logger
 {
     private static string? PreviousMessage;
     private static int PreviousMessageCount;
-    private static bool IsWebPlatform { get; }
 
     static Logger()
     {
@@ -34,7 +33,10 @@ public static class Logger
             Console.BufferWidth = Console.WindowWidth;
             ClearBuffer();
         }
-        catch { }
+        catch
+        {
+            Console.WriteLine("[CRITICAL]: Logger is unable to initialise!");
+        }
     }
 
     private static void PushLog(LogPackage pckg)
@@ -47,48 +49,13 @@ public static class Logger
             PreviousMessage = (!string.IsNullOrEmpty(pckg.Message) ? pckg.Message : string.Empty);
             PreviousMessageCount = 0;
         }
-        if (pckg.Level == 1 && !IsWebPlatform)
-        {
-            try
-            {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-            }
-            catch { }
-        }
-        else if (pckg.Level == 2 && !IsWebPlatform)
-        {
-            try
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-            }
-            catch { }
-        }
-        else if (!IsWebPlatform)
-        {
-            try
-            {
-                Console.ForegroundColor = ConsoleColor.White;
-            }
-            catch { }
-        }
+        if (pckg.Level == 1) Console.ForegroundColor = ConsoleColor.Yellow;
+        else if (pckg.Level == 2) Console.ForegroundColor = ConsoleColor.Red;
+        else Console.ForegroundColor = ConsoleColor.White;
         if (pckg.ClearMode == 0)
         {
-            if (!flag && PreviousMessageCount == 0)
-            {
-                try
-                {
-                    Console.Write("\n");
-                }
-                catch { }
-            }
-            if (pckg.Level == 0 && PreviousMessageCount == 0)
-            {
-                try
-                {
-                    Console.Write("[" + pckg.PostTime.ToString("yyyy/MM/dd HH:mm:ss.fff") + "][INFO]:  " + pckg.Message);
-                }
-                catch { }
-            }
+            if (!flag && PreviousMessageCount == 0) Console.Write("\n");
+            if (pckg.Level == 0 && PreviousMessageCount == 0) Console.Write("[" + pckg.PostTime.ToString("yyyy/MM/dd HH:mm:ss.fff") + "][INFO]:  " + pckg.Message);
             else if (pckg.Level == 0) ClearLine("[" + pckg.PostTime.ToString("yyyy/MM/dd HH:mm:ss.fff") + "][INFO]:  [" + PreviousMessageCount + " Duplicates] " + pckg.Message);
             else if (pckg.Level == 1 && PreviousMessageCount == 0) Console.Write("[" + pckg.PostTime.ToString("yyyy/MM/dd HH:mm:ss.fff") + "][WARN]:  " + pckg.Message);
             else if (pckg.Level == 1) ClearLine("[" + pckg.PostTime.ToString("yyyy/MM/dd HH:mm:ss.fff") + "][WARN]:  [" + PreviousMessageCount + " Duplicates] " + pckg.Message);
@@ -96,48 +63,11 @@ public static class Logger
             else if (pckg.Level == 2) ClearLine("[" + pckg.PostTime.ToString("yyyy/MM/dd HH:mm:ss.fff") + "][ERROR]:  [" + PreviousMessageCount + " Duplicates] " + pckg.Message);
             else if (pckg.Level == 3 && PreviousMessageCount == 0) Console.Write("[" + pckg.PostTime.ToString("yyyy/MM/dd HH:mm:ss.fff") + "][DEBUG]: " + pckg.Message);
             else if (pckg.Level == 3) ClearLine("[" + pckg.PostTime.ToString("yyyy/MM/dd HH:mm:ss.fff") + "][DEBUG]:  [" + PreviousMessageCount + " Duplicates] " + pckg.Message);
-            else
-            {
-                try
-                {
-                    Console.Write("[" + pckg.PostTime.ToString("yyyy/MM/dd HH:mm:ss.fff") + "][INFO]: " + pckg.Message);
-                }
-                catch { }
-            }
+            else Console.Write("[" + pckg.PostTime.ToString("yyyy/MM/dd HH:mm:ss.fff") + "][INFO]: " + pckg.Message);
         }
-        else if (pckg.ClearMode == 3 && !IsWebPlatform)
-        {
-            try
-            {
-                Console.Clear();
-            }
-            catch { }
-        }
-        else if (pckg.ClearMode == 2 && !IsWebPlatform)
-        {
-            try
-            {
-                Console.Write("\n");
-            }
-            catch { }
-        }
-        else if (pckg.ClearMode == 1 && !IsWebPlatform)
-        {
-            try
-            {
-                Console.Write(((!flag) ? "\n" : string.Empty) + pckg.Message);
-            }
-            catch { }
-        }
-        if (!IsWebPlatform)
-        {
-            try
-            {
-                Console.ForegroundColor = ConsoleColor.White;
-            }
-            catch { }
-        }
-        flag = false;
+        else if (pckg.ClearMode == 3) Console.Clear();
+        else if (pckg.ClearMode == 2) Console.Write("\n");
+        else if (pckg.ClearMode == 1) Console.Write(((!flag) ? "\n" : string.Empty) + pckg.Message);
     }
 
     public static void LogInfo(object msg)
@@ -190,11 +120,7 @@ public static class Logger
     public static void DivideBuffer()
     {
         string text = string.Empty;
-        if (IsWebPlatform) text = "----------------------------------------------------------------------------------------------------";
-        else
-        {
-            for (int i = 0; i < Console.BufferWidth - 1; i++) text += "-";
-        }
+        for (int i = 0; i < Console.BufferWidth - 1; i++) text += "-";
         LogPackage pckg = default;
         pckg.ClearMode = 1;
         pckg.Message = text;
