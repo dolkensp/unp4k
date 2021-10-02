@@ -125,7 +125,7 @@
       <Project>{c53beb8a-0989-43a7-b3ec-f7028749fa71}</Project>
       <Name>ICSharpCode.SharpZipLib</Name>
     </ProjectReference>
-    <ProjectReference Include="..\unforge\unforge.csproj">
+    <ProjectReference Include="..\..\libs\unforge\unforge.csproj">
       <Project>{273d3d56-f005-4ed5-babb-fd88fbc3fc63}</Project>
       <Name>unforge</Name>
     </ProjectReference>
