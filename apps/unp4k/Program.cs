@@ -56,7 +56,7 @@ foreach (ZipEntry entry in pak)
                 using FileStream fs = File.Create(Path.Join(outputPath is not null ? outputPath : "star_citizen_extraction", entry.Name));
                 try
                 {
-                    Logger.LogInfo($"Extracting > {entry.Name}");
+                    Logger.LogInfo($"[{entry.CompressionMethod}] Extracting > {entry.Name}");
                     using Stream s = pak.GetInputStream(entry);
                     StreamUtils.Copy(s, fs, buf);
                 }
