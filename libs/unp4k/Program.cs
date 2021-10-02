@@ -44,38 +44,6 @@ namespace unp4k
                     Console.WriteLine();
                     Console.WriteLine($"Exception while extracting {entry.Name}: {ex.Message}");
                     Console.WriteLine();
-                    /*
-                     * TODO: This needs updating, not entirely sure how this works and it doesnt seem to work, for me anyway. A new experimental thing or something?
-                     * Probably unwise to upload something like this to a server due to bandwidth costs/the abusability of it.
-                     * 
-                    try
-                    {
-                        using (var client = new HttpClient { })
-                        {
-                            // var server = "http://herald.holoxplor.local";
-                            var server = "https://herald.holoxplor.space";
-
-                            client.DefaultRequestHeaders.Add("client", "unp4k");
-
-                            using (var content = new MultipartFormDataContent("UPLOAD----"))
-                            {
-                                content.Add(new StringContent($"{ex.Message}\r\n\r\n{ex.StackTrace}"), "exception", entry.Name);
-
-                                using (var errorReport = client.PostAsync($"{server}/p4k/exception/{entry.Name}", content).Result)
-                                {
-                                    if (errorReport.StatusCode == System.Net.HttpStatusCode.OK)
-                                    {
-                                        Console.WriteLine("This exception has been reported.");
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        Console.WriteLine("There was a problem whilst attempting to report this error.");
-                    }
-                    */
                 }
             }
         }
