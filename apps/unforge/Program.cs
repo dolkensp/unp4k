@@ -8,16 +8,20 @@ Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
 if (args.Length == 0) args = new string[] { "game.v4.dcb" };
 if (args.Length < 1 || args.Length > 1)
 {
-	Logger.LogInfo("################################################################################\n");
-	Logger.LogInfo("Usage: unforge.exe [infile]\n");
-	Logger.LogInfo(
-		"Converts any Star Citizen binary file into an actual XML file.\n" +
+	Logger.Log("################################################################################\n");
+	Logger.Log("                             unp4ck <> Star Citizen                             ");
+	Logger.Log(
+		"\nConverts any Star Citizen binary file into an actual XML file.\n" +
 		"CryXml files (.xml) are saved as .raw in the original location.\n" +
 		"DataForge files (.dcb) are saved as .xml in the original location.\n\n" +
 		"Can also convert all compatible files in a directory, and it's sub-directories. In that case, all CryXml files are saved in-place, " +
 		"and any DataForge files are saved to both .xml and extracted to the original component locations."
 		);
-	Logger.LogInfo("\n################################################################################");
+	Logger.NewLine();
+	Logger.Log(@"Windows PowerShell: .\unforge " + '"' + "[optional-InFilePath]" + '"');
+	Logger.Log(@"Windows Command Prompt: unforge " + '"' + "[optional-InFilePath]" + '"');
+	Logger.Log(@"Linux Terminal: ./unforge " + '"' + "[optional-InFilePath]" + '"');
+	Logger.Log("\n################################################################################");
 	return;
 }
 
