@@ -31,7 +31,7 @@ if (appPath is null)
     Logger.LogError("Could not discern application path! Cannot continue!");
     Console.ReadKey();
     Logger.ClearBuffer();
-    return;
+    Environment.Exit(0);
 }
 
 if (args.Length == 0) 
@@ -70,7 +70,7 @@ if (args.Length == 0)
     Logger.Log("\nPress any key to continue!");
     Console.ReadKey();
     Logger.ClearBuffer();
-    return;
+    Environment.Exit(0);
 }
 
 try
@@ -88,7 +88,7 @@ catch (IndexOutOfRangeException e)
     Logger.LogException(e);
     Console.ReadKey();
     Logger.ClearBuffer();
-    return;
+    Environment.Exit(0);
 }
 
 if (p4kPath is null) p4kPath = defaultp4kPath;
@@ -100,14 +100,14 @@ if (!File.Exists(p4kPath))
     Logger.LogError($"Input path '{args[0]}' does not exist!");
     Console.ReadKey();
     Logger.ClearBuffer();
-    return;
+    Environment.Exit(0);
 }
 if (!Directory.Exists(outDirectoryPath))
 {
     Logger.LogError($"Output path '{args[1]}' does not exist!");
     Console.ReadKey();
     Logger.ClearBuffer();
-    return;
+    Environment.Exit(0);
 }
 
 #endregion
@@ -168,7 +168,7 @@ if (outputDrive.AvailableFreeSpace < bytesSize)
     Logger.LogInfo(@"| /");
     Console.ReadKey();
     Logger.ClearBuffer();
-    return;
+    Environment.Exit(0);
 }
 
 char? confirm = null;
@@ -193,11 +193,12 @@ while (confirm is null)
         Logger.LogError("Please input y for yes or n for no!");
         Thread.Sleep(TimeSpan.FromSeconds(3));
         Logger.ClearBuffer();
+        confirm = null;
     }
     else if (confirm == 'n')
     {
         Logger.ClearBuffer();
-        return;
+        Environment.Exit(0);
     }
 }
 
