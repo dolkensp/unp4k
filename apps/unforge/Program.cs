@@ -8,7 +8,7 @@ Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
 if (args.Length == 0)
 {
 	Logger.Log("################################################################################\n");
-	Logger.Log("                             unp4ck <> Star Citizen                             ");
+	Logger.Log("                             unforge <> Star Citizen                             ");
 	Logger.Log(
 		"\nConverts any Star Citizen binary file into an actual XML file.\n" +
 		"CryXml files (.xml) are saved as .raw in the original location.\n" +
