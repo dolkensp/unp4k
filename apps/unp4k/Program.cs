@@ -210,62 +210,53 @@ int taskCount = 16;
 List<Task> tasks = new();
 Stopwatch watch = new();
 watch.Start();
-for (int i = 0; i < taskCount; i++)
+Parallel.ForEach(filteredEntries, (entry) => 
 {
-    tasks.Add(new Task(() => 
+    if (entry.CanDecompress)
     {
-        while (!filteredEntries.IsEmpty)
+        FileInfo inFile = new(Path.Join(outDirectoryPath, entry.Name));
+        DirectoryInfo dir = inFile.Directory;
+        if (!dir.Exists)
         {
-            bool canDequeue = filteredEntries.TryDequeue(out ZipEntry entry);
-            if (canDequeue && entry.CanDecompress)
+            Logger.LogInfo($"- Creating Directory: {entry.Name.Substring(0, entry.Name.LastIndexOf("/") + 1)}");
+            dir.Create();
+        }
+        else if (currentDir is not null && currentDir != dir.FullName) Logger.LogInfo($"- Using Directory: {currentDir = dir.FullName}");
+        Logger.LogInfo($"| - {(entry.IsCrypted || entry.IsAesCrypted || inFile.Exists ? "Skipping" : "Extracting")} File: {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
+        if (detailedLogs)
+        {
+            Logger.LogInfo(@"|   \");
+            Logger.LogInfo($"|    | Date Last Modified: {entry.DateTime}");
+            Logger.LogInfo($"|    | Is Locked: {entry.IsCrypted || entry.IsAesCrypted}");
+            Logger.LogInfo($"|    | Compression Method: {entry.CompressionMethod}");
+            Logger.LogInfo($"|    | Compressed Size:   {(float)entry.CompressedSize / 1000:#,#.###} KB : {(float)entry.CompressedSize / 1000000:#,#.######} MB  :  {(float)entry.CompressedSize / 1000000000:#,#.#########} GB");
+            Logger.LogInfo($"|    | Uncompressed Size: {(float)entry.Size / 1000:#,#.###} KB : {(float)entry.Size / 1000000:#,#.######} MB  :  {(float)entry.Size / 1000000000:#,#.#########} GB");
+            Logger.LogInfo(@"|   /");
+        }
+        if (!entry.IsCrypted && !entry.IsAesCrypted && (!inFile.Exists || inFile.Length != entry.Size))
+        {
+            try
             {
-                FileInfo inFile = new(Path.Join(outDirectoryPath, entry.Name));
-                DirectoryInfo dir = inFile.Directory;
-                if (!dir.Exists)
-                {
-                    Logger.LogInfo($"- Creating Directory: {entry.Name.Substring(0, entry.Name.LastIndexOf("/") + 1)}");
-                    dir.Create();
-                }
-                else if (currentDir is not null && currentDir != dir.FullName) Logger.LogInfo($"- Using Directory: {currentDir = dir.FullName}");
-                Logger.LogInfo($"| - {(entry.IsCrypted || entry.IsAesCrypted || inFile.Exists ? "Skipping" : "Extracting")} File: {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
-                if (detailedLogs)
-                {
-                    Logger.LogInfo(@"|   \");
-                    Logger.LogInfo($"|    | Date Last Modified: {entry.DateTime}");
-                    Logger.LogInfo($"|    | Is Locked: {entry.IsCrypted || entry.IsAesCrypted}");
-                    Logger.LogInfo($"|    | Compression Method: {entry.CompressionMethod}");
-                    Logger.LogInfo($"|    | Compressed Size:   {(float)entry.CompressedSize / 1000:#,#.###} KB : {(float)entry.CompressedSize / 1000000:#,#.######} MB  :  {(float)entry.CompressedSize / 1000000000:#,#.#########} GB");
-                    Logger.LogInfo($"|    | Uncompressed Size: {(float)entry.Size / 1000:#,#.###} KB : {(float)entry.Size / 1000000:#,#.######} MB  :  {(float)entry.Size / 1000000000:#,#.#########} GB");
-                    Logger.LogInfo(@"|   /");
-                }
-                if (!entry.IsCrypted && !entry.IsAesCrypted && (!inFile.Exists || inFile.Length != entry.Size))
-                {
-                    try
-                    {
-                        FileInfo outFile = new(Path.Join(outDirectoryPath, entry.Name));
-                        using FileStream fs = outFile.Open(FileMode.Create, FileAccess.Write, FileShare.None); // Dont want people accessing incomplete files.
-                        using Stream s = pak.GetInputStream(entry);
-                        StreamUtils.Copy(s, fs, decomBuffer);
-                    }
-                    catch (DirectoryNotFoundException e)
-                    {
-                        Logger.LogException(e);
-                    }
-                    catch (FileNotFoundException e)
-                    {
-                        Logger.LogException(e);
-                    }
-                    catch (IOException e)
-                    {
-                        Logger.LogException(e);
-                    }
-                }
+                FileInfo outFile = new(Path.Join(outDirectoryPath, entry.Name));
+                using FileStream fs = outFile.Open(FileMode.Create, FileAccess.Write, FileShare.None); // Dont want people accessing incomplete files.
+                using Stream s = pak.GetInputStream(entry);
+                StreamUtils.Copy(s, fs, decomBuffer);
+            }
+            catch (DirectoryNotFoundException e)
+            {
+                Logger.LogException(e);
+            }
+            catch (FileNotFoundException e)
+            {
+                Logger.LogException(e);
+            }
+            catch (IOException e)
+            {
+                Logger.LogException(e);
             }
         }
-    }));
-}
-foreach (Task t in tasks) t.Start();
-Task.WaitAll(tasks.ToArray());
+    }
+});
 watch.Stop();
 
 Logger.NewLine(2);
