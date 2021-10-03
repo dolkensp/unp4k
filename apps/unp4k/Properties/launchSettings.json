@@ -4,9 +4,15 @@
       "commandName": "Project",
       "hotReloadEnabled": false
     },
-    "Default Install Quick": {
+    "unp4k - Default Install Quick": {
       "commandName": "Project",
-      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\LIVE\\Data.p4k\" -o \"C:\\SC\" -f \".xml\"",
+      "commandLineArgs": "-o \"C:\\SC\" -f \".xml\"",
+      "hotReloadEnabled": false,
+      "authenticationMode": "None"
+    },
+    "unp4k - Default Install Full": {
+      "commandName": "Project",
+      "commandLineArgs": "-o \"C:\\SC\"",
       "hotReloadEnabled": false,
       "authenticationMode": "None"
     }
