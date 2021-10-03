@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿using System;
+
+/// <summary>
 /// The MIT License (MIT)
 /// 
 /// Copyright (c) 2021 Connor 'Stryxus' Shearer
@@ -126,7 +128,7 @@ public static class Logger
     }
 #endif
 
-    public static void LogException(Exception e)
+    public static void LogException<T>(T e) where T : Exception
     {
         LogPackage pckg = default;
         pckg.PostTime = DateTime.Now;
