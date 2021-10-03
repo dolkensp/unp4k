@@ -3,9 +3,9 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Diagnostics;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
-using System.Diagnostics;
 
 /*
  * TODO: While Linux is supported, we need to add in everything when Star Citizen becomes available on Linux
