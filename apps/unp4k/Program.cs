@@ -162,7 +162,7 @@ if (outputDrive.AvailableFreeSpace < bytesSize)
     Logger.LogError($"|  | Selected Drive Total Free Space:     {outputDrive.TotalFreeSpace:#,#.###} Bytes  :  {(float)outputDrive.TotalFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.TotalFreeSpace / 1000000000:#,#.###} GB");
     Logger.LogError($"|  | Selected Drive Available Free Space: {outputDrive.AvailableFreeSpace:#,#.###} Bytes  :  {(float)outputDrive.AvailableFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.AvailableFreeSpace / 1000000000:#,#.###} GB");
     Logger.LogError($"|  | Extraction Required Space:           {bytesSize:#,#.###} Bytes  :  {(float)bytesSize / 1000000:#,#.###} MB  :  {(float)bytesSize / 1000000000:#,#.###} GB");
-    Logger.LogError($"|  | File Count: {fileCount}{(filters.Count > 1 ? $" filtered from {string.Join(",", filters)}" : string.Empty)}");
+    Logger.LogError($"|  | File Count: {fileCount}{(filters[0] != "*.*" ? $" filtered from {string.Join(",", filters)}" : string.Empty)}");
     Logger.LogError($"|  | Files Cannot Be Decompressed: {cannotDecompress}");
     Logger.LogError($"|  | Files Locked: {lockedCount}");
     Logger.LogInfo(@"| /");
@@ -181,7 +181,7 @@ while (confirm is null)
     Logger.LogInfo($"|  | Selected Drive Total Free Space:     {(float)outputDrive.TotalFreeSpace / 1000:#,#.###} KB  :  {(float)outputDrive.TotalFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.TotalFreeSpace / 1000000000:#,#.###} GB");
     Logger.LogInfo($"|  | Selected Drive Available Free Space: {(float)outputDrive.AvailableFreeSpace / 1000:#,#.###} KB  :  {(float)outputDrive.AvailableFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.AvailableFreeSpace / 1000000000:#,#.###} GB");
     Logger.LogInfo($"|  | Extraction Required Space:           {(float)bytesSize / 1000:#,#.###} KB  :  {(float)bytesSize / 1000000:#,#.###} MB  :  {(float)bytesSize / 1000000000:#,#.###} GB");
-    Logger.LogInfo($"|  | File Count: {fileCount}{(filters.Count > 1 ? $" filtered from {string.Join(",", filters)}": string.Empty)}");
+    Logger.LogInfo($"|  | File Count: {fileCount}{(filters[0] != "*.*" ? $" filtered from {string.Join(",", filters)}": string.Empty)}");
     Logger.LogInfo($"|  | Files Cannot Be Decompressed: {cannotDecompress}");
     Logger.LogInfo($"|  | Files Locked: {lockedCount}");
     Logger.LogInfo(@"| /");
