@@ -215,11 +215,11 @@ foreach (ZipEntry entry in filteredEntries)
         DirectoryInfo dir = inFile.Directory;
         if (!dir.Exists)
         {
-            Logger.LogInfo($"- Creating Directory: {entry.Name}");
+            Logger.LogInfo($"- Creating Directory: {entry.Name.Substring(0, entry.Name.LastIndexOf("/") + 1)}");
             dir.Create();
         }
         else if (currentDir is not null && currentDir != dir.FullName) Logger.LogInfo($"- Using Directory: {currentDir = dir.FullName}");
-        Logger.LogInfo($"| - {(entry.IsCrypted || entry.IsAesCrypted || inFile.Exists ? "Skipping" : "Extracting")} File: {entry.Name[entry.Name.LastIndexOf("/")..]}");
+        Logger.LogInfo($"| - {(entry.IsCrypted || entry.IsAesCrypted || inFile.Exists ? "Skipping" : "Extracting")} File: {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
         if (detailedLogs)
         {
             Logger.LogInfo(@"|   \");
