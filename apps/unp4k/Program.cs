@@ -2,7 +2,33 @@
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 
-if (args.Length == 0) args = new[] { "Data.p4k", "*.*" };
+string? appPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+string? defaultExtractionPath = Path.Join(appPath, "star_citizen_extraction");
+
+if (appPath is null)
+{
+    Logger.LogError("Could not discern application path! Cannot continue!");
+    return;
+}
+
+if (args.Length == 0) 
+{
+    args = new[] { "Data.p4k", "*.*" };
+    Logger.Log("################################################################################\n");
+    Logger.Log("                             unp4ck <> Star Citizen                             ");
+    Logger.Log(
+        "\nExtracts Star Citizen's Data.p4k into a directory of choice\n"
+        );
+    Logger.NewLine();
+    Logger.Log(@"Windows PowerShell: .\unp4ck " + '"' + "[optional-InFilePath]" + '"' + '"' + "[optional-OutDirectoryPath]" + '"' + '"' + "[optional-filter(Example: *.* for all files)]" + '"');
+    Logger.Log(@"Windows Command Prompt: unp4ck " + '"' + "[optional-InFilePath]" + '"' + '"' + "[optional-OutDirectoryPath]" + '"' + '"' + "[optional-filter(Example: *.* for all files)]" + '"');
+    Logger.Log(@"Linux Terminal: ./unp4ck " + '"' + "[optional-InFilePath]" + '"' + '"' + "[optional-OutDirectoryPath]" + '"' + '"' + "[optional-filter(Example: *.* for all files)]" + '"');
+    Logger.Log("\n################################################################################\n");
+    Logger.LogWarn($"\nNO OUTPUT DIRECTORY PATH HAS BEEN DECLARED. ALL EXTRACTS WILL GO INTO {defaultExtractionPath}");
+    Logger.Log("\nPress any key to continue!");
+    Console.ReadKey();
+    return;
+}
 else if (args.Length == 1) args = new[] { args[0], "*.*" };
 else if (args.Length == 2) args = new[] { args[0], args[1], "*.*" };
 
@@ -38,7 +64,7 @@ foreach (ZipEntry entry in pak)
         if (target.Directory is not null)
         {
             if (!target.Directory.Exists) new DirectoryInfo(Path.Join(outputPath is not null ? outputPath : "star_citizen_extraction",
-                target.Directory.FullName.Replace(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), string.Empty))).Create();
+                target.Directory.FullName.Replace(appPath, string.Empty))).Create();
             if (!target.Exists || target.Length == entry.Size)
             {
                 using FileStream fs = File.Create(Path.Join(outputPath is not null ? outputPath : "star_citizen_extraction", entry.Name));
