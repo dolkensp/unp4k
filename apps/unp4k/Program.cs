@@ -253,8 +253,9 @@ watch.Stop();
 
 Logger.NewLine(2);
 Logger.LogInfo("- Extraction Completed!");
-Logger.LogInfo(@$" \  Time Taken: {(float)watch.ElapsedMilliseconds / 60000:#,#.###} minutes");
-Logger.LogWarn(@$" |  Due to the nature of SSD's/NVMe's, do not excessively run the extraction on an SSD/NVMe. Doing so may reduce the lifetime of the SSD/NVMe.");
+Logger.LogInfo(@" \");
+Logger.LogInfo($"  |  Time Taken: {(float)watch.ElapsedMilliseconds / 60000:#,#.###} minutes");
+Logger.LogWarn("  |  Due to the nature of SSD's/NVMe's, do not excessively run the extraction on an SSD/NVMe. Doing so may reduce the lifetime of the SSD/NVMe.");
 Logger.NewLine(2);
 Logger.Log("Would you like to open the output directory? (Application will close on input) y/n: ");
 char openOutput = Console.ReadKey().KeyChar;
