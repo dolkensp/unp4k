@@ -12,14 +12,11 @@ if (!File.Exists(args[0]) && !Directory.Exists(args[0]))
     Console.ReadKey();
     return;
 }
-if (args.Length == 3)
+if (args.Length == 3 && !File.Exists(args[1]) && !Directory.Exists(args[1]))
 {
-    if (!File.Exists(args[1]) && !Directory.Exists(args[1]))
-    {
-        Logger.LogError("Output path '" + args[1] + "' does not exist!");
-        Console.ReadKey();
-        return;
-    }
+    Logger.LogError("Output path '" + args[1] + "' does not exist!");
+    Console.ReadKey();
+    return;
 }
 
 using FileStream pakFile = File.OpenRead(args[0]);
