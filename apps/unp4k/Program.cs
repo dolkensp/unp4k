@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Diagnostics;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
+using System.Collections.Concurrent;
 
 /*
  * TODO: While Linux is supported, we need to add in everything when Star Citizen becomes available on Linux
@@ -120,7 +121,7 @@ Logger.LogInfo("Processing Data.p4k before extraction...");
 FileInfo p4k = new(p4kPath);
 byte[] decomBuffer = new byte[4096];
 
-Queue<ZipEntry> filteredEntries = new();
+ConcurrentQueue<ZipEntry> filteredEntries = new();
 using FileStream p4kStream = p4k.Open(FileMode.Open, FileAccess.Read, FileShare.None); // The Data.p4k must be locked while it is being read to avoid corruption.
 ZipFile pak = new(p4kStream);
 pak.KeysRequired += (object sender, KeysRequiredEventArgs e) => e.Key = new byte[] { 0x5E, 0x7A, 0x20, 0x02, 0x30, 0x2E, 0xEB, 0x1A, 0x3B, 0xB6, 0x17, 0xC3, 0x0F, 0xDE, 0x1E, 0x47 };
@@ -129,7 +130,7 @@ foreach (ZipEntry entry in pak) filteredEntries.Enqueue(entry);
 if (filters[0] == "*.*") filteredEntries = new(filteredEntries.OrderBy(x => x.Name));
 else
 {
-    Queue<ZipEntry> filtered = new();
+    ConcurrentQueue<ZipEntry> filtered = new();
     foreach (string filt in filters) filtered = new(filtered.Concat(filteredEntries.Where(x => x.Name.ToLowerInvariant().Contains(filt.ToLowerInvariant()))));
     filteredEntries = filtered;
 }
@@ -205,51 +206,62 @@ while (confirm is null)
 Logger.ClearBuffer();
 
 string? currentDir = null;
+int taskCount = 16;
+List<Task> tasks = new();
 Stopwatch watch = new();
 watch.Start();
-foreach (ZipEntry entry in filteredEntries)
+for (int i = 0; i < taskCount; i++)
 {
-    if (entry.CanDecompress)
+    tasks.Add(new Task(() => 
     {
-        FileInfo inFile = new(Path.Join(outDirectoryPath, entry.Name));
-        DirectoryInfo dir = inFile.Directory;
-        if (!dir.Exists)
+        while (!filteredEntries.IsEmpty)
         {
-            Logger.LogInfo($"- Creating Directory: {entry.Name.Substring(0, entry.Name.LastIndexOf("/") + 1)}");
-            dir.Create();
-        }
-        else if (currentDir is not null && currentDir != dir.FullName) Logger.LogInfo($"- Using Directory: {currentDir = dir.FullName}");
-        Logger.LogInfo($"| - {(entry.IsCrypted || entry.IsAesCrypted || inFile.Exists ? "Skipping" : "Extracting")} File: {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
-        if (detailedLogs)
-        {
-            Logger.LogInfo(@"|   \");
-            Logger.LogInfo($"|    | Date Last Modified: {entry.DateTime}");
-            Logger.LogInfo($"|    | Is Locked: {entry.IsCrypted || entry.IsAesCrypted}");
-            Logger.LogInfo($"|    | Compression Method: {entry.CompressionMethod}");
-            Logger.LogInfo($"|    | Compressed Size:   {(float)entry.CompressedSize / 1000:#,#.###} KB : {(float)entry.CompressedSize / 1000000:#,#.######} MB  :  {(float)entry.CompressedSize / 1000000000:#,#.#########} GB");
-            Logger.LogInfo($"|    | Uncompressed Size: {(float)entry.Size / 1000:#,#.###} KB : {(float)entry.Size / 1000000:#,#.######} MB  :  {(float)entry.Size / 1000000000:#,#.#########} GB");
-            Logger.LogInfo(@"|   /");
-        }
-        if (!entry.IsCrypted && !entry.IsAesCrypted && (!inFile.Exists || inFile.Length != entry.Size))
-        {
-            try
+            bool canDequeue = filteredEntries.TryDequeue(out ZipEntry entry);
+            if (canDequeue && entry.CanDecompress)
             {
-                FileInfo outFile = new(Path.Join(outDirectoryPath, entry.Name));
-                using FileStream fs = outFile.Open(FileMode.Create, FileAccess.Write, FileShare.None); // Dont want people accessing incomplete files.
-                using Stream s = pak.GetInputStream(entry);
-                StreamUtils.Copy(s, fs, decomBuffer);
-            }
-            catch (DirectoryNotFoundException e)
-            {
-                Logger.LogException(e);
-            }
-            catch (FileNotFoundException e)
-            {
-                Logger.LogException(e);
+                FileInfo inFile = new(Path.Join(outDirectoryPath, entry.Name));
+                DirectoryInfo dir = inFile.Directory;
+                if (!dir.Exists)
+                {
+                    Logger.LogInfo($"- Creating Directory: {entry.Name.Substring(0, entry.Name.LastIndexOf("/") + 1)}");
+                    dir.Create();
+                }
+                else if (currentDir is not null && currentDir != dir.FullName) Logger.LogInfo($"- Using Directory: {currentDir = dir.FullName}");
+                Logger.LogInfo($"| - {(entry.IsCrypted || entry.IsAesCrypted || inFile.Exists ? "Skipping" : "Extracting")} File: {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
+                if (detailedLogs)
+                {
+                    Logger.LogInfo(@"|   \");
+                    Logger.LogInfo($"|    | Date Last Modified: {entry.DateTime}");
+                    Logger.LogInfo($"|    | Is Locked: {entry.IsCrypted || entry.IsAesCrypted}");
+                    Logger.LogInfo($"|    | Compression Method: {entry.CompressionMethod}");
+                    Logger.LogInfo($"|    | Compressed Size:   {(float)entry.CompressedSize / 1000:#,#.###} KB : {(float)entry.CompressedSize / 1000000:#,#.######} MB  :  {(float)entry.CompressedSize / 1000000000:#,#.#########} GB");
+                    Logger.LogInfo($"|    | Uncompressed Size: {(float)entry.Size / 1000:#,#.###} KB : {(float)entry.Size / 1000000:#,#.######} MB  :  {(float)entry.Size / 1000000000:#,#.#########} GB");
+                    Logger.LogInfo(@"|   /");
+                }
+                if (!entry.IsCrypted && !entry.IsAesCrypted && (!inFile.Exists || inFile.Length != entry.Size))
+                {
+                    try
+                    {
+                        FileInfo outFile = new(Path.Join(outDirectoryPath, entry.Name));
+                        using FileStream fs = outFile.Open(FileMode.Create, FileAccess.Write, FileShare.None); // Dont want people accessing incomplete files.
+                        using Stream s = pak.GetInputStream(entry);
+                        StreamUtils.Copy(s, fs, decomBuffer);
+                    }
+                    catch (DirectoryNotFoundException e)
+                    {
+                        Logger.LogException(e);
+                    }
+                    catch (FileNotFoundException e)
+                    {
+                        Logger.LogException(e);
+                    }
+                }
             }
         }
-    }
+    }));
 }
+foreach (Task t in tasks) t.Start();
+Task.WaitAll(tasks.ToArray());
 watch.Stop();
 
 Logger.NewLine(2);
