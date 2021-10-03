@@ -255,6 +255,10 @@ for (int i = 0; i < taskCount; i++)
                     {
                         Logger.LogException(e);
                     }
+                    catch (IOException e)
+                    {
+                        Logger.LogException(e);
+                    }
                 }
             }
         }
