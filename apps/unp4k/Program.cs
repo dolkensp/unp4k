@@ -256,6 +256,10 @@ Parallel.ForEach(filteredEntries, (entry) =>
             {
                 Logger.LogException(e);
             }
+            catch (AggregateException e)
+            {
+                Logger.LogException(e);
+            }
         }
     }
 });
