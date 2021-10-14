@@ -5,43 +5,39 @@ namespace unforge
 {
     public class DataForgeEnumDefinition : _DataForgeSerializable
     {
-        public UInt32 NameOffset { get; set; }
-        public String Name { get { return this.DocumentRoot.ValueMap[this.NameOffset]; } }
-        public UInt16 ValueCount { get; set; }
-        public UInt16 FirstValueIndex { get; set; }
+        public uint NameOffset { get; set; }
+        public string Name { get { return DocumentRoot.ValueMap[NameOffset]; } }
+        public ushort ValueCount { get; set; }
+        public ushort FirstValueIndex { get; set; }
 
-        public DataForgeEnumDefinition(DataForge documentRoot)
-            : base(documentRoot)
+        public DataForgeEnumDefinition(DataForge documentRoot) : base(documentRoot)
         {
-            this.NameOffset = this._br.ReadUInt32();
-            this.ValueCount = this._br.ReadUInt16();
-            this.FirstValueIndex = this._br.ReadUInt16();
+            NameOffset = _br.ReadUInt32();
+            ValueCount = _br.ReadUInt16();
+            FirstValueIndex = _br.ReadUInt16();
         }
 
-        public override String ToString()
-        {
-            return String.Format("<{0} />", this.Name);
-        }
+        public override string ToString() => string.Format("<{0} />", Name);
 
-        public String Export()
+        public string Export()
         {
             var sb = new StringBuilder();
-            sb.AppendFormat(@"    public enum {0}", this.Name);
+            sb.AppendFormat(@"    public enum {0}", Name);
             sb.AppendLine();
             sb.AppendLine(@"    {");
-            for (UInt32 i = this.FirstValueIndex, j = (UInt32)(this.FirstValueIndex + this.ValueCount); i < j;  i++)
+            for (uint i = FirstValueIndex, j = (uint)(FirstValueIndex + ValueCount); i < j;  i++)
             {
-                sb.AppendFormat(@"        [XmlEnum(Name = ""{0}"")]", this.DocumentRoot.EnumOptionTable[i].Value);
+                sb.AppendFormat(@"        [XmlEnum(Name = ""{0}"")]", DocumentRoot.EnumOptionTable[i].Value);
                 sb.AppendLine();
-                sb.AppendFormat(@"        _{0},", this.DocumentRoot.EnumOptionTable[i].Value);
+                sb.AppendFormat(@"        _{0},", DocumentRoot.EnumOptionTable[i].Value);
                 sb.AppendLine();
             }
             sb.AppendLine(@"    }");
             sb.AppendLine();
-            sb.AppendFormat(@"    public class _{0}", this.Name);
+            sb.AppendFormat(@"    public class _{0}", Name);
             sb.AppendLine();
             sb.AppendLine(@"    {");
-            sb.AppendFormat(@"        public {0} Value {{ get; set; }}", this.Name);
+            sb.AppendFormat(@"        public {0} Value {{ get; set; }}", Name);
             sb.AppendLine();
             sb.AppendLine(@"    }");
             return sb.ToString();
