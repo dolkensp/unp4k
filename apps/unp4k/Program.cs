@@ -107,7 +107,6 @@ if (!File.Exists(p4kPath))
 if (!Directory.Exists(outDirectoryPath))
 {
     Logger.LogError($"Output path '{outDirectoryPath}' does not exist!");
-    Logger.LogError($"Make sure the specified directory is empty too!");
     Console.ReadKey();
     Logger.ClearBuffer();
     Environment.Exit(0);
