@@ -60,15 +60,15 @@ namespace unforge
             foreach (DataForgePropertyDefinition node in properties)
             {
                 node.ConversionType = (EConversionType)((int)node.ConversionType & 0xFF);
-                if (node.ConversionType == EConversionType.varAttribute)
+                if (node.ConversionType is EConversionType.varAttribute)
                 {
-                    if (node.DataType == EDataType.varClass)
+                    if (node.DataType is EDataType.varClass)
                     {
                         DataForgeStructDefinition dataStruct = DocumentRoot.StructDefinitionTable[node.StructIndex];
                         XmlElement child = dataStruct.Read(node.Name);
                         element.AppendChild(child);
                     }
-                    else if (node.DataType == EDataType.varStrongPointer)
+                    else if (node.DataType is EDataType.varStrongPointer)
                     {
                         XmlElement parentSP = DocumentRoot.CreateElement(node.Name);
                         XmlElement emptySP = DocumentRoot.CreateElement(string.Format("{0}", node.DataType));
@@ -211,8 +211,8 @@ namespace unforge
                 switch (property.ConversionType)
                 {
                     case EConversionType.varAttribute:
-                        if (property.DataType == EDataType.varClass) sb.AppendFormat(@"        [XmlElement(ElementName = ""{0}"")]", property.Name);
-                        else if (property.DataType == EDataType.varStrongPointer)
+                        if (property.DataType is EDataType.varClass) sb.AppendFormat(@"        [XmlElement(ElementName = ""{0}"")]", property.Name);
+                        else if (property.DataType is EDataType.varStrongPointer)
                         {
                             sb.AppendFormat(@"        [XmlArray(ElementName = ""{0}"")]", property.Name);
                             arraySuffix = "[]";
@@ -228,22 +228,22 @@ namespace unforge
 
                 sb.AppendLine();
                 var arrayPrefix = "";
-                if (arraySuffix == "[]")
+                if (arraySuffix is "[]")
                 {
-                    if (property.DataType == EDataType.varClass || property.DataType == EDataType.varStrongPointer) sb.Append(property.Export());
-                    else if (property.DataType == EDataType.varEnum)
+                    if (property.DataType is EDataType.varClass || property.DataType is EDataType.varStrongPointer) sb.Append(property.Export());
+                    else if (property.DataType is EDataType.varEnum)
                     {
                         arrayPrefix = "_";
                         sb.AppendFormat(@"        [XmlArrayItem(ElementName = ""Enum"", Type=typeof(_{0}))]", DocumentRoot.EnumDefinitionTable[property.StructIndex].Name);
                         sb.AppendLine();
                     }
-                    else if (property.DataType == EDataType.varSByte)
+                    else if (property.DataType is EDataType.varSByte)
                     {
                         arrayPrefix = "_";
                         sb.AppendFormat(@"        [XmlArrayItem(ElementName = ""Int8"", Type=typeof(_{0}))]", property.DataType.ToString().Replace("var", ""));
                         sb.AppendLine();
                     }
-                    else if (property.DataType == EDataType.varByte)
+                    else if (property.DataType is EDataType.varByte)
                     {
                         arrayPrefix = "_";
                         sb.AppendFormat(@"        [XmlArrayItem(ElementName = ""UInt8"", Type=typeof(_{0}))]", property.DataType.ToString().Replace("var", ""));
@@ -283,12 +283,12 @@ namespace unforge
                         sb.AppendFormat("        public {3}{0}{2} {1} {{ get; set; }}", DocumentRoot.EnumDefinitionTable[property.StructIndex].Name, propertyName, arraySuffix, arrayPrefix);
                         break;
                     case EDataType.varReference:
-                        if (arraySuffix == "[]") sb.AppendFormat("        public {3}{0}{2} {1} {{ get; set; }}", property.DataType.ToString().Replace("var", ""), propertyName, arraySuffix, arrayPrefix);
+                        if (arraySuffix is "[]") sb.AppendFormat("        public {3}{0}{2} {1} {{ get; set; }}", property.DataType.ToString().Replace("var", ""), propertyName, arraySuffix, arrayPrefix);
                         else sb.AppendFormat("        public Guid{2} {1} {{ get; set; }}", DocumentRoot.StructDefinitionTable[property.StructIndex].Name, propertyName, arraySuffix);
                         break;
                     case EDataType.varLocale:
                     case EDataType.varWeakPointer:
-                        if (arraySuffix == "[]") sb.AppendFormat("        public {3}{0}{2} {1} {{ get; set; }}", property.DataType.ToString().Replace("var", ""), propertyName, arraySuffix, arrayPrefix);
+                        if (arraySuffix is "[]") sb.AppendFormat("        public {3}{0}{2} {1} {{ get; set; }}", property.DataType.ToString().Replace("var", ""), propertyName, arraySuffix, arrayPrefix);
                         else sb.AppendFormat("        public string{2} {1} {{ get; set; }}", DocumentRoot.StructDefinitionTable[property.StructIndex].Name, propertyName, arraySuffix);
                         break;
                     default:

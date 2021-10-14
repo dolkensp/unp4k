@@ -62,7 +62,7 @@ namespace unforge
 
         internal U[] ReadArray<U>(int arraySize) where U : DataForgeSerializable
         {
-            if (arraySize == -1) return null; 
+            if (arraySize is -1) return null; 
             return (from i in Enumerable.Range(0, arraySize)
                     let data = (U)Activator.CreateInstance(typeof(U), this)
                     // let hack = data._index = i
@@ -176,7 +176,7 @@ namespace unforge
 
             foreach (ClassMapping dataMapping in Require_ClassMapping)
             {
-                if (dataMapping.StructIndex == 0xFFFF)
+                if (dataMapping.StructIndex is 0xFFFF)
                 {
 #if NONULL
                     dataMapping.Node.ParentNode.RemoveChild(dataMapping.Node);
@@ -223,7 +223,7 @@ namespace unforge
 			foreach (var record in RecordDefinitionTable)
 			{
 				string fileReference = record.FileName;
-				if (fileReference.Split('/').Length == 2) fileReference = fileReference.Split('/')[1];
+				if (fileReference.Split('/').Length is 2) fileReference = fileReference.Split('/')[1];
 				if (string.IsNullOrWhiteSpace(fileReference)) fileReference = string.Format(@"Dump\{0}_{1}.xml", record.Name, i++);
 				string newPath = Path.Combine(Path.GetDirectoryName(filename), fileReference);
 				if (!Directory.Exists(Path.GetDirectoryName(newPath))) Directory.CreateDirectory(Path.GetDirectoryName(newPath));
@@ -242,7 +242,7 @@ namespace unforge
 			foreach (ClassMapping dataMapping in Require_StrongMapping)
 			{
 				DataForgePointer strong = Array_StrongValues[dataMapping.RecordIndex];
-				if (strong.Index == 0xFFFFFFFF)
+				if (strong.Index is 0xFFFFFFFF)
 				{
 #if NONULL
 					dataMapping.Node.ParentNode.RemoveChild(dataMapping.Node);
@@ -259,7 +259,7 @@ namespace unforge
 			{
 				DataForgePointer weak = Array_WeakValues[dataMapping.RecordIndex];
 				XmlNode weakAttribute = dataMapping.Node;
-				if (weak.Index == 0xFFFFFFFF) weakAttribute.Value = string.Format("0");
+				if (weak.Index is 0xFFFFFFFF) weakAttribute.Value = string.Format("0");
 				else
 				{
 					XmlElement targetElement = DataMap[weak.StructType][(int)weak.Index];
@@ -270,8 +270,8 @@ namespace unforge
 			foreach (ClassMapping dataMapping in Require_WeakMapping2)
 			{
 				XmlNode weakAttribute = dataMapping.Node;
-				if (dataMapping.StructIndex == 0xFFFF) weakAttribute.Value = "null";
-				else if (dataMapping.RecordIndex == -1)
+				if (dataMapping.StructIndex is 0xFFFF) weakAttribute.Value = "null";
+				else if (dataMapping.RecordIndex is -1)
 				{
 					List<XmlElement> targetElement = DataMap[dataMapping.StructIndex];
 					weakAttribute.Value = targetElement.FirstOrDefault()?.GetPath();
@@ -287,7 +287,7 @@ namespace unforge
 			foreach (DataForgeRecord record in RecordDefinitionTable)
 			{
 				string fileReference = record.FileName;
-				if (fileReference.Split('/').Length == 2) fileReference = fileReference.Split('/')[1];
+				if (fileReference.Split('/').Length is 2) fileReference = fileReference.Split('/')[1];
                     /*
                      * TODO: Write this to Debug Log File
 				if (!record.FileName.ToLowerInvariant().Contains(record.Name.ToLowerInvariant()) &&
@@ -394,7 +394,7 @@ namespace unforge
 			foreach (DataForgeRecord record in RecordDefinitionTable)
 			{
 				string fileReference = record.FileName;
-				if (fileReference.Split('/').Length == 2) fileReference = fileReference.Split('/')[1];
+				if (fileReference.Split('/').Length is 2) fileReference = fileReference.Split('/')[1];
 				if (string.IsNullOrWhiteSpace(fileReference)) fileReference = string.Format(@"Dump\{0}_{1}.xml", record.Name, i++);
 				string newPath = fileReference;
 				if (!Directory.Exists(Path.GetDirectoryName(newPath))) Directory.CreateDirectory(Path.GetDirectoryName(newPath));
