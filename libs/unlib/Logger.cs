@@ -25,7 +25,6 @@
 /// </summary>
 public static class Logger
 {
-    private static string? PreviousMessage;
     private static int PreviousMessageCount;
 
     static Logger()
@@ -43,12 +42,6 @@ public static class Logger
 
     private static void PushLog(LogPackage pckg)
     {
-        if (PreviousMessage == pckg.Message) PreviousMessageCount++;
-        else
-        {
-            PreviousMessage = (!string.IsNullOrEmpty(pckg.Message) ? pckg.Message : string.Empty);
-            PreviousMessageCount = 0;
-        }
         if (pckg.Level == 1) Console.ForegroundColor = ConsoleColor.Yellow;
         else if (pckg.Level == 2) Console.ForegroundColor = ConsoleColor.Red;
         else Console.ForegroundColor = ConsoleColor.White;
