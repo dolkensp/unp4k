@@ -99,6 +99,7 @@ if (filters.Count == 0) filters.Add("*.*");
 if (!File.Exists(p4kPath))
 {
     Logger.LogError($"Input path '{p4kPath}' does not exist!");
+    Logger.LogError($"Make sure you have the path pointing to a Star Citizen Data.p4k file!");
     Console.ReadKey();
     Logger.ClearBuffer();
     Environment.Exit(0);
@@ -106,6 +107,7 @@ if (!File.Exists(p4kPath))
 if (!Directory.Exists(outDirectoryPath))
 {
     Logger.LogError($"Output path '{outDirectoryPath}' does not exist!");
+    Logger.LogError($"Make sure the specified directory is empty too!");
     Console.ReadKey();
     Logger.ClearBuffer();
     Environment.Exit(0);
