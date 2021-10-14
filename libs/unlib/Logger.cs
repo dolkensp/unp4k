@@ -22,19 +22,19 @@ public static class Logger
 
     private static void PushLog(LogPackage pckg)
     {
-        if (pckg.ClearMode == 0)
+        if (pckg.ClearMode is 0)
         {
-            if (pckg.Level == -1) Console.WriteLine(pckg.Message);
-            else if (pckg.Level == 0) InternalConsoleLogger.Information(pckg.Message);
-            else if (pckg.Level == 1) InternalConsoleLogger.Warning(pckg.Message);
-            else if (pckg.Level == 2) InternalConsoleLogger.Error(pckg.Message);
-            else if (pckg.Level == 3) InternalConsoleLogger.Fatal(pckg.Message);
-            else if (pckg.Level == 4) InternalConsoleLogger.Debug(pckg.Message);
+            if (pckg.Level is -1) Console.WriteLine(pckg.Message);
+            else if (pckg.Level is 0) InternalConsoleLogger.Information(pckg.Message);
+            else if (pckg.Level is 1) InternalConsoleLogger.Warning(pckg.Message);
+            else if (pckg.Level is 2) InternalConsoleLogger.Error(pckg.Message);
+            else if (pckg.Level is 3) InternalConsoleLogger.Fatal(pckg.Message);
+            else if (pckg.Level is 4) InternalConsoleLogger.Debug(pckg.Message);
             else InternalConsoleLogger.Information(pckg.Message);
         }
-        else if (pckg.ClearMode == 3) Console.Clear();
-        else if (pckg.ClearMode == 2) Console.WriteLine();
-        else if (pckg.ClearMode == 1) Console.WriteLine(pckg.Message);
+        else if (pckg.ClearMode is 3) Console.Clear();
+        else if (pckg.ClearMode is 2) Console.WriteLine();
+        else if (pckg.ClearMode is 1) Console.WriteLine(pckg.Message);
     }
 
     public static void LogInfo(object msg)

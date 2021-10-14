@@ -279,7 +279,6 @@ Parallel.ForEach(filteredEntries, entry =>
             catch (DirectoryNotFoundException e)
             {
                 Logger.LogException(e);
-
             }
             catch (FileNotFoundException e)
             {

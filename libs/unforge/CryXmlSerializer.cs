@@ -21,7 +21,7 @@ namespace unforge
                 br.ReadByte(),
                 br.ReadByte(),
             };
-            if (byteOrder == ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
+            if (byteOrder is ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
             return BitConverter.ToInt64(bytes, 0);
         }
 
@@ -33,7 +33,7 @@ namespace unforge
                 br.ReadByte(),
                 br.ReadByte(),
             };
-            if (byteOrder == ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
+            if (byteOrder is ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
             return BitConverter.ToInt32(bytes, 0);
         }
 
@@ -43,7 +43,7 @@ namespace unforge
                 br.ReadByte(),
                 br.ReadByte(),
             };
-            if (byteOrder == ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
+            if (byteOrder is ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
             return BitConverter.ToInt16(bytes, 0);
         }
 
@@ -59,7 +59,7 @@ namespace unforge
                 br.ReadByte(),
                 br.ReadByte(),
             };
-            if (byteOrder == ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
+            if (byteOrder is ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
             return BitConverter.ToUInt64(bytes, 0);
         }
 
@@ -71,7 +71,7 @@ namespace unforge
                 br.ReadByte(),
                 br.ReadByte(),
             };
-            if (byteOrder == ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
+            if (byteOrder is ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
             return BitConverter.ToUInt32(bytes, 0);
         }
 
@@ -81,7 +81,7 @@ namespace unforge
                 br.ReadByte(),
                 br.ReadByte(),
             };
-            if (byteOrder == ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
+            if (byteOrder is ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
             return BitConverter.ToUInt16(bytes, 0);
         }
 
@@ -91,12 +91,12 @@ namespace unforge
         {
             using BinaryReader br = new(inStream);
             char peek = br.ReadChar();
-            if (peek == '<') return null; // File is already XML
+            if (peek is '<') return null; // File is already XML
             else if (peek != 'C') return null; // Unknown file format
 
             string header = br.ReadFString(7);
-            if (header == "CryXml" || header == "CryXmlB") br.ReadCString();
-            else if (header == "CRY3SDK")
+            if (header is "CryXml" || header is "CryXmlB") br.ReadCString();
+            else if (header is "CRY3SDK")
             {
                 //byte[] bytes = br.ReadBytes(2);
             }
