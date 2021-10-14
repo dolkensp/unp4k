@@ -78,10 +78,10 @@ try
 {
     for (int i = 0; i < args.Length - 1; i++)
     {
-        if (args[i] == "-i") p4kPath = args[i + 1];
-        else if (args[i] == "-o") outDirectoryPath = args[i + 1];
-        else if (args[i] == "-f") filters = args[i + 1].Split(',').ToList();
-        else if (args[i] == "-d") detailedLogs = true;
+        if (args[i].ToLowerInvariant() == "-i") p4kPath = args[i + 1];
+        else if (args[i].ToLowerInvariant() == "-o") outDirectoryPath = args[i + 1];
+        else if (args[i].ToLowerInvariant() == "-f") filters = args[i + 1].Split(',').ToList();
+        else if (args[i].ToLowerInvariant() == "-d") detailedLogs = true;
     }
 }
 catch (IndexOutOfRangeException e)
