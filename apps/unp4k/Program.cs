@@ -1,12 +1,12 @@
-﻿using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Xml;
 using System.Reflection;
 using System.Diagnostics;
+using System.Collections.Concurrent;
+
+using unforge;
+
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
-using System.Collections.Concurrent;
 
 /*
  * TODO: While Linux is supported, we need to add in everything when Star Citizen becomes available on Linux
@@ -14,15 +14,17 @@ using System.Collections.Concurrent;
 
 #region Initialisation
 
-string? appPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-string? defaultp4kPath = @"C:\Program Files\Roberts Space Industries\StarCitizen\LIVE\Data.p4k";
-string? defaultExtractionPath = Path.Join(appPath, "star_citizen_extraction");
+DirectoryInfo? appPath = new(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location));
+FileInfo? defaultp4kFile = new(@"C:\Program Files\Roberts Space Industries\StarCitizen\LIVE\Data.p4k");
+DirectoryInfo? defaultExtractionDirectory = new(Path.Join(appPath.FullName, "star_citizen_extraction"));
 
-string? p4kPath = null;
-string? outDirectoryPath = null;
+FileInfo? p4kFile = null;
+DirectoryInfo? outDirectory = null;
+DirectoryInfo? smelterOutDirectory = null;
 List<string> filters = new();
 
 bool detailedLogs = false;
+bool shouldSmelt = false;
 
 Logger.ClearBuffer();
 Logger.LogInfo("Initialising...");
@@ -37,38 +39,38 @@ if (appPath is null)
 
 if (args.Length == 0) 
 {
-    p4kPath = "Data.p4k";
-    outDirectoryPath = defaultExtractionPath;
+    p4kFile = new("Data.p4k");
+    outDirectory = defaultExtractionDirectory;
     filters.Add("*.*");
-    Logger.Log("################################################################################\n");
-    Logger.Log("                             unp4ck <> Star Citizen                             ");
-    Logger.Log(
-        "\nExtracts Star Citizen's Data.p4k into a directory of choice\n"
+    Logger.LogInfo("################################################################################\n");
+    Logger.LogInfo("                             unp4ck <> Star Citizen                             ");
+    Logger.LogInfo(
+        "\nExtracts Star Citizen's Data.p4k into a directory of choice and even convert them into xml files!\n"
         );
     Logger.NewLine();
-    Logger.Log(@"Windows PowerShell: .\unp4ck -d -i " + '"' + "[InFilePath]" + '"' + " -o " + '"' + "[OutDirectoryPath]" + '"' + 
+    Logger.LogInfo(@"Windows PowerShell: .\unp4ck -d -i " + '"' + "[InFilePath]" + '"' + " -o " + '"' + "[OutDirectoryPath]" + '"' + 
         " -f " + '"' + "[filter(Example: *.* for all files, this is the default)]" + '"');
-    Logger.Log(@"Windows Command Prompt: unp4ck -d -i " + '"' + "[InFilePath]" + '"' + " -o " + '"' + "[OutDirectoryPath]" + '"' +
+    Logger.LogInfo(@"Windows Command Prompt: unp4ck -d -i " + '"' + "[InFilePath]" + '"' + " -o " + '"' + "[OutDirectoryPath]" + '"' +
         " -f " + '"' + "[filter(Example: *.* for all files, this is the default)]" + '"');
-    Logger.Log(@"Linux Terminal: ./unp4ck -d -i " + '"' + "[InFilePath]" + '"' + " -o " + '"' + "[OutDirectoryPath]" + '"' +
+    Logger.LogInfo(@"Linux Terminal: ./unp4ck -d -i " + '"' + "[InFilePath]" + '"' + " -o " + '"' + "[OutDirectoryPath]" + '"' +
         " -f " + '"' + "[filter(Example: *.* for all files, this is the default)]" + '"');
     Logger.NewLine();
-    Logger.Log(@"A Windows Example: unp4ck -i " + '"' + @"C:\Program Files\Roberts Space Industries\StarCitizen\LIVE\Data.p4k" + '"' + 
+    Logger.LogInfo(@"A Windows Example: unp4ck -i " + '"' + @"C:\Program Files\Roberts Space Industries\StarCitizen\LIVE\Data.p4k" + '"' + 
         " -o " + '"' + @"C:\Windows\SC" + '"' + 
         " -f " + '"' + "*.*" + '"' + " -d");
-    Logger.Log("-d: Enables the detailed logging mode.");
-    Logger.Log("-i: Delcares the input file path.");
-    Logger.Log("-o: Declared the output directory path.");
-    Logger.Log("-f: Allows you to filter in the files you want.");
+    Logger.LogInfo("-d: Enables the detailed logging mode.");
+    Logger.LogInfo("-i: Delcares the input file path.");
+    Logger.LogInfo("-o: Declared the output directory path.");
+    Logger.LogInfo("-f: Allows you to filter in the files you want.");
     Logger.NewLine();
-    Logger.Log("File Type Selection: .dcb");
-    Logger.Log("Multi-File Type Selection: .dcb,.png,.gif");
-    Logger.Log("Specific File Selection: Game.dcb");
-    Logger.Log("Multi-Specific File Selection: Game.dcb,smiley_face.png,its_working.gif");
-    Logger.Log("\n################################################################################\n");
-    Logger.LogWarn($"\nNO INPUT Data.p4k PATH HAS BEEN DECLARED. USING DEFAULT PATH " + '"' + $"{defaultp4kPath}" + '"');
-    Logger.LogWarn("\nNO OUTPUT DIRECTORY PATH HAS BEEN DECLARED. ALL EXTRACTS WILL GO INTO " + '"' + $"{defaultExtractionPath}" + '"');
-    Logger.Log("\nPress any key to continue!");
+    Logger.LogInfo("File Type Selection: .dcb");
+    Logger.LogInfo("Multi-File Type Selection: .dcb,.png,.gif");
+    Logger.LogInfo("Specific File Selection: Game.dcb");
+    Logger.LogInfo("Multi-Specific File Selection: Game.dcb,smiley_face.png,its_working.gif");
+    Logger.LogInfo("\n################################################################################\n");
+    Logger.LogWarn($"\nNO INPUT Data.p4k PATH HAS BEEN DECLARED. USING DEFAULT PATH " + '"' + $"{defaultp4kFile.FullName}" + '"');
+    Logger.LogWarn("\nNO OUTPUT DIRECTORY PATH HAS BEEN DECLARED. ALL EXTRACTS WILL GO INTO " + '"' + $"{defaultExtractionDirectory.FullName}" + '"');
+    Logger.LogInfo("\nPress any key to continue!");
     Console.ReadKey();
     Logger.ClearBuffer();
     Environment.Exit(0);
@@ -76,12 +78,14 @@ if (args.Length == 0)
 
 try
 {
-    for (int i = 0; i < args.Length - 1; i++)
+    for (int i = 0; i < args.Length; i++)
     {
-        if (args[i].ToLowerInvariant() == "-i") p4kPath = args[i + 1];
-        else if (args[i].ToLowerInvariant() == "-o") outDirectoryPath = args[i + 1];
+        if (args[i].ToLowerInvariant() == "-i") p4kFile = new(args[i + 1]);
+        else if (args[i].ToLowerInvariant() == "-o") outDirectory = new(args[i + 1]);
         else if (args[i].ToLowerInvariant() == "-f") filters = args[i + 1].Split(',').ToList();
         else if (args[i].ToLowerInvariant() == "-d") detailedLogs = true;
+
+        else if (args[i].ToLowerInvariant() == "-forge") shouldSmelt = true;
     }
 }
 catch (IndexOutOfRangeException e)
@@ -92,21 +96,21 @@ catch (IndexOutOfRangeException e)
     Environment.Exit(0);
 }
 
-if (p4kPath is null) p4kPath = defaultp4kPath;
-if (outDirectoryPath is null) outDirectoryPath = defaultExtractionPath;
+if (p4kFile is null) p4kFile = defaultp4kFile;
+if (outDirectory is null) outDirectory = defaultExtractionDirectory;
 if (filters.Count == 0) filters.Add("*.*");
 
-if (!File.Exists(p4kPath))
+if (!p4kFile.Exists)
 {
-    Logger.LogError($"Input path '{p4kPath}' does not exist!");
+    Logger.LogError($"Input path '{p4kFile.FullName}' does not exist!");
     Logger.LogError($"Make sure you have the path pointing to a Star Citizen Data.p4k file!");
     Console.ReadKey();
     Logger.ClearBuffer();
     Environment.Exit(0);
 }
-if (!Directory.Exists(outDirectoryPath))
+if (!outDirectory.Exists)
 {
-    Logger.LogError($"Output path '{outDirectoryPath}' does not exist!");
+    Logger.LogError($"Output path '{outDirectory.FullName}' does not exist!");
     Console.ReadKey();
     Logger.ClearBuffer();
     Environment.Exit(0);
@@ -116,15 +120,14 @@ if (!Directory.Exists(outDirectoryPath))
 
 #region Program
 
-Console.Title = $"unp4k: Processing {p4kPath}";
+Console.Title = $"unp4k: Processing {p4kFile.FullName}";
 Logger.ClearBuffer();
-Logger.LogInfo("Processing Data.p4k before extraction...");
+Logger.LogInfo($"Processing Data.p4k before extraction{(shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
 
-FileInfo p4k = new(p4kPath);
 byte[] decomBuffer = new byte[4096];
 
 ConcurrentQueue<ZipEntry> filteredEntries = new();
-using FileStream p4kStream = p4k.Open(FileMode.Open, FileAccess.Read, FileShare.None); // The Data.p4k must be locked while it is being read to avoid corruption.
+using FileStream p4kStream = p4kFile.Open(FileMode.Open, FileAccess.Read, FileShare.None); // The Data.p4k must be locked while it is being read to avoid corruption.
 ZipFile pak = new(p4kStream);
 pak.KeysRequired += (object sender, KeysRequiredEventArgs e) => e.Key = new byte[] { 0x5E, 0x7A, 0x20, 0x02, 0x30, 0x2E, 0xEB, 0x1A, 0x3B, 0xB6, 0x17, 0xC3, 0x0F, 0xDE, 0x1E, 0x47 };
 
@@ -132,43 +135,49 @@ foreach (ZipEntry entry in pak) filteredEntries.Enqueue(entry);
 if (filters[0] == "*.*") filteredEntries = new(filteredEntries.OrderBy(x => x.Name));
 else
 {
-    ConcurrentQueue<ZipEntry> filtered = new();
-    foreach (string filt in filters) filtered = new(filtered.Concat(filteredEntries.Where(x => x.Name.ToLowerInvariant().Contains(filt.ToLowerInvariant()))));
-    filteredEntries = filtered;
+    ConcurrentQueue<ZipEntry> inFiltered = new();
+    foreach (string filt in filters) inFiltered = new(inFiltered.Concat(filteredEntries.Where(x => x.Name.ToLowerInvariant().Contains(filt.ToLowerInvariant()))));
+    filteredEntries = inFiltered;
 }
 filteredEntries = new(filteredEntries.OrderBy(x => x.Name));
 
+bool additionalFiles = false;
 int cannotDecompress = 0;
 int lockedCount = 0;
-int fileCount = 0;
 long bytesSize = 0L;
+int previousFileCount = filteredEntries.Count;
+ConcurrentQueue<ZipEntry> outputFilteredEntries = new();
 foreach (ZipEntry entry in filteredEntries)
 {
-    if (entry.CanDecompress && !entry.IsCrypted && !entry.IsAesCrypted)
+    if (entry.CanDecompress && !entry.IsCrypted && !entry.IsAesCrypted && !new FileInfo(Path.Join(outDirectory.FullName, entry.Name)).Exists)
     {
         if (entry.Size != -1) bytesSize += entry.Size;
-        fileCount++;
+        outputFilteredEntries.Enqueue(entry);
     }
     else if (!entry.CanDecompress) cannotDecompress++;
     else if (entry.IsCrypted || entry.IsAesCrypted) lockedCount++;
 }
+filteredEntries = outputFilteredEntries;
+additionalFiles = filteredEntries.Count != previousFileCount;
 
 Logger.ClearBuffer();
 
-DriveInfo outputDrive = DriveInfo.GetDrives().First(x => x.Name == outDirectoryPath.Substring(0, 3));
+DriveInfo outputDrive = DriveInfo.GetDrives().First(x => x.Name == outDirectory.FullName[..3]);
 if (outputDrive.AvailableFreeSpace < bytesSize)
 {
-    Logger.LogError("- The output path you have chosen is on a storage drive which does not have enough available free space!");
-    Logger.LogInfo(@"| \");
-    Logger.LogError($"|  | Output Path: {outDirectoryPath}");
-    Logger.LogError($"|  | Selected Drive Partition: {outputDrive.Name}");
-    Logger.LogError($"|  | Selected Drive Partition Total Free Space:     {(float)outputDrive.TotalFreeSpace / 1000:#,#.###} Bytes  :  {(float)outputDrive.TotalFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.TotalFreeSpace / 1000000000:#,#.###} GB");
-    Logger.LogError($"|  | Selected Drive Partition Available Free Space: {(float)outputDrive.AvailableFreeSpace / 1000:#,#.###} Bytes  :  {(float)outputDrive.AvailableFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.AvailableFreeSpace / 1000000000:#,#.###} GB");
-    Logger.LogError($"|  | Extraction Required Space:                     {(float)bytesSize / 1000:#,#.###} Bytes  :  {(float)bytesSize / 1000000:#,#.###} MB  :  {(float)bytesSize / 1000000000:#,#.###} GB");
-    Logger.LogError($"|  | File Count: {fileCount}{(filters[0] != "*.*" ? $" filtered from {string.Join(",", filters)}" : string.Empty)}");
-    Logger.LogError($"|  | Files Cannot Be Decompressed: {cannotDecompress}");
-    Logger.LogError($"|  | Files Locked: {lockedCount}");
-    Logger.LogInfo(@"| /");
+    Logger.LogError( "| - The output path you have chosen is on a storage drive which does not have enough available free space!");
+    Logger.LogInfo( @"|  \");
+    Logger.LogError($"|   | Output Path: {outDirectory.FullName}");
+    Logger.LogError($"|   | Selected Drive Partition: {outputDrive.Name}");
+    Logger.LogError($"|   | Selected Drive Partition Total Free Space:     {(float)outputDrive.TotalFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.TotalFreeSpace / 1000000000:#,#.###} GB");
+    Logger.LogError($"|   | Selected Drive Partition Available Free Space: {(float)outputDrive.AvailableFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.AvailableFreeSpace / 1000000000:#,#.###} GB");
+    Logger.LogError($"|   | Extraction Required Space:      {(additionalFiles ? "An Additional " : "              ")}{(float)bytesSize / 1000000:#,#.###} MB  :  {(float)bytesSize / 1000000000:#,#.###} GB" +
+        $"{(shouldSmelt ? " Excluding Smeltable Files" : string.Empty)}");
+    Logger.LogError($"|   | File Count: {filteredEntries.Count}{(additionalFiles ? " Additional Files" : string.Empty)}{(filters[0] != "*.*" ? $" Filtered From {string.Join(",", filters)}" : string.Empty)}" +
+        $"{(shouldSmelt ? " Excluding Smeltable Files" : string.Empty)}");
+    Logger.LogError($"|   | Files Cannot Be Decompressed: {cannotDecompress}");
+    Logger.LogError($"|   | Files Locked: {lockedCount}");
+    Logger.LogInfo( @"|  /");
     Console.ReadKey();
     Logger.ClearBuffer();
     Environment.Exit(0);
@@ -177,17 +186,19 @@ if (outputDrive.AvailableFreeSpace < bytesSize)
 char? confirm = null;
 while (confirm is null)
 {
-    Logger.LogInfo("- Extraction Details");
-    Logger.LogInfo(@"| \");
-    Logger.LogInfo($"|  | Output Path: {outDirectoryPath}");
-    Logger.LogInfo($"|  | Selected Drive Partition: {outputDrive.Name}");
-    Logger.LogInfo($"|  | Selected Drive Partition Total Free Space:     {(float)outputDrive.TotalFreeSpace / 1000:#,#.###} KB  :  {(float)outputDrive.TotalFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.TotalFreeSpace / 1000000000:#,#.###} GB");
-    Logger.LogInfo($"|  | Selected Drive Partition Available Free Space: {(float)outputDrive.AvailableFreeSpace / 1000:#,#.###} KB  :  {(float)outputDrive.AvailableFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.AvailableFreeSpace / 1000000000:#,#.###} GB");
-    Logger.LogInfo($"|  | Extraction Required Space:                     {(float)bytesSize / 1000:#,#.###} KB  :  {(float)bytesSize / 1000000:#,#.###} MB  :  {(float)bytesSize / 1000000000:#,#.###} GB");
-    Logger.LogInfo($"|  | File Count: {fileCount}{(filters[0] != "*.*" ? $" filtered from {string.Join(",", filters)}": string.Empty)}");
-    Logger.LogInfo($"|  | Files Cannot Be Decompressed: {cannotDecompress}");
-    Logger.LogInfo($"|  | Files Locked: {lockedCount}");
-    Logger.LogInfo(@"| /");
+    Logger.LogInfo( "| - Extraction Details");
+    Logger.LogInfo(@"|  \");
+    Logger.LogInfo($"|   | Output Path: {outDirectory.FullName}");
+    Logger.LogInfo($"|   | Selected Drive Partition: {outputDrive.Name}");
+    Logger.LogInfo($"|   | Selected Drive Partition Total Free Space:     {(float)outputDrive.TotalFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.TotalFreeSpace / 1000000000:#,#.###} GB");
+    Logger.LogInfo($"|   | Selected Drive Partition Available Free Space: {(float)outputDrive.AvailableFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.AvailableFreeSpace / 1000000000:#,#.###} GB");
+    Logger.LogInfo($"|   | Extraction Required Space:       {(additionalFiles ? "An Additional " : "              ")}{(float)bytesSize / 1000000:#,#.###} MB  :  {(float)bytesSize / 1000000000:#,#.###} GB" +
+        $"{(shouldSmelt ? " Excluding Smeltable Files" : string.Empty)}");
+    Logger.LogInfo($"|   | File Count: {filteredEntries.Count}{(additionalFiles ? " Additional Files" : string.Empty)}{(filters[0] != "*.*" ? $" Filtered From {string.Join(",", filters)}": string.Empty)}" +
+        $"{(shouldSmelt ? " Excluding Smeltable Files" : string.Empty)}");
+    Logger.LogInfo($"|   | Files Cannot Be Decompressed: {cannotDecompress}");
+    Logger.LogInfo($"|   | Files Locked: {lockedCount}");
+    Logger.LogInfo(@"|  /");
     Logger.NewLine();
     Logger.LogInfo("Should the extraction go ahead? y/n: ");
     confirm = Console.ReadKey().KeyChar;
@@ -208,41 +219,41 @@ while (confirm is null)
 Logger.ClearBuffer();
 
 string? currentDir = null;
-int taskCount = 16;
 List<Task> tasks = new();
 Stopwatch watch = new();
 watch.Start();
+
+smelterOutDirectory = new(Path.Join(outDirectory.FullName, "Smelted"));
+if (!smelterOutDirectory.Exists) smelterOutDirectory.Create();
 Parallel.ForEach(filteredEntries, (entry) => 
 {
     if (entry.CanDecompress)
     {
-        FileInfo inFile = new(Path.Join(outDirectoryPath, entry.Name));
-        DirectoryInfo dir = inFile.Directory;
-        if (!dir.Exists)
-        {
-            Logger.LogInfo($"- Creating Directory: {entry.Name.Substring(0, entry.Name.LastIndexOf("/") + 1)}");
-            dir.Create();
-        }
-        else if (currentDir is not null && currentDir != dir.FullName) Logger.LogInfo($"- Using Directory: {currentDir = dir.FullName}");
-        Logger.LogInfo($"| - {(entry.IsCrypted || entry.IsAesCrypted || inFile.Exists ? "Skipping" : "Extracting")} File: {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
+        FileInfo extractedFile = new(Path.Join(outDirectory.FullName, entry.Name));
+        DirectoryInfo dir = extractedFile.Directory;
+        if (!dir.Exists) dir.Create();
         if (detailedLogs)
         {
-            Logger.LogInfo(@"|   \");
-            Logger.LogInfo($"|    | Date Last Modified: {entry.DateTime}");
-            Logger.LogInfo($"|    | Is Locked: {entry.IsCrypted || entry.IsAesCrypted}");
-            Logger.LogInfo($"|    | Compression Method: {entry.CompressionMethod}");
-            Logger.LogInfo($"|    | Compressed Size:   {(float)entry.CompressedSize / 1000:#,#.###} KB : {(float)entry.CompressedSize / 1000000:#,#.######} MB  :  {(float)entry.CompressedSize / 1000000000:#,#.#########} GB");
-            Logger.LogInfo($"|    | Uncompressed Size: {(float)entry.Size / 1000:#,#.###} KB : {(float)entry.Size / 1000000:#,#.######} MB  :  {(float)entry.Size / 1000000000:#,#.#########} GB");
-            Logger.LogInfo(@"|   /");
+            Logger.LogInfo(                   $"| - {(entry.IsCrypted || entry.IsAesCrypted || extractedFile.Exists ? "Skipping" : "Extracting & Smelting")} File: {entry.Name}" + '\n' +
+                @"                              |  \" + '\n' +
+                $"                              |   | Date Last Modified: {entry.DateTime}" + '\n' +
+                $"                              |   | Is Locked: {entry.IsCrypted || entry.IsAesCrypted}" + '\n' +
+                $"                              |   | Compression Method: {entry.CompressionMethod}" + '\n' +
+                $"                              |   | Compressed Size:   {(float)entry.CompressedSize / 1000000:#,#.######} MB  :  {(float)entry.CompressedSize / 1000000000:#,#.#########} GB" + '\n' +
+                $"                              |   | Uncompressed Size: {(float)entry.Size / 1000000:#,#.######} MB  :  {(float)entry.Size / 1000000000:#,#.#########} GB" + '\n' +
+                $"                              |   | Smelting: {(shouldSmelt ? "Enabled" : "Disabled")}" + '\n' +
+                @"                              |  /");
         }
-        if (!entry.IsCrypted && !entry.IsAesCrypted && (!inFile.Exists || inFile.Length != entry.Size))
+        else Logger.LogInfo($"| - {(entry.IsCrypted || entry.IsAesCrypted || extractedFile.Exists ? "Skipping" : "Extracting & Smelting")} File: {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
+        bool extractionSuccessful = false;
+        if (!entry.IsCrypted && !entry.IsAesCrypted && (!extractedFile.Exists || extractedFile.Length != entry.Size))
         {
             try
             {
-                FileInfo outFile = new(Path.Join(outDirectoryPath, entry.Name));
-                using FileStream fs = outFile.Open(FileMode.Create, FileAccess.Write, FileShare.None); // Dont want people accessing incomplete files.
+                using FileStream fs = extractedFile.Open(FileMode.Create, FileAccess.Write, FileShare.None); // Dont want people accessing incomplete files.
                 using Stream s = pak.GetInputStream(entry);
                 StreamUtils.Copy(s, fs, decomBuffer);
+                extractionSuccessful = true;
             }
             catch (DirectoryNotFoundException e)
             {
@@ -261,6 +272,21 @@ Parallel.ForEach(filteredEntries, (entry) =>
                 Logger.LogException(e);
             }
         }
+        if (extractionSuccessful)
+        {
+            FileInfo smeltedFile = new(Path.Join(smelterOutDirectory.FullName, entry.Name));
+            if (extractedFile.Extension == ".dcb")
+            {
+                using BinaryReader br = new(extractedFile.Open(FileMode.Open, FileAccess.Read, FileShare.None));
+                new DataForge(br, extractedFile.Length < 0x0e2e00).Save(Path.ChangeExtension(smeltedFile.FullName, "xml"));
+            }
+            else
+            {
+                XmlDocument xml = CryXmlSerializer.ReadFile(extractedFile.FullName);
+                if (xml != null) xml.Save(Path.ChangeExtension(smeltedFile.FullName, "xml"));
+            }
+        }
+        Logger.LogInfo(@"|   /");
     }
 });
 watch.Stop();
@@ -271,8 +297,8 @@ Logger.LogInfo(@" \");
 Logger.LogInfo($"  |  Time Taken: {(float)watch.ElapsedMilliseconds / 60000:#,#.###} minutes");
 Logger.LogWarn("  |  Due to the nature of SSD's/NVMe's, do not excessively run the extraction on an SSD/NVMe. Doing so may reduce the lifetime of the SSD/NVMe.");
 Logger.NewLine(2);
-Logger.Log("Would you like to open the output directory? (Application will close on input) y/n: ");
+Logger.LogInfo("Would you like to open the output directory? (Application will close on input) y/n: ");
 char openOutput = Console.ReadKey().KeyChar;
-if (openOutput == 'y') Process.Start("explorer.exe", outDirectoryPath);
+if (openOutput == 'y') Process.Start("explorer.exe", outDirectory.FullName);
 
 #endregion Program
