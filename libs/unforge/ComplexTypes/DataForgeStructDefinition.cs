@@ -6,7 +6,7 @@ using System.Xml;
 
 namespace unforge
 {
-    public class DataForgeStructDefinition : _DataForgeSerializable
+    public class DataForgeStructDefinition : DataForgeSerializable
     {
         public uint NameOffset { get; set; }
         public string Name { get { return DocumentRoot.ValueMap[NameOffset]; } }
@@ -36,7 +36,7 @@ namespace unforge
         {
             XmlAttribute attribute;
             DataForgeStructDefinition baseStruct = this;
-            List<DataForgePropertyDefinition> properties = new() { };
+            List<DataForgePropertyDefinition> properties = new();
 
             // TODO: Do we need to handle property overrides
 
@@ -303,6 +303,6 @@ namespace unforge
             return sb.ToString();
         }
 
-        public override string Tostring() => string.Format("<{0} />", Name);
+        public override string ToString() => string.Format("<{0} />", Name);
     }
 }

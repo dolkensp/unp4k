@@ -2,7 +2,7 @@
 
 namespace unforge
 {
-    public class DataForgeInt16 : _DataForgeSerializable
+    public class DataForgeInt16 : DataForgeSerializable
     {
         public short Value { get; set; }
 

@@ -2,7 +2,7 @@
 
 namespace unforge
 {
-    public class DataForgeBoolean : _DataForgeSerializable
+    public class DataForgeBoolean : DataForgeSerializable
     {
         public bool Value { get; set; }
 

@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace unforge
+﻿namespace unforge
 {
-    public class DataForgeDataMapping : _DataForgeSerializable
+    public class DataForgeDataMapping : DataForgeSerializable
     {
         public uint StructIndex { get; set; }
         public uint StructCount { get; set; }

@@ -5,7 +5,7 @@ using System.Xml;
 
 namespace unforge
 {
-    public class DataForgePropertyDefinition : _DataForgeSerializable
+    public class DataForgePropertyDefinition : DataForgeSerializable
     {
         public uint NameOffset { get; set; }
         public string Name { get { return DocumentRoot.ValueMap[NameOffset]; } }

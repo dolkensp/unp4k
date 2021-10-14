@@ -2,7 +2,7 @@
 
 namespace unforge
 {
-    public class DataForgeInt8 : _DataForgeSerializable
+    public class DataForgeInt8 : DataForgeSerializable
     {
         public sbyte Value { get; set; }
 

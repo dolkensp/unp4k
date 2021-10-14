@@ -2,7 +2,7 @@
 
 namespace unforge
 {
-    public class DataForgeLocale : _DataForgeSerializable
+    public class DataForgeLocale : DataForgeSerializable
     {
         private uint _value;
         public string Value { get { return DocumentRoot.ValueMap[_value]; } }

@@ -1,9 +1,8 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 
 namespace unforge
 {
-    public class DataForgeEnumDefinition : _DataForgeSerializable
+    public class DataForgeEnumDefinition : DataForgeSerializable
     {
         public uint NameOffset { get; set; }
         public string Name { get { return DocumentRoot.ValueMap[NameOffset]; } }
