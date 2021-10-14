@@ -51,6 +51,18 @@
       "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -o \"C:\\SC\" -f \".xml\" -d -forge",
       "hotReloadEnabled": false,
       "authenticationMode": "None"
+    },
+    "unp4k - Smelt LIVE Game.dcb": {
+      "commandName": "Project",
+      "commandLineArgs": "-o \"C:\\SC\" -f \".dcb\" -d -forge",
+      "hotReloadEnabled": false,
+      "authenticationMode": "None"
+    },
+    "unp4k - Smelt PTU Game.dcb": {
+      "commandName": "Project",
+      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -o \"C:\\SC\" -f \".dcb\" -d -forge",
+      "hotReloadEnabled": false,
+      "authenticationMode": "None"
     }
   }
 }

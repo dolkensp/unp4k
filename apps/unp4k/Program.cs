@@ -37,7 +37,7 @@ if (appPath is null)
     Environment.Exit(0);
 }
 
-if (args.Length == 0) 
+if (args.Length is 0) 
 {
     p4kFile = new("Data.p4k");
     outDirectory = defaultExtractionDirectory;
@@ -80,12 +80,12 @@ try
 {
     for (int i = 0; i < args.Length; i++)
     {
-        if (args[i].ToLowerInvariant() == "-i") p4kFile = new(args[i + 1]);
-        else if (args[i].ToLowerInvariant() == "-o") outDirectory = new(args[i + 1]);
-        else if (args[i].ToLowerInvariant() == "-f") filters = args[i + 1].Split(',').ToList();
-        else if (args[i].ToLowerInvariant() == "-d") detailedLogs = true;
+        if (args[i].ToLowerInvariant() is "-i") p4kFile = new(args[i + 1]);
+        else if (args[i].ToLowerInvariant() is "-o") outDirectory = new(args[i + 1]);
+        else if (args[i].ToLowerInvariant() is "-f") filters = args[i + 1].Split(',').ToList();
+        else if (args[i].ToLowerInvariant() is "-d") detailedLogs = true;
 
-        else if (args[i].ToLowerInvariant() == "-forge") shouldSmelt = true;
+        else if (args[i].ToLowerInvariant() is "-forge") shouldSmelt = true;
     }
 }
 catch (IndexOutOfRangeException e)
@@ -98,7 +98,7 @@ catch (IndexOutOfRangeException e)
 
 if (p4kFile is null) p4kFile = defaultp4kFile;
 if (outDirectory is null) outDirectory = defaultExtractionDirectory;
-if (filters.Count == 0) filters.Add("*.*");
+if (filters.Count is 0) filters.Add("*.*");
 
 if (!p4kFile.Exists)
 {
@@ -132,7 +132,7 @@ ZipFile pak = new(p4kStream);
 pak.KeysRequired += (object sender, KeysRequiredEventArgs e) => e.Key = new byte[] { 0x5E, 0x7A, 0x20, 0x02, 0x30, 0x2E, 0xEB, 0x1A, 0x3B, 0xB6, 0x17, 0xC3, 0x0F, 0xDE, 0x1E, 0x47 };
 
 foreach (ZipEntry entry in pak) filteredEntries.Enqueue(entry);
-if (filters[0] == "*.*") filteredEntries = new(filteredEntries.OrderBy(x => x.Name));
+if (filters[0] is "*.*") filteredEntries = new(filteredEntries.OrderBy(x => x.Name));
 else
 {
     ConcurrentQueue<ZipEntry> inFiltered = new();
@@ -209,7 +209,7 @@ while (confirm is null)
         Logger.ClearBuffer();
         confirm = null;
     }
-    else if (confirm == 'n')
+    else if (confirm is 'n')
     {
         Logger.ClearBuffer();
         Environment.Exit(0);
@@ -224,7 +224,7 @@ watch.Start();
 
 smelterOutDirectory = new(Path.Join(outDirectory.FullName, "Smelted"));
 if (!smelterOutDirectory.Exists) smelterOutDirectory.Create();
-Parallel.ForEach(filteredEntries, (entry) => 
+Parallel.ForEach(filteredEntries, entry => 
 {
     if (entry.CanDecompress)
     {
@@ -236,27 +236,50 @@ Parallel.ForEach(filteredEntries, (entry) =>
             Logger.LogInfo(                   $"| - {(entry.IsCrypted || entry.IsAesCrypted || extractedFile.Exists ? "Skipping" : "Extracting & Smelting")} File: {entry.Name}" + '\n' +
                 @"                              |  \" + '\n' +
                 $"                              |   | Date Last Modified: {entry.DateTime}" + '\n' +
-                $"                              |   | Is Locked: {entry.IsCrypted || entry.IsAesCrypted}" + '\n' +
                 $"                              |   | Compression Method: {entry.CompressionMethod}" + '\n' +
                 $"                              |   | Compressed Size:   {(float)entry.CompressedSize / 1000000:#,#.######} MB  :  {(float)entry.CompressedSize / 1000000000:#,#.#########} GB" + '\n' +
                 $"                              |   | Uncompressed Size: {(float)entry.Size / 1000000:#,#.######} MB  :  {(float)entry.Size / 1000000000:#,#.#########} GB" + '\n' +
-                $"                              |   | Smelting: {(shouldSmelt ? "Enabled" : "Disabled")}" + '\n' +
                 @"                              |  /");
         }
         else Logger.LogInfo($"| - {(entry.IsCrypted || entry.IsAesCrypted || extractedFile.Exists ? "Skipping" : "Extracting & Smelting")} File: {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
-        bool extractionSuccessful = false;
         if (!entry.IsCrypted && !entry.IsAesCrypted && (!extractedFile.Exists || extractedFile.Length != entry.Size))
         {
             try
             {
-                using FileStream fs = extractedFile.Open(FileMode.Create, FileAccess.Write, FileShare.None); // Dont want people accessing incomplete files.
-                using Stream s = pak.GetInputStream(entry);
-                StreamUtils.Copy(s, fs, decomBuffer);
-                extractionSuccessful = true;
+                FileStream fs = extractedFile.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite); // Dont want people accessing incomplete files.
+                Stream decompStream = pak.GetInputStream(entry);
+                StreamUtils.Copy(decompStream, fs, decomBuffer);
+                fs.Close();
+                if (shouldSmelt)
+                {
+                    FileInfo smeltedFile = new(Path.Join(smelterOutDirectory.FullName, entry.Name));
+                    smeltedFile.Directory.Create();
+                    try
+                    {
+                        if (extractedFile.Extension is ".dcb")
+                        {
+                            bool legacy = File.OpenRead(extractedFile.FullName).Length < 0x0e2e00; // May be a .NET bug but for some reason FileInfo.Length cannot access the file.
+                            using BinaryReader br = new(extractedFile.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+                            new DataForge(br, legacy).Save(Path.ChangeExtension(smeltedFile.FullName, "xml"));
+                        }
+                        else
+                        {
+                            XmlDocument xml = CryXmlSerializer.ReadFile(extractedFile.FullName);
+                            if (xml != null) xml.Save(Path.ChangeExtension(smeltedFile.FullName, "xml"));
+                        }
+                    }
+                    catch (ArgumentException e)
+                    {
+                        Logger.LogException(e);
+                        // Unsupported file type
+                        // TODO: See if we can do anything about the .PeekChar() overflow
+                    }
+                }
             }
             catch (DirectoryNotFoundException e)
             {
                 Logger.LogException(e);
+
             }
             catch (FileNotFoundException e)
             {
@@ -271,21 +294,6 @@ Parallel.ForEach(filteredEntries, (entry) =>
                 Logger.LogException(e);
             }
         }
-        if (extractionSuccessful)
-        {
-            FileInfo smeltedFile = new(Path.Join(smelterOutDirectory.FullName, entry.Name));
-            if (extractedFile.Extension == ".dcb")
-            {
-                using BinaryReader br = new(extractedFile.Open(FileMode.Open, FileAccess.Read, FileShare.None));
-                new DataForge(br, extractedFile.Length < 0x0e2e00).Save(Path.ChangeExtension(smeltedFile.FullName, "xml"));
-            }
-            else
-            {
-                XmlDocument xml = CryXmlSerializer.ReadFile(extractedFile.FullName);
-                if (xml != null) xml.Save(Path.ChangeExtension(smeltedFile.FullName, "xml"));
-            }
-        }
-        Logger.LogInfo(@"|   /");
     }
 });
 watch.Stop();
@@ -298,6 +306,6 @@ Logger.LogWarn("  |  Due to the nature of SSD's/NVMe's, do not excessively run t
 Logger.NewLine(2);
 Logger.LogInfo("Would you like to open the output directory? (Application will close on input) y/n: ");
 char openOutput = Console.ReadKey().KeyChar;
-if (openOutput == 'y') Process.Start("explorer.exe", outDirectory.FullName);
+if (openOutput is 'y') Process.Start("explorer.exe", outDirectory.FullName);
 
 #endregion Program
