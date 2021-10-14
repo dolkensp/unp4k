@@ -1,28 +1,20 @@
-﻿using System;
-using System.Xml;
+﻿using System.Xml;
 
 namespace unforge
 {
     public class DataForgeSingle : _DataForgeSerializable
     {
-        public Single Value { get; set; }
+        public float Value { get; set; }
 
-        public DataForgeSingle(DataForge documentRoot)
-            : base(documentRoot)
-        {
-            this.Value = this._br.ReadSingle();
-        }
+        public DataForgeSingle(DataForge documentRoot) : base(documentRoot) { Value = _br.ReadSingle(); }
 
-        public override String ToString()
-        {
-            return String.Format("{0}", this.Value);
-        }
+        public override string ToString() => string.Format("{0}", Value);
 
         public XmlElement Read()
         {
-            var element = this.DocumentRoot.CreateElement("Single");
-            var attribute = this.DocumentRoot.CreateAttribute("value");
-            attribute.Value = this.Value.ToString();
+            XmlElement element = DocumentRoot.CreateElement("Single");
+            XmlAttribute attribute = DocumentRoot.CreateAttribute("value");
+            attribute.Value = Value.ToString();
             element.Attributes.Append(attribute);
             return element;
         }

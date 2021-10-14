@@ -1,29 +1,21 @@
-﻿using System;
-using System.Xml;
+﻿using System.Xml;
 
 namespace unforge
 {
     public class DataForgeLocale : _DataForgeSerializable
     {
-        private UInt32 _value;
-        public String Value { get { return this.DocumentRoot.ValueMap[this._value]; } }
+        private uint _value;
+        public string Value { get { return DocumentRoot.ValueMap[_value]; } }
 
-        public DataForgeLocale(DataForge documentRoot)
-            : base(documentRoot)
-        {
-            this._value = this._br.ReadUInt32();
-        }
+        public DataForgeLocale(DataForge documentRoot)  : base(documentRoot) { _value = _br.ReadUInt32(); }
 
-        public override String ToString()
-        {
-            return this.Value;
-        }
+        public override string ToString() => Value;
 
         public XmlElement Read()
         {
-            var element = this.DocumentRoot.CreateElement("LocID");
-            var attribute = this.DocumentRoot.CreateAttribute("value");
-            attribute.Value = this.Value.ToString();
+            XmlElement element = DocumentRoot.CreateElement("LocID");
+            XmlAttribute attribute = DocumentRoot.CreateAttribute("value");
+            attribute.Value = Value.ToString();
             // TODO: More work here
             element.Attributes.Append(attribute);
             return element;

@@ -1,28 +1,20 @@
-﻿using System;
-using System.Xml;
+﻿using System.Xml;
 
 namespace unforge
 {
     public class DataForgeInt8 : _DataForgeSerializable
     {
-        public SByte Value { get; set; }
+        public sbyte Value { get; set; }
 
-        public DataForgeInt8(DataForge documentRoot)
-            : base(documentRoot)
-        {
-            this.Value = this._br.ReadSByte();
-        }
+        public DataForgeInt8(DataForge documentRoot) : base(documentRoot) { Value = _br.ReadSByte(); }
 
-        public override String ToString()
-        {
-            return String.Format("{0}", this.Value);
-        }
+        public override string ToString() => string.Format("{0}", Value);
 
         public XmlElement Read()
         {
-            var element = this.DocumentRoot.CreateElement("Int8");
-            var attribute = this.DocumentRoot.CreateAttribute("value");
-            attribute.Value = this.Value.ToString();
+            XmlElement element = DocumentRoot.CreateElement("Int8");
+            XmlAttribute attribute = DocumentRoot.CreateAttribute("value");
+            attribute.Value = Value.ToString();
             element.Attributes.Append(attribute);
             return element;
         }
