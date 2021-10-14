@@ -4,7 +4,7 @@ using System.Xml;
 
 namespace unforge
 {
-    public class DataForgeGuid : _DataForgeSerializable
+    public class DataForgeGuid : DataForgeSerializable
     {
         public Guid Value { get; set; }
 

@@ -2,7 +2,7 @@
 
 namespace unforge
 {
-    public class DataForgeStringLookup : _DataForgeSerializable
+    public class DataForgeStringLookup : DataForgeSerializable
     {
         private uint _value;
         public string Value { get { return DocumentRoot.ValueMap[_value]; } }

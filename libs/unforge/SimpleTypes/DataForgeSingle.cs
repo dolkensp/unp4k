@@ -2,7 +2,7 @@
 
 namespace unforge
 {
-    public class DataForgeSingle : _DataForgeSerializable
+    public class DataForgeSingle : DataForgeSerializable
     {
         public float Value { get; set; }
 

@@ -2,7 +2,7 @@
 
 namespace unforge
 {
-    public class DataForgeEnum : _DataForgeSerializable
+    public class DataForgeEnum : DataForgeSerializable
     {
         private uint _value;
         public string Value { get { return DocumentRoot.ValueMap[_value]; } }

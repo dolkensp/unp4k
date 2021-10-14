@@ -2,7 +2,7 @@
 
 namespace unforge
 {
-    public class DataForgeUInt64 : _DataForgeSerializable
+    public class DataForgeUInt64 : DataForgeSerializable
     {
         public ulong Value { get; set; }
 

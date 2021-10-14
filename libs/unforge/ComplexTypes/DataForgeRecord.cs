@@ -3,7 +3,7 @@ using System.IO;
 
 namespace unforge
 {
-    public class DataForgeRecord : _DataForgeSerializable
+    public class DataForgeRecord : DataForgeSerializable
     {
         public uint NameOffset { get; set; }
         public string Name { get { return DocumentRoot.ValueMap[NameOffset]; } }

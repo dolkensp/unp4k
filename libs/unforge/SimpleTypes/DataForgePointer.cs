@@ -2,7 +2,7 @@
 
 namespace unforge
 {
-    public class DataForgePointer : _DataForgeSerializable
+    public class DataForgePointer : DataForgeSerializable
     {
         public uint StructType { get; set; }
         public uint Index { get; set; }
