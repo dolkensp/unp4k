@@ -159,9 +159,9 @@ if (outputDrive.AvailableFreeSpace < bytesSize)
     Logger.LogError("- The output path you have chosen is on a storage drive which does not have enough available free space!");
     Logger.LogInfo(@"| \");
     Logger.LogError($"|  | Output Path: {outDirectoryPath}");
-    Logger.LogError($"|  | Selected Drive: {outputDrive.Name}");
-    Logger.LogError($"|  | Selected Drive Total Free Space:     {outputDrive.TotalFreeSpace:#,#.###} Bytes  :  {(float)outputDrive.TotalFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.TotalFreeSpace / 1000000000:#,#.###} GB");
-    Logger.LogError($"|  | Selected Drive Available Free Space: {outputDrive.AvailableFreeSpace:#,#.###} Bytes  :  {(float)outputDrive.AvailableFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.AvailableFreeSpace / 1000000000:#,#.###} GB");
+    Logger.LogError($"|  | Selected Drive Partition: {outputDrive.Name}");
+    Logger.LogError($"|  | Selected Drive Partition Total Free Space:     {outputDrive.TotalFreeSpace:#,#.###} Bytes  :  {(float)outputDrive.TotalFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.TotalFreeSpace / 1000000000:#,#.###} GB");
+    Logger.LogError($"|  | Selected Drive Partition Available Free Space: {outputDrive.AvailableFreeSpace:#,#.###} Bytes  :  {(float)outputDrive.AvailableFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.AvailableFreeSpace / 1000000000:#,#.###} GB");
     Logger.LogError($"|  | Extraction Required Space:           {bytesSize:#,#.###} Bytes  :  {(float)bytesSize / 1000000:#,#.###} MB  :  {(float)bytesSize / 1000000000:#,#.###} GB");
     Logger.LogError($"|  | File Count: {fileCount}{(filters[0] != "*.*" ? $" filtered from {string.Join(",", filters)}" : string.Empty)}");
     Logger.LogError($"|  | Files Cannot Be Decompressed: {cannotDecompress}");
@@ -178,9 +178,9 @@ while (confirm is null)
     Logger.LogInfo("- Extraction Details");
     Logger.LogInfo(@"| \");
     Logger.LogInfo($"|  | Output Path: {outDirectoryPath}");
-    Logger.LogInfo($"|  | Selected Drive: {outputDrive.Name}");
-    Logger.LogInfo($"|  | Selected Drive Total Free Space:     {(float)outputDrive.TotalFreeSpace / 1000:#,#.###} KB  :  {(float)outputDrive.TotalFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.TotalFreeSpace / 1000000000:#,#.###} GB");
-    Logger.LogInfo($"|  | Selected Drive Available Free Space: {(float)outputDrive.AvailableFreeSpace / 1000:#,#.###} KB  :  {(float)outputDrive.AvailableFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.AvailableFreeSpace / 1000000000:#,#.###} GB");
+    Logger.LogInfo($"|  | Selected Drive Partition: {outputDrive.Name}");
+    Logger.LogInfo($"|  | Selected Drive Partition Total Free Space:     {(float)outputDrive.TotalFreeSpace / 1000:#,#.###} KB  :  {(float)outputDrive.TotalFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.TotalFreeSpace / 1000000000:#,#.###} GB");
+    Logger.LogInfo($"|  | Selected Drive Partition Available Free Space: {(float)outputDrive.AvailableFreeSpace / 1000:#,#.###} KB  :  {(float)outputDrive.AvailableFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.AvailableFreeSpace / 1000000000:#,#.###} GB");
     Logger.LogInfo($"|  | Extraction Required Space:           {(float)bytesSize / 1000:#,#.###} KB  :  {(float)bytesSize / 1000000:#,#.###} MB  :  {(float)bytesSize / 1000000000:#,#.###} GB");
     Logger.LogInfo($"|  | File Count: {fileCount}{(filters[0] != "*.*" ? $" filtered from {string.Join(",", filters)}": string.Empty)}");
     Logger.LogInfo($"|  | Files Cannot Be Decompressed: {cannotDecompress}");
