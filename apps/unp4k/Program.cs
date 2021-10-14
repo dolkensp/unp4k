@@ -98,14 +98,14 @@ if (filters.Count == 0) filters.Add("*.*");
 
 if (!File.Exists(p4kPath))
 {
-    Logger.LogError($"Input path '{args[0]}' does not exist!");
+    Logger.LogError($"Input path '{p4kPath}' does not exist!");
     Console.ReadKey();
     Logger.ClearBuffer();
     Environment.Exit(0);
 }
 if (!Directory.Exists(outDirectoryPath))
 {
-    Logger.LogError($"Output path '{args[1]}' does not exist!");
+    Logger.LogError($"Output path '{outDirectoryPath}' does not exist!");
     Console.ReadKey();
     Logger.ClearBuffer();
     Environment.Exit(0);
