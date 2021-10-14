@@ -218,7 +218,6 @@ while (confirm is null)
 
 Logger.ClearBuffer();
 
-string? currentDir = null;
 List<Task> tasks = new();
 Stopwatch watch = new();
 watch.Start();
