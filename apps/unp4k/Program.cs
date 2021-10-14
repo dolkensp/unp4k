@@ -116,6 +116,7 @@ if (!Directory.Exists(outDirectoryPath))
 
 #region Program
 
+Console.Title = $"unp4k: Processing {p4kPath}";
 Logger.ClearBuffer();
 Logger.LogInfo("Processing Data.p4k before extraction...");
 
