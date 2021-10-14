@@ -7,18 +7,11 @@ using System.Xml.Serialization;
 
 namespace unforge
 {
-    public enum ByteOrderEnum
-    {
-        AutoDetect,
-        BigEndian,
-        LittleEndian,
-    }
-
     public static class CryXmlSerializer
     {
-        public static Int64 ReadInt64(this BinaryReader br, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian)
+        public static long ReadInt64(this BinaryReader br, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian)
         {
-            var bytes = new Byte[] {
+            byte[] bytes = new[] {
                 br.ReadByte(),
                 br.ReadByte(),
                 br.ReadByte(),
@@ -28,44 +21,35 @@ namespace unforge
                 br.ReadByte(),
                 br.ReadByte(),
             };
-
-            if (byteOrder == ByteOrderEnum.LittleEndian)
-                bytes = bytes.Reverse().ToArray();
-
+            if (byteOrder == ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
             return BitConverter.ToInt64(bytes, 0);
         }
 
-        public static Int32 ReadInt32(this BinaryReader br, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian)
+        public static int ReadInt32(this BinaryReader br, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian)
         {
-            var bytes = new Byte[] {
+            byte[] bytes = new[] {
                 br.ReadByte(),
                 br.ReadByte(),
                 br.ReadByte(),
                 br.ReadByte(),
             };
-
-            if (byteOrder == ByteOrderEnum.LittleEndian)
-                bytes = bytes.Reverse().ToArray();
-
+            if (byteOrder == ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
             return BitConverter.ToInt32(bytes, 0);
         }
 
-        public static Int16 ReadInt16(this BinaryReader br, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian)
+        public static short ReadInt16(this BinaryReader br, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian)
         {
-            var bytes = new Byte[] {
+            byte[] bytes = new[] {
                 br.ReadByte(),
                 br.ReadByte(),
             };
-
-            if (byteOrder == ByteOrderEnum.LittleEndian)
-                bytes = bytes.Reverse().ToArray();
-
+            if (byteOrder == ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
             return BitConverter.ToInt16(bytes, 0);
         }
 
-        public static UInt64 ReadUInt64(this BinaryReader br, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian)
+        public static ulong ReadUInt64(this BinaryReader br, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian)
         {
-            var bytes = new Byte[] {
+            byte[] bytes = new[] {
                 br.ReadByte(),
                 br.ReadByte(),
                 br.ReadByte(),
@@ -75,81 +59,52 @@ namespace unforge
                 br.ReadByte(),
                 br.ReadByte(),
             };
-
-            if (byteOrder == ByteOrderEnum.LittleEndian)
-                bytes = bytes.Reverse().ToArray();
-
+            if (byteOrder == ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
             return BitConverter.ToUInt64(bytes, 0);
         }
 
-        public static UInt32 ReadUInt32(this BinaryReader br, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian)
+        public static uint ReadUInt32(this BinaryReader br, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian)
         {
-            var bytes = new Byte[] {
+            byte[] bytes = new[] {
                 br.ReadByte(),
                 br.ReadByte(),
                 br.ReadByte(),
                 br.ReadByte(),
             };
-
-            if (byteOrder == ByteOrderEnum.LittleEndian)
-                bytes = bytes.Reverse().ToArray();
-
+            if (byteOrder == ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
             return BitConverter.ToUInt32(bytes, 0);
         }
 
-        public static UInt16 ReadUInt16(this BinaryReader br, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian)
+        public static ushort ReadUInt16(this BinaryReader br, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian)
         {
-            var bytes = new Byte[] {
+            byte[] bytes = new[] {
                 br.ReadByte(),
                 br.ReadByte(),
             };
-
-            if (byteOrder == ByteOrderEnum.LittleEndian)
-                bytes = bytes.Reverse().ToArray();
-
+            if (byteOrder == ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
             return BitConverter.ToUInt16(bytes, 0);
         }
 
-        public static XmlDocument ReadFile(String inFile, ByteOrderEnum byteOrder = ByteOrderEnum.AutoDetect, Boolean writeLog = false)
-        {
-            return CryXmlSerializer.ReadStream(File.OpenRead(inFile), byteOrder, writeLog);
-        }
+        public static XmlDocument ReadFile(string inFile, ByteOrderEnum byteOrder = ByteOrderEnum.AutoDetect, bool writeLog = false) => ReadStream(File.OpenRead(inFile), byteOrder, writeLog);
 
-        public static XmlDocument ReadStream(Stream inStream, ByteOrderEnum byteOrder = ByteOrderEnum.AutoDetect, Boolean writeLog = false)
+        public static XmlDocument ReadStream(Stream inStream, ByteOrderEnum byteOrder = ByteOrderEnum.AutoDetect, bool writeLog = false)
         {
-            using (BinaryReader br = new BinaryReader(inStream))
+            using (BinaryReader br = new(inStream))
             {
-                var peek = br.PeekChar();
+                int peek = br.PeekChar();
+                if (peek == '<') return null; // File is already XML
+                else if (peek != 'C') return null; // Unknown file format
 
-                if (peek == '<')
-                {
-                    return null; // File is already XML
-                }
-                else if (peek != 'C')
-                {
-                    throw new FormatException("Unknown File Format"); // Unknown file format
-                }
-
-                String header = br.ReadFString(7);
-
-                if (header == "CryXml" || header == "CryXmlB")
-                {
-                    br.ReadCString();
-                }
+                string header = br.ReadFString(7);
+                if (header == "CryXml" || header == "CryXmlB") br.ReadCString();
                 else if (header == "CRY3SDK")
                 {
-                    var bytes = br.ReadBytes(2);
+                    //byte[] bytes = br.ReadBytes(2);
                 }
-                else
-                {
-                    throw new FormatException("Unknown File Format");
-                }
+                else throw new FormatException("Unknown File Format");
 
-                var headerLength = br.BaseStream.Position;
-
-                byteOrder = ByteOrderEnum.BigEndian;
-
-                var fileLength = br.ReadInt32(byteOrder);
+                long headerLength = br.BaseStream.Position;
+                var fileLength = br.ReadInt32(byteOrder = ByteOrderEnum.BigEndian);
 
                 if (fileLength != br.BaseStream.Length)
                 {
@@ -158,21 +113,23 @@ namespace unforge
                     fileLength = br.ReadInt32(byteOrder);
                 }
 
-                var nodeTableOffset = br.ReadInt32(byteOrder);
-                var nodeTableCount = br.ReadInt32(byteOrder);
-                var nodeTableSize = 28;
+                int nodeTableOffset = br.ReadInt32(byteOrder);
+                int nodeTableCount = br.ReadInt32(byteOrder);
+                int nodeTableSize = 28;
 
-                var attributeTableOffset = br.ReadInt32(byteOrder);
-                var attributeTableCount = br.ReadInt32(byteOrder);
-                var referenceTableSize = 8;
+                int attributeTableOffset = br.ReadInt32(byteOrder);
+                int attributeTableCount = br.ReadInt32(byteOrder);
+                int referenceTableSize = 8;
 
-                var childTableOffset = br.ReadInt32(byteOrder);
-                var childTableCount = br.ReadInt32(byteOrder);
-                var length3 = 4;
+                int childTableOffset = br.ReadInt32(byteOrder);
+                int childTableCount = br.ReadInt32(byteOrder);
+                int length3 = 4;
 
-                var stringTableOffset = br.ReadInt32(byteOrder);
-                var stringTableCount = br.ReadInt32(byteOrder);
+                int stringTableOffset = br.ReadInt32(byteOrder);
+                int stringTableCount = br.ReadInt32(byteOrder);
 
+                /*
+                 * TODO: Write this to Debug Log File
                 if (writeLog)
                 {
                     // Regex byteFormatter = new Regex("([0-9A-F]{8})");
@@ -190,10 +147,11 @@ namespace unforge
                     Console.WriteLine("");
                     Console.WriteLine("Node Table");
                 }
+                */
 
-                List<CryXmlNode> nodeTable = new List<CryXmlNode> { };
+                List<CryXmlNode> nodeTable = new() { };
                 br.BaseStream.Seek(nodeTableOffset, SeekOrigin.Begin);
-                Int32 nodeID = 0;
+                int nodeID = 0;
                 while (br.BaseStream.Position < nodeTableOffset + nodeTableCount * nodeTableSize)
                 {
                     var position = br.BaseStream.Position;
@@ -209,8 +167,9 @@ namespace unforge
                         FirstChildIndex = br.ReadInt32(byteOrder),
                         Reserved = br.ReadInt32(byteOrder),
                     };
-
                     nodeTable.Add(value);
+                    /*
+                     * TODO: Write this to Debug Log File
                     if (writeLog)
                     {
                         Console.WriteLine(
@@ -225,145 +184,157 @@ namespace unforge
                             value.FirstChildIndex,
                             value.Reserved);
                     }
+                    */
                 }
 
+                /*
+                 * TODO: Write this to Debug Log File
                 if (writeLog)
                 {
                     Console.WriteLine("");
                     Console.WriteLine("Reference Table");
                 }
+                */
 
-                List<CryXmlReference> attributeTable = new List<CryXmlReference> { };
+                List<CryXmlReference> attributeTable = new() { };
                 br.BaseStream.Seek(attributeTableOffset, SeekOrigin.Begin);
                 while (br.BaseStream.Position < attributeTableOffset + attributeTableCount * referenceTableSize)
                 {
-                    var position = br.BaseStream.Position;
-                    var value = new CryXmlReference
+                    long position = br.BaseStream.Position;
+                    CryXmlReference value = new()
                     {
                         NameOffset = br.ReadInt32(byteOrder),
                         ValueOffset = br.ReadInt32(byteOrder)
                     };
-
                     attributeTable.Add(value);
+                    /*
+                     * TODO: Write this to Debug Log File
                     if (writeLog)
                     {
                         Console.WriteLine("0x{0:X6}: {1:X8} {2:X8}", position, value.NameOffset, value.ValueOffset);
                     }
+                     */
                 }
+                /*
+                 * TODO: Write this to Debug Log File
                 if (writeLog)
                 {
                     Console.WriteLine("");
                     Console.WriteLine("Order Table");
                 }
+                */
 
-                List<Int32> parentTable = new List<Int32> { };
+                List<int> parentTable = new() { };
                 br.BaseStream.Seek(childTableOffset, SeekOrigin.Begin);
                 while (br.BaseStream.Position < childTableOffset + childTableCount * length3)
                 {
-                    var position = br.BaseStream.Position;
-                    var value = br.ReadInt32(byteOrder);
-
+                    long position = br.BaseStream.Position;
+                    int value = br.ReadInt32(byteOrder);
                     parentTable.Add(value);
+                    /*
+                     * TODO: Write this to Debug Log File
                     if (writeLog)
                     {
                         Console.WriteLine("0x{0:X6}: {1:X8}", position, value);
                     }
+                    */
                 }
-
+                /*
+                 * TODO: Write this to Debug Log File
                 if (writeLog)
                 {
                     Console.WriteLine("");
                     Console.WriteLine("Dynamic Dictionary");
                 }
+                */
 
-                List<CryXmlValue> dataTable = new List<CryXmlValue> { };
+                List<CryXmlValue> dataTable = new() { };
                 br.BaseStream.Seek(stringTableOffset, SeekOrigin.Begin);
                 while (br.BaseStream.Position < br.BaseStream.Length)
                 {
-                    var position = br.BaseStream.Position;
-                    var value = new CryXmlValue
+                    long position = br.BaseStream.Position;
+                    CryXmlValue value = new()
                     {
-                        Offset = (Int32)position - stringTableOffset,
+                        Offset = (int)position - stringTableOffset,
                         Value = br.ReadCString(),
                     };
                     dataTable.Add(value);
+                    /*
+                     * TODO: Write this to Debug Log File
                     if (writeLog)
                     {
                         Console.WriteLine("0x{0:X6}: {1:X8} {2}", position, value.Offset, value.Value);
                     }
+                    */
                 }
 
-                var dataMap = dataTable.ToDictionary(k => k.Offset, v => v.Value);
-
-                var attributeIndex = 0;
-
-                var xmlDoc = new XmlDocument();
-
-                var bugged = false;
-
-                Dictionary<Int32, XmlElement> xmlMap = new Dictionary<Int32, XmlElement> { };
-
-                foreach (var node in nodeTable)
+                Dictionary<int, string> dataMap = dataTable.ToDictionary(k => k.Offset, v => v.Value);
+                int attributeIndex = 0;
+                XmlDocument xmlDoc = new();
+                Dictionary<int, XmlElement> xmlMap = new() { };
+                foreach (CryXmlNode node in nodeTable)
                 {
                     XmlElement element = xmlDoc.CreateElement(dataMap[node.NodeNameOffset]);
-
-                    for (Int32 i = 0, j = node.AttributeCount; i < j; i++)
+                    for (int i = 0, j = node.AttributeCount; i < j; i++)
                     {
-                        if (dataMap.ContainsKey(attributeTable[attributeIndex].ValueOffset))
-                        {
-                            element.SetAttribute(dataMap[attributeTable[attributeIndex].NameOffset], dataMap[attributeTable[attributeIndex].ValueOffset]);
-                        }
-                        else
-                        {
-                            bugged = true;
-                            element.SetAttribute(dataMap[attributeTable[attributeIndex].NameOffset], "BUGGED");
-                        }
+                        if (dataMap.ContainsKey(attributeTable[attributeIndex].ValueOffset)) element.SetAttribute(dataMap[attributeTable[attributeIndex].NameOffset], dataMap[attributeTable[attributeIndex].ValueOffset]);
+                        else element.SetAttribute(dataMap[attributeTable[attributeIndex].NameOffset], "BUGGED");
                         attributeIndex++;
                     }
                     
                     xmlMap[node.NodeID] = element;
+                    if (dataMap.ContainsKey(node.ContentOffset) && !string.IsNullOrWhiteSpace(dataMap[node.ContentOffset])) element.AppendChild(xmlDoc.CreateCDataSection(dataMap[node.ContentOffset]));
+                    else element.AppendChild(xmlDoc.CreateCDataSection("BUGGED"));
 
-                    if (dataMap.ContainsKey(node.ContentOffset))
-                    {
-                        if (!String.IsNullOrWhiteSpace(dataMap[node.ContentOffset]))
-                        {
-                            element.AppendChild(xmlDoc.CreateCDataSection(dataMap[node.ContentOffset]));
-                        }
-                    }
-                    else
-                    {
-                        bugged = true;
-                        element.AppendChild(xmlDoc.CreateCDataSection("BUGGED"));
-                    }
-
-                    if (xmlMap.ContainsKey(node.ParentNodeID))
-                    {
-                        xmlMap[node.ParentNodeID].AppendChild(element);
-                    }
-                    else
-                    {
-                        xmlDoc.AppendChild(element);
-                    }
+                    if (xmlMap.ContainsKey(node.ParentNodeID)) xmlMap[node.ParentNodeID].AppendChild(element);
+                    else xmlDoc.AppendChild(element);
                 }
-                
                 return xmlDoc;
             }
         }
 
-        public static TObject Deserialize<TObject>(String inFile, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian, Boolean writeLog = false) where TObject : class
+        public static TObject Deserialize<TObject>(string inFile, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian, bool writeLog = false) where TObject : class
         {
-            using (MemoryStream ms = new MemoryStream())
+            using (MemoryStream ms = new())
             {
-                var xmlDoc = CryXmlSerializer.ReadFile(inFile, byteOrder, writeLog);
-
+                XmlDocument xmlDoc = ReadFile(inFile, byteOrder, writeLog);
                 xmlDoc.Save(ms);
-
                 ms.Seek(0, SeekOrigin.Begin);
-
-                XmlSerializer xs = new XmlSerializer(typeof(TObject));
-
+                XmlSerializer xs = new(typeof(TObject));
                 return xs.Deserialize(ms) as TObject;
             }
         }
+    }
+
+    public enum ByteOrderEnum
+    {
+        AutoDetect,
+        BigEndian,
+        LittleEndian,
+    }
+
+    public class CryXmlValue
+    {
+        public int Offset { get; set; }
+        public string Value { get; set; }
+    }
+
+    public class CryXmlReference
+    {
+        public int NameOffset { get; set; }
+        public int ValueOffset { get; set; }
+    }
+
+    public class CryXmlNode
+    {
+        public int NodeID { get; set; }
+        public int NodeNameOffset { get; set; }
+        public int ContentOffset { get; set; }
+        public short AttributeCount { get; set; }
+        public short ChildCount { get; set; }
+        public int ParentNodeID { get; set; }
+        public int FirstAttributeIndex { get; set; }
+        public int FirstChildIndex { get; set; }
+        public int Reserved { get; set; }
     }
 }
