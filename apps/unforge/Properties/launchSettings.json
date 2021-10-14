@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "unforge": {
+      "commandName": "Project"
+    },
+    "unforge - Default unp4k Location": {
+      "commandName": "Project",
+      "commandLineArgs": "C:\\SC"
+    }
+  }
+}
