@@ -4,15 +4,27 @@
       "commandName": "Project",
       "hotReloadEnabled": false
     },
-    "unp4k - Default Install Quick": {
+    "unp4k - Default LIVE Install Quick": {
       "commandName": "Project",
       "commandLineArgs": "-o \"C:\\SC\" -f \".xml\"",
       "hotReloadEnabled": false,
       "authenticationMode": "None"
     },
-    "unp4k - Default Install Full": {
+    "unp4k - Default LIVE Install Full": {
       "commandName": "Project",
       "commandLineArgs": "-o \"C:\\SC\"",
+      "hotReloadEnabled": false,
+      "authenticationMode": "None"
+    },
+    "unp4k - Default PTU Install Full": {
+      "commandName": "Project",
+      "commandLineArgs": "-o \"C:\\SC\"",
+      "hotReloadEnabled": false,
+      "authenticationMode": "None"
+    },
+    "unp4k - Default PTU Install Quick": {
+      "commandName": "Project",
+      "commandLineArgs": "-o \"C:\\SC\" -f \".xml\"",
       "hotReloadEnabled": false,
       "authenticationMode": "None"
     }
