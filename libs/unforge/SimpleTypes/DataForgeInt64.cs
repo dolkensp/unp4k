@@ -1,28 +1,20 @@
-﻿using System;
-using System.Xml;
+﻿using System.Xml;
 
 namespace unforge
 {
     public class DataForgeInt64 : _DataForgeSerializable
     {
-        public Int64 Value { get; set; }
+        public long Value { get; set; }
 
-        public DataForgeInt64(DataForge documentRoot)
-            : base(documentRoot)
-        {
-            this.Value = this._br.ReadInt64();
-        }
+        public DataForgeInt64(DataForge documentRoot) : base(documentRoot) { Value = _br.ReadInt64(); }
 
-        public override String ToString()
-        {
-            return String.Format("{0}", this.Value);
-        }
+        public override string ToString() => string.Format("{0}", Value);
 
         public XmlElement Read()
         {
-            var element = this.DocumentRoot.CreateElement("Int64");
-            var attribute = this.DocumentRoot.CreateAttribute("value");
-            attribute.Value = this.Value.ToString();
+            XmlElement element = DocumentRoot.CreateElement("Int64");
+            XmlAttribute attribute = DocumentRoot.CreateAttribute("value");
+            attribute.Value = Value.ToString();
             element.Attributes.Append(attribute);
             return element;
         }

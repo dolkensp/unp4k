@@ -4,17 +4,10 @@ namespace unforge
 {
     public class DataForgeString : _DataForgeSerializable
     {
-        public String Value { get; set; }
+        public string Value { get; set; }
 
-        public DataForgeString(DataForge documentRoot)
-            : base(documentRoot)
-        {
-            this.Value = this._br.ReadCString();
-        }
+        public DataForgeString(DataForge documentRoot) : base(documentRoot) { Value = _br.ReadCString(); }
 
-        public override String ToString()
-        {
-            return this.Value;
-        }
+        public override string ToString() => Value;
     }
 }

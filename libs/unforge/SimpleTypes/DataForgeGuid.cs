@@ -8,22 +8,15 @@ namespace unforge
     {
         public Guid Value { get; set; }
 
-        public DataForgeGuid(DataForge documentRoot)
-            : base(documentRoot)
-        {
-            this.Value = this._br.ReadGuid(false).Value;
-        }
+        public DataForgeGuid(DataForge documentRoot)  : base(documentRoot) { Value = _br.ReadGuid(false).Value; }
 
-        public override String ToString()
-        {
-            return this.Value.ToString();
-        }
+        public override string ToString() => Value.ToString();
 
         public XmlElement Read()
         {
-            var element = this.DocumentRoot.CreateElement("Guid");
-            var attribute = this.DocumentRoot.CreateAttribute("value");
-            attribute.Value = this.Value.ToString();
+            XmlElement element = DocumentRoot.CreateElement("Guid");
+            XmlAttribute attribute = DocumentRoot.CreateAttribute("value");
+            attribute.Value = Value.ToString();
             element.Attributes.Append(attribute);
             return element;
         }
