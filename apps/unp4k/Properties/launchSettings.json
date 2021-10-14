@@ -18,13 +18,13 @@
     },
     "unp4k - Default PTU Install Full": {
       "commandName": "Project",
-      "commandLineArgs": "-o \"C:\\SC\"",
+      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -o \"C:\\SC\"",
       "hotReloadEnabled": false,
       "authenticationMode": "None"
     },
     "unp4k - Default PTU Install Quick": {
       "commandName": "Project",
-      "commandLineArgs": "-o \"C:\\SC\" -f \".xml\"",
+      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -o \"C:\\SC\" -f \".xml\"",
       "hotReloadEnabled": false,
       "authenticationMode": "None"
     }
