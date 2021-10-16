@@ -186,13 +186,13 @@ filteredEntries = new(filteredEntries.Where(x => filters.Contains("*.*") ? true 
 }).OrderBy(x => x.Name));
 Logger.ClearBuffer();
 Logger.LogInfo($"[{(shouldSmelt ? "50" : "66")}% Complete] Processing Data.p4k before extraction{(shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
-Logger.LogInfo("Optimising Extractable Files...");
+Logger.LogInfo("Optimising Extractable File List...");
 existenceFilteredExtractionEntries = new(filteredEntries.Where(x => !new FileInfo(Path.Join(outDirectory.FullName, x.Name)).Exists));
 if (shouldSmelt)
 {
     Logger.ClearBuffer();
     Logger.LogInfo($"[75% Complete] Processing Data.p4k before extraction{(shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
-    Logger.LogInfo("Optimising Smeltable Files...");
+    Logger.LogInfo("Optimising Smeltable File List...");
     existenceFilteredSmeltingEntries = new(filteredEntries.Where(x => !new FileInfo(Path.ChangeExtension(Path.Join(smelterOutDirectory.FullName, x.Name), "xml")).Exists));
 }
 
