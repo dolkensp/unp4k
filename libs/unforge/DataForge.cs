@@ -197,9 +197,9 @@ namespace unforge
 			{
 				XmlDocument doc = new();
 				doc.LoadXml(DataMap[record.StructIndex][record.VariantIndex].OuterXml);
-                doc.Save(outFile.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.None));
+                doc.Save(outFile.Open(FileMode.Create, FileAccess.Write, FileShare.None));
 			}
-            _xmlDocument.Save(outFile.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.None));
+            _xmlDocument.Save(outFile.Open(FileMode.Create, FileAccess.Write, FileShare.None));
         }
 
 		internal void Compile()

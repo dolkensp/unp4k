@@ -33,6 +33,7 @@ bool printErrors = false;
 bool detailedLogs = false;
 bool shouldSmelt = false;
 bool combinePasses = false;
+bool forceOverwrite = false;
 
 Logger.ClearBuffer();
 Logger.LogInfo("Initialising...");
@@ -122,6 +123,7 @@ try
         else if (args[i].ToLowerInvariant() is "-e") printErrors = true;
         else if (args[i].ToLowerInvariant() is "-d") detailedLogs = true;
         else if (args[i].ToLowerInvariant() is "-c") combinePasses = true;
+        else if (args[i].ToLowerInvariant() is "-w") forceOverwrite = true;
         else if (args[i].ToLowerInvariant() is "-forge") shouldSmelt = true;
     }
 }
@@ -190,14 +192,18 @@ Logger.LogInfo("Optimising Extractable File List...");
 existenceFilteredExtractionEntries = new(filteredEntries.Where(x => 
 {
     FileInfo f = new(Path.Join(outDirectory.FullName, x.Name));
-    return !f.Exists || f.Length != x.Size;
+    return forceOverwrite || !f.Exists || f.Length != x.Size;
 }));
 if (shouldSmelt)
 {
     Logger.ClearBuffer();
     Logger.LogInfo($"[75% Complete] Processing Data.p4k before extraction{(shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
     Logger.LogInfo("Optimising Smeltable File List...");
-    existenceFilteredSmeltingEntries = new(filteredEntries.Where(x => !new FileInfo(Path.ChangeExtension(Path.Join(smelterOutDirectory.FullName, x.Name), "xml")).Exists));
+    existenceFilteredSmeltingEntries = new(filteredEntries.Where(x => 
+    {
+        FileInfo f = new(Path.ChangeExtension(Path.Join(smelterOutDirectory.FullName, x.Name), "xml"));
+        return forceOverwrite || !f.Exists || f.Length != x.Size;
+    }));
 }
 
 Logger.ClearBuffer();
