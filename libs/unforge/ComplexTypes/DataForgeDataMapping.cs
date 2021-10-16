@@ -19,9 +19,7 @@
             	StructCount = br.ReadUInt16();
             	StructIndex = br.ReadUInt16();
 			}
-            // TODO: See what is causing an index out of bounds in the else. This conditional fix is temporary and could potentially corrupt data.
-            if (StructIndex > documentRoot.StructDefinitionTable.Length - 1) NameOffset = documentRoot.StructDefinitionTable[documentRoot.StructDefinitionTable.Length - 1].NameOffset;
-            else NameOffset = documentRoot.StructDefinitionTable[StructIndex].NameOffset;
+            NameOffset = documentRoot.StructDefinitionTable[StructIndex].NameOffset;
         }
 
         public override string ToString() => string.Format("0x{1:X4} {2}[0x{0:X4}]", StructCount, StructIndex, Name);

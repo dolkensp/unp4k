@@ -70,6 +70,7 @@ namespace Dolkens.Framework.BinaryExtensions
             return null;
         }
 
+        /*
         /// <summary>
         /// Read a NULL-Terminated string from the stream
         /// </summary>
@@ -101,6 +102,7 @@ namespace Dolkens.Framework.BinaryExtensions
 
             return null;
         }
+        */
 
         /// <summary>
         /// Read a Fixed-Length string from the stream
@@ -236,7 +238,7 @@ namespace System
         /// </summary>
         /// <param name="binaryReader"></param>
         /// <returns></returns>
-        public static String ReadCString(this BinaryReader binaryReader) { return DDRIT.ReadCString(binaryReader); }
+        //public static String ReadCString(this BinaryReader binaryReader) { return DDRIT.ReadCString(binaryReader); }
 
         /// <summary>
         /// Read a Fixed-Length string from the stream
