@@ -185,7 +185,7 @@ namespace unforge
 			get
 			{
 				if (string.IsNullOrWhiteSpace(_xmlDocument?.InnerXml)) Compile();
-				return _xmlDocument.OuterXml;
+				return _xmlDocument.OuterXml ?? string.Empty;
 			}
 		}
 
@@ -199,7 +199,7 @@ namespace unforge
 				doc.LoadXml(DataMap[record.StructIndex][record.VariantIndex].OuterXml);
                 doc.Save(outFile.Open(FileMode.Create, FileAccess.Write, FileShare.None));
 			}
-            _xmlDocument.Save(outFile.Open(FileMode.Create, FileAccess.Write, FileShare.None));
+            if (_xmlDocument is not null) _xmlDocument.Save(outFile.Open(FileMode.Create, FileAccess.Write, FileShare.None));
         }
 
 		internal void Compile()
@@ -245,15 +245,12 @@ namespace unforge
 			int i = 0;
 			foreach (DataForgeRecord record in RecordDefinitionTable)
 			{
-				string fileReference = record.FileName;
-				if (fileReference.Split('/').Length is 2) fileReference = fileReference.Split('/')[1];
                     /*
                      * TODO: Write this to Debug Log File
 				if (!record.FileName.ToLowerInvariant().Contains(record.Name.ToLowerInvariant()) &&
 					!record.FileName.ToLowerInvariant().Contains(record.Name.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries).Last().ToLowerInvariant()))
 				        Console.WriteLine("Warning {0} doesn't match {1}", record.Name, record.FileName);
                     */
-				if (string.IsNullOrWhiteSpace(fileReference)) fileReference = string.Format(@"Dump\{0}_{1}.xml", record.Name, i++);
 				if (record.Hash.HasValue && record.Hash != Guid.Empty)
 				{
 					XmlAttribute hash = CreateAttribute("__ref");
