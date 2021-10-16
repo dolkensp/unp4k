@@ -32,6 +32,7 @@ List<string> filters = new();
 bool printErrors = false;
 bool detailedLogs = false;
 bool shouldSmelt = false;
+bool combinePasses = false;
 
 Logger.ClearBuffer();
 Logger.LogInfo("Initialising...");
@@ -64,6 +65,7 @@ if (args.Length is 0)
         " | | -e: Enables error and exception printing to console." + '\n' +
         " | | -l: Enabled writing of logs to categoric files." + '\n' +
         " | | -w: Forces all files to be re-extraced and/or re-smelted." + '\n' +
+        " | | -c: Makes extraction and smelting run at the same time (requires a lot of RAM)." + '\n' +
         " | |" + '\n' +
         " | - Independent arguments:" + '\n' +
         " | | -v: Prints the version of unp4k." + '\n' +
@@ -276,6 +278,7 @@ if (existenceFilteredExtractionEntries.Count > 0)
                 using FileStream fs = extractedFile.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite); // Dont want people accessing incomplete files.
                 using Stream decompStream = pak.GetInputStream(entry);
                 StreamUtils.Copy(decompStream, fs, decomBuffer);
+                if (combinePasses) Smelt(extractedFile, new(Path.Join(smelterOutDirectory.FullName, entry.Name)));
             }
             catch (DirectoryNotFoundException e)
             {
@@ -299,7 +302,7 @@ if (existenceFilteredExtractionEntries.Count > 0)
 else Logger.LogInfo("No extraction work to be done! Skipping...");
 if (existenceFilteredSmeltingEntries.Count > 0)
 {
-    if (shouldSmelt)
+    if (shouldSmelt && !combinePasses)
     {
         Logger.NewLine(2);
         Logger.LogInfo("################################################################################");
@@ -312,43 +315,47 @@ if (existenceFilteredSmeltingEntries.Count > 0)
         await Task.Delay(TimeSpan.FromSeconds(2));
         Parallel.ForEach(existenceFilteredSmeltingEntries, entry =>
         {
-            FileInfo extractedFile = new(Path.Join(outDirectory.FullName, entry.Name));
-            FileInfo smeltedFile = new(Path.Join(smelterOutDirectory.FullName, entry.Name));
             Logger.LogInfo($"| - Smelting: {entry.Name}");
-            if (!smeltedFile.Directory.Exists) smeltedFile.Directory.Create();
-            try
-            {
-                if (extractedFile.Extension is ".dcb") new DataForge(extractedFile).Save(smeltedFile);
-                else new CryXmlSerializer(extractedFile).Save(smeltedFile);
-            }
-            catch (ArgumentException e)
-            {
-                if (printErrors) Logger.LogException(e);
-                // Unsupported file type
-                // TODO: See if we can do anything about the .PeekChar() overflow
-            }
-            catch (EndOfStreamException e)
-            {
-                if (printErrors) Logger.LogException(e);
-                // Unsupported file type
-                // TODO: See if we can do anything about the .PeekChar() overflow
-            }
-            catch (DirectoryNotFoundException e)
-            {
-                if (printErrors) Logger.LogException(e);
-            }
-            catch (FileNotFoundException e)
-            {
-                if (printErrors) Logger.LogException(e);
-            }
-            catch (IOException e)
-            {
-                if (printErrors) Logger.LogException(e);
-            }
+            Smelt(new(Path.Join(outDirectory.FullName, entry.Name)), new(Path.Join(smelterOutDirectory.FullName, entry.Name)));
         });
     }
 }
 else Logger.LogInfo("No smelting work to be done! Skipping...");
+
+void Smelt(FileInfo extractedFile, FileInfo smeltedFile)
+{
+    if (!smeltedFile.Directory.Exists) smeltedFile.Directory.Create();
+    try
+    {
+        if (extractedFile.Extension is ".dcb") new DataForge(extractedFile).Save(smeltedFile);
+        else new CryXmlSerializer(extractedFile).Save(smeltedFile);
+    }
+    catch (ArgumentException e)
+    {
+        if (printErrors) Logger.LogException(e);
+        // Unsupported file type
+        // TODO: See if we can do anything about the .PeekChar() overflow
+    }
+    catch (EndOfStreamException e)
+    {
+        if (printErrors) Logger.LogException(e);
+        // Unsupported file type
+        // TODO: See if we can do anything about the .PeekChar() overflow
+    }
+    catch (DirectoryNotFoundException e)
+    {
+        if (printErrors) Logger.LogException(e);
+    }
+    catch (FileNotFoundException e)
+    {
+        if (printErrors) Logger.LogException(e);
+    }
+    catch (IOException e)
+    {
+        if (printErrors) Logger.LogException(e);
+    }
+}
+
 watch.Stop();
 
 Logger.NewLine(2);
