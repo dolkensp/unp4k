@@ -280,8 +280,7 @@ if (existenceFilteredExtractionEntries.Count > 0)
         string percentage = tasksCompleted is 0 ? 0F.ToString() : (100F * (float)tasksCompleted / existenceFilteredExtractionEntries.Count).ToString("#,#.###");
         if (detailedLogs)
         {
-            Logger.LogInfo($"| [{percentage}%] - Extracting" +
-                                                                                                $"{(combinePasses ? " & Smelting" : string.Empty)}: {entry.Name}" + '\n' +
+            Logger.LogInfo($"| [{percentage}%] - Extracting{(combinePasses ? " & Smelting" : string.Empty)}: {entry.Name}" + '\n' +
                 @"                              |  \" + '\n' +
                 $"                              |   | Date Last Modified: {entry.DateTime}" + '\n' +
                 $"                              |   | Compression Method: {entry.CompressionMethod}" + '\n' +
