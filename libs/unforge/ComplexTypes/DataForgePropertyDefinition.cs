@@ -45,47 +45,49 @@ namespace unforge
                     DocumentRoot.Require_WeakMapping2.Add(new ClassMapping { Node = attribute, StructIndex = (ushort)structIndex, RecordIndex = (int)itemIndex });
                     break;
                 case EDataType.varString:
-                    attribute.Value = string.Format("{1}", DataType, DocumentRoot.ValueMap[br.ReadUInt32()]);
+                    uint stringKey = br.ReadUInt32();
+                    attribute.Value = DocumentRoot.ValueMap.ContainsKey(stringKey) ? DocumentRoot.ValueMap[stringKey] : DataType.ToString();
                     break;
                 case EDataType.varBoolean:
-                    attribute.Value = string.Format("{1}", DataType, br.ReadByte());
+                    attribute.Value = br.ReadByte().ToString();
                     break;
                 case EDataType.varSingle:
-                    attribute.Value = string.Format("{1}", DataType, br.ReadSingle());
+                    attribute.Value = br.ReadSingle().ToString();
                     break;
                 case EDataType.varDouble:
-                    attribute.Value = string.Format("{1}", DataType, br.ReadDouble());
+                    attribute.Value = br.ReadDouble().ToString();
                     break;
                 case EDataType.varGuid:
-                    attribute.Value = string.Format("{1}", DataType, br.ReadGuid(false));
+                    attribute.Value = br.ReadGuid(false).ToString();
                     break;
                 case EDataType.varSByte:
-                    attribute.Value = string.Format("{1}", DataType, br.ReadSByte());
+                    attribute.Value = br.ReadSByte().ToString();
                     break;
                 case EDataType.varInt16:
-                    attribute.Value = string.Format("{1}", DataType, br.ReadInt16());
+                    attribute.Value = br.ReadInt16().ToString();
                     break;
                 case EDataType.varInt32:
-                    attribute.Value = string.Format("{1}", DataType, br.ReadInt32());
+                    attribute.Value = br.ReadInt32().ToString();
                     break;
                 case EDataType.varInt64:
-                    attribute.Value = string.Format("{1}", DataType, br.ReadInt64());
+                    attribute.Value = br.ReadInt64().ToString();
                     break;
                 case EDataType.varByte:
-                    attribute.Value = string.Format("{1}", DataType, br.ReadByte());
+                    attribute.Value = br.ReadByte().ToString();
                     break;
                 case EDataType.varUInt16:
-                    attribute.Value = string.Format("{1}", DataType, br.ReadUInt16());
+                    attribute.Value = br.ReadUInt16().ToString();
                     break;
                 case EDataType.varUInt32:
-                    attribute.Value = string.Format("{1}", DataType, br.ReadUInt32());
+                    attribute.Value = br.ReadUInt32().ToString();
                     break;
                 case EDataType.varUInt64:
-                    attribute.Value = string.Format("{1}", DataType, br.ReadUInt64());
+                    attribute.Value = br.ReadUInt64().ToString();
                     break;
                 case EDataType.varEnum:
-                    var enumDefinition = DocumentRoot.EnumDefinitionTable[StructIndex];
-                    attribute.Value = string.Format("{1}", enumDefinition.Name, DocumentRoot.ValueMap[br.ReadUInt32()]);
+                    DataForgeEnumDefinition enumDefinition = DocumentRoot.EnumDefinitionTable[StructIndex];
+                    uint enumKey = br.ReadUInt32();
+                    attribute.Value = DocumentRoot.ValueMap.ContainsKey(enumKey) ? DocumentRoot.ValueMap[enumKey] : enumDefinition.Name;
                     break;
                 default:
                     throw new NotImplementedException();

@@ -63,6 +63,7 @@ namespace unforge
 		public DataForge(FileInfo inFile)
 		{
             br = new(inFile.Open(FileMode.Open, FileAccess.Read, FileShare.None));
+            br.ReadInt32(); // Offset
             FileVersion = br.ReadInt32();
 
             Require_ClassMapping = new();
@@ -70,7 +71,9 @@ namespace unforge
 			Require_WeakMapping1 = new();
 			Require_WeakMapping2 = new();
 
-			int structDefinitionCount = br.ReadInt32();
+            for (int i = 0; i < 4; i++) br.ReadUInt16(); // Offset
+
+            int structDefinitionCount = br.ReadInt32();
             int propertyDefinitionCount = br.ReadInt32();
             int enumDefinitionCount = br.ReadInt32();
             int dataMappingCount = br.ReadInt32();
@@ -98,8 +101,9 @@ namespace unforge
             int referenceValueCount = br.ReadInt32();
             int enumOptionCount = br.ReadInt32();
             uint textLength = br.ReadUInt32();
+            br.ReadUInt32(); // Offset
 
-			StructDefinitionTable = ReadArray<DataForgeStructDefinition>(structDefinitionCount);
+            StructDefinitionTable = ReadArray<DataForgeStructDefinition>(structDefinitionCount);
 			PropertyDefinitionTable = ReadArray<DataForgePropertyDefinition>(propertyDefinitionCount);
 			EnumDefinitionTable = ReadArray<DataForgeEnumDefinition>(enumDefinitionCount);
 			DataMappingTable = ReadArray<DataForgeDataMapping>(dataMappingCount);
@@ -267,6 +271,9 @@ namespace unforge
 			}
 		}
 
+        /*
+         * TODO: Not sure what this is, it is unused.
+
 		public Stream GetStream()
 		{
 			if (string.IsNullOrWhiteSpace(_xmlDocument?.InnerXml)) Compile();
@@ -275,8 +282,6 @@ namespace unforge
 			return outStream;
 		}
 
-        /*
-         * TODO: Not sure what this is, it is unused.
 		public void GenerateSerializationClasses(string path = "AutoGen", string assemblyName = "HoloXPLOR.Data.DataForge")
         {
             path = new DirectoryInfo(path).FullName;
