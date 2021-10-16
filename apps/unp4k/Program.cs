@@ -84,7 +84,7 @@ if (args.Length is 0)
     Logger.ClearBuffer();
 }
 
-if (OS.IsLinux)
+if (OS.IsLinux && Environment.GetFolderPath(Environment.SpecialFolder.UserProfile).Contains("/root/"))
 {
     char? proceedAsRoot = null;
     while (proceedAsRoot is null)
