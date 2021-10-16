@@ -33,7 +33,8 @@ namespace unforge
             {
                 br.BaseStream.Seek(headerLength, SeekOrigin.Begin);
                 byteOrder = ByteOrderEnum.LittleEndian;
-                fileLength = br.ReadInt32(byteOrder);
+                // TODO: Unused
+              /*fileLength = */br.ReadInt32(byteOrder);
             }
 
             int nodeTableOffset = br.ReadInt32(byteOrder);
@@ -49,7 +50,8 @@ namespace unforge
             int length3 = 4;
 
             int stringTableOffset = br.ReadInt32(byteOrder);
-            int stringTableCount = br.ReadInt32(byteOrder);
+            // TODO: Unused
+          /*int stringTableCount = */br.ReadInt32(byteOrder);
 
             /*
              * TODO: Write this to Debug Log File
@@ -72,12 +74,14 @@ namespace unforge
             }
             */
 
-            List<CryXmlNode> nodeTable = new() { };
+            // TODO: Never used
+          //List<CryXmlNode> nodeTable = new();
             br.BaseStream.Seek(nodeTableOffset, SeekOrigin.Begin);
             int nodeID = 0;
             while (br.BaseStream.Position < nodeTableOffset + nodeTableCount * nodeTableSize)
             {
-                long position = br.BaseStream.Position;
+              // TODO: Unused
+              //long position = br.BaseStream.Position;
                 CryXmlNode value = new()
                 {
                     NodeID = nodeID++,
@@ -90,7 +94,7 @@ namespace unforge
                     FirstChildIndex = br.ReadInt32(byteOrder),
                     Reserved = br.ReadInt32(byteOrder),
                 };
-                nodeTable.Add(value);
+              //nodeTable.Add(value);
                 /*
                  * TODO: Write this to Debug Log File
                 if (writeLog)
@@ -119,7 +123,8 @@ namespace unforge
             }
             */
 
-            List<CryXmlReference> attributeTable = new() { };
+            // TODO: Never used
+          //List<CryXmlReference> attributeTable = new();
             br.BaseStream.Seek(attributeTableOffset, SeekOrigin.Begin);
             while (br.BaseStream.Position < attributeTableOffset + attributeTableCount * referenceTableSize)
             {
@@ -129,7 +134,7 @@ namespace unforge
                     NameOffset = br.ReadInt32(byteOrder),
                     ValueOffset = br.ReadInt32(byteOrder)
                 };
-                attributeTable.Add(value);
+              //attributeTable.Add(value);
                 /*
                  * TODO: Write this to Debug Log File
                 if (writeLog)

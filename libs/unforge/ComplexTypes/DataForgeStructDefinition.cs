@@ -270,8 +270,7 @@ namespace unforge
                     "Single",
                 };
                 string propertyName = property.Name;
-                propertyName = string.Format("{0}{1}", propertyName[0].ToString().ToUpper(), propertyName.Substring(1));
-                if (keywords.Contains(propertyName)) propertyName = string.Format("@{0}", propertyName);
+                propertyName = propertyName[0].ToString().ToUpper() + propertyName[1..];
 
                 switch (property.DataType)
                 {

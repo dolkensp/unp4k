@@ -30,10 +30,10 @@ namespace unforge
             switch (DataType)
             {
                 case EDataType.varReference:
-                    attribute.Value = string.Format("{2}", DataType, br.ReadUInt32(), br.ReadGuid(false));
+                    attribute.Value = br.ReadGuid(false).ToString();
                     break;
                 case EDataType.varLocale:
-                    attribute.Value = string.Format("{1}", DataType, DocumentRoot.ValueMap[br.ReadUInt32()]);
+                    attribute.Value = DocumentRoot.ValueMap[br.ReadUInt32()];
                     break;
                 case EDataType.varStrongPointer:
                     attribute.Value = string.Format("{0}:{1:X8} {2:X8}", DataType, br.ReadUInt32(), br.ReadUInt32());
@@ -41,7 +41,7 @@ namespace unforge
                 case EDataType.varWeakPointer:
                     uint structIndex = br.ReadUInt32();
                     uint itemIndex = br.ReadUInt32();
-                    attribute.Value = string.Format("{0}:{1:X8} {1:X8}", DataType, structIndex, itemIndex);
+                    attribute.Value = string.Format("{0}:{1:X8} {1:X8}", DataType, structIndex);
                     DocumentRoot.Require_WeakMapping2.Add(new ClassMapping { Node = attribute, StructIndex = (ushort)structIndex, RecordIndex = (int)itemIndex });
                     break;
                 case EDataType.varString:
