@@ -121,7 +121,7 @@ try
         else if (args[i].ToLowerInvariant() is "-f") filters = args[i + 1].Split(',').ToList();
         else if (args[i].ToLowerInvariant() is "-e") printErrors = true;
         else if (args[i].ToLowerInvariant() is "-d") detailedLogs = true;
-
+        else if (args[i].ToLowerInvariant() is "-c") combinePasses = true;
         else if (args[i].ToLowerInvariant() is "-forge") shouldSmelt = true;
     }
 }
@@ -187,7 +187,11 @@ filteredEntries = new(filteredEntries.Where(x => filters.Contains("*.*") ? true 
 Logger.ClearBuffer();
 Logger.LogInfo($"[{(shouldSmelt ? "50" : "66")}% Complete] Processing Data.p4k before extraction{(shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
 Logger.LogInfo("Optimising Extractable File List...");
-existenceFilteredExtractionEntries = new(filteredEntries.Where(x => !new FileInfo(Path.Join(outDirectory.FullName, x.Name)).Exists));
+existenceFilteredExtractionEntries = new(filteredEntries.Where(x => 
+{
+    FileInfo f = new(Path.Join(outDirectory.FullName, x.Name));
+    return !f.Exists || f.Length != x.Size;
+}));
 if (shouldSmelt)
 {
     Logger.ClearBuffer();
@@ -259,56 +263,56 @@ Stopwatch watch = new();
 watch.Start();
 
 Logger.NewLine(2);
-Logger.LogInfo("################################################################################");
-Logger.NewLine(2);
-Logger.LogInfo("                          Beginning Extraction Pass...                          ");
-Logger.LogInfo("                          This may take a while...                              ");
-Logger.NewLine(2);
-Logger.LogInfo("################################################################################");
+Logger.LogInfo("##########  Beginning Extraction Pass...  ##########");
+Logger.LogInfo("##########  This may take a while...  ##########");
 Logger.NewLine(2);
 await Task.Delay(TimeSpan.FromSeconds(2));
 if (existenceFilteredExtractionEntries.Count > 0)
 {
+    int tasksCompleted = 0;
     Parallel.ForEach(existenceFilteredExtractionEntries, entry =>
     {
         FileInfo extractedFile = new(Path.Join(outDirectory.FullName, entry.Name));
-        if (!extractedFile.Exists || extractedFile.Length != entry.Size)
+        string percentage = tasksCompleted is 0 ? 0F.ToString() : (100F * (float)tasksCompleted / existenceFilteredExtractionEntries.Count).ToString("#,#.###");
+        if (detailedLogs)
         {
-            if (detailedLogs)
-            {
-                Logger.LogInfo($"| - Extracting: {entry.Name}" + '\n' +
-                    @"                              |  \" + '\n' +
-                    $"                              |   | Date Last Modified: {entry.DateTime}" + '\n' +
-                    $"                              |   | Compression Method: {entry.CompressionMethod}" + '\n' +
-                    $"                              |   | Compressed Size:   {(float)entry.CompressedSize / 1000000:#,#.######} MB  :  {(float)entry.CompressedSize / 1000000000:#,#.#########} GB" + '\n' +
-                    $"                              |   | Uncompressed Size: {(float)entry.Size / 1000000:#,#.######} MB  :  {(float)entry.Size / 1000000000:#,#.#########} GB" + '\n' +
-                    @"                              |  /");
-            }
-            else Logger.LogInfo($"| - Extracting: {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
-            if (!extractedFile.Directory.Exists) extractedFile.Directory.Create();
-            try
-            {
-                using FileStream fs = extractedFile.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite); // Dont want people accessing incomplete files.
-                using Stream decompStream = pak.GetInputStream(entry);
-                StreamUtils.Copy(decompStream, fs, decomBuffer);
-                if (combinePasses) Smelt(extractedFile, new(Path.Join(smelterOutDirectory.FullName, entry.Name)));
-            }
-            catch (DirectoryNotFoundException e)
-            {
-                if (printErrors) Logger.LogException(e);
-            }
-            catch (FileNotFoundException e)
-            {
-                if (printErrors) Logger.LogException(e);
-            }
-            catch (IOException e)
-            {
-                if (printErrors) Logger.LogException(e);
-            }
-            catch (AggregateException e)
-            {
-                if (printErrors) Logger.LogException(e);
-            }
+            Logger.LogInfo($"| [{percentage}%] - Extracting" +
+                                                                                                $"{(combinePasses ? " & Smelting" : string.Empty)}: {entry.Name}" + '\n' +
+                @"                              |  \" + '\n' +
+                $"                              |   | Date Last Modified: {entry.DateTime}" + '\n' +
+                $"                              |   | Compression Method: {entry.CompressionMethod}" + '\n' +
+                $"                              |   | Compressed Size:   {(float)entry.CompressedSize / 1000000:#,#.######} MB  :  {(float)entry.CompressedSize / 1000000000:#,#.#########} GB" + '\n' +
+                $"                              |   | Uncompressed Size: {(float)entry.Size / 1000000:#,#.######} MB  :  {(float)entry.Size / 1000000000:#,#.#########} GB" + '\n' +
+                @"                              |  /");
+        }
+        else Logger.LogInfo($"| [{percentage}%] - Extracting: {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
+        if (!extractedFile.Directory.Exists) extractedFile.Directory.Create();
+        try
+        {
+            using FileStream fs = extractedFile.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite); // Dont want people accessing incomplete files.
+            using Stream decompStream = pak.GetInputStream(entry);
+            StreamUtils.Copy(decompStream, fs, decomBuffer);
+            if (combinePasses) Smelt(extractedFile, new(Path.Join(smelterOutDirectory.FullName, entry.Name)));
+        }
+        catch (DirectoryNotFoundException e)
+        {
+            if (printErrors) Logger.LogException(e);
+        }
+        catch (FileNotFoundException e)
+        {
+            if (printErrors) Logger.LogException(e);
+        }
+        catch (IOException e)
+        {
+            if (printErrors) Logger.LogException(e);
+        }
+        catch (AggregateException e)
+        {
+            if (printErrors) Logger.LogException(e);
+        }
+        finally
+        {
+            tasksCompleted++;
         }
     });
 }
@@ -318,18 +322,16 @@ if (existenceFilteredSmeltingEntries.Count > 0)
     if (shouldSmelt && !combinePasses)
     {
         Logger.NewLine(2);
-        Logger.LogInfo("################################################################################");
-        Logger.NewLine(2);
-        Logger.LogInfo("                            Beginning Smelting Pass...                          ");
-        Logger.LogInfo("                            This may take a while...                            ");
-        Logger.NewLine(2);
-        Logger.LogInfo("################################################################################");
+        Logger.LogInfo("##########  Beginning Smelting Pass...  ##########");
+        Logger.LogInfo("##########  This may take a while...  ##########");
         Logger.NewLine(2);
         await Task.Delay(TimeSpan.FromSeconds(2));
+        int tasksCompleted = 0;
         Parallel.ForEach(existenceFilteredSmeltingEntries, entry =>
         {
-            Logger.LogInfo($"| - Smelting: {entry.Name}");
+            Logger.LogInfo($"| [{(tasksCompleted is 0 ? 0F.ToString() : (100F * (float)tasksCompleted / existenceFilteredExtractionEntries.Count).ToString("#,#.###"))}%] - Smelting: {entry.Name}");
             Smelt(new(Path.Join(outDirectory.FullName, entry.Name)), new(Path.Join(smelterOutDirectory.FullName, entry.Name)));
+            tasksCompleted++;
         });
     }
 }
