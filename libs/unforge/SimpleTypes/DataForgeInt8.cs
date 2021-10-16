@@ -6,7 +6,7 @@ namespace unforge
     {
         public sbyte Value { get; set; }
 
-        public DataForgeInt8(DataForge documentRoot) : base(documentRoot) { Value = _br.ReadSByte(); }
+        public DataForgeInt8(DataForge documentRoot) : base(documentRoot) { Value = br.ReadSByte(); }
 
         public override string ToString() => string.Format("{0}", Value);
 

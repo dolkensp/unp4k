@@ -11,9 +11,9 @@ namespace unforge
 
         public DataForgeEnumDefinition(DataForge documentRoot) : base(documentRoot)
         {
-            NameOffset = _br.ReadUInt32();
-            ValueCount = _br.ReadUInt16();
-            FirstValueIndex = _br.ReadUInt16();
+            NameOffset = br.ReadUInt32();
+            ValueCount = br.ReadUInt16();
+            FirstValueIndex = br.ReadUInt16();
         }
 
         public override string ToString() => string.Format("<{0} />", Name);

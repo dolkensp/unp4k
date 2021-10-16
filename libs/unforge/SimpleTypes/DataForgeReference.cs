@@ -11,8 +11,8 @@ namespace unforge
 
         public DataForgeReference(DataForge documentRoot) : base(documentRoot)
         {
-            Item1 = _br.ReadUInt32();
-            Value = _br.ReadGuid(false).Value;
+            Item1 = br.ReadUInt32();
+            Value = br.ReadGuid(false).Value;
         }
 
         public override string ToString() => string.Format("0x{0:X8} 0x{1}", Item1, Value);

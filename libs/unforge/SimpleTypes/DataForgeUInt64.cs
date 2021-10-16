@@ -6,7 +6,7 @@ namespace unforge
     {
         public ulong Value { get; set; }
 
-        public DataForgeUInt64(DataForge documentRoot) : base(documentRoot) { Value = _br.ReadUInt64(); }
+        public DataForgeUInt64(DataForge documentRoot) : base(documentRoot) { Value = br.ReadUInt64(); }
 
         public override string ToString() => string.Format("{0}", Value);
 

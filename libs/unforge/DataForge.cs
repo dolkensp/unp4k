@@ -1,12 +1,8 @@
-﻿#define NONULL
-
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Xml;
 
 namespace unforge
@@ -20,9 +16,7 @@ namespace unforge
 
     public class DataForge : IEnumerable
 	{
-        internal BinaryReader _br;
-
-        internal bool IsLegacy { get; set; }
+        internal BinaryReader br;
         internal int FileVersion { get; set; }
 
         internal DataForgeStructDefinition[] StructDefinitionTable { get; set; }
@@ -63,61 +57,47 @@ namespace unforge
         internal U[] ReadArray<U>(int arraySize) where U : DataForgeSerializable
         {
             if (arraySize is -1) return null; 
-            return (from i in Enumerable.Range(0, arraySize)
-                    let data = (U)Activator.CreateInstance(typeof(U), this)
-                    // let hack = data._index = i
-                    select data).ToArray();
+            return (from i in Enumerable.Range(0, arraySize) let data = (U)Activator.CreateInstance(typeof(U), this) select data).ToArray();
         }
 
-		public DataForge(BinaryReader br, bool legacy = false)
+		public DataForge(FileInfo inFile)
 		{
-			_br = br;
-			int temp00 = _br.ReadInt32();
-			FileVersion = _br.ReadInt32();
-			IsLegacy = legacy;
+            br = new(inFile.Open(FileMode.Open, FileAccess.Read, FileShare.None));
+            FileVersion = br.ReadInt32();
 
-			Require_ClassMapping = new();
+            Require_ClassMapping = new();
 			Require_StrongMapping = new();
 			Require_WeakMapping1 = new();
 			Require_WeakMapping2 = new();
 
-			if (!IsLegacy)
-			{
-				ushort atemp1 = _br.ReadUInt16();
-                ushort atemp2 = _br.ReadUInt16();
-                ushort atemp3 = _br.ReadUInt16();
-                ushort atemp4 = _br.ReadUInt16();
-			}
+			int structDefinitionCount = br.ReadInt32();
+            int propertyDefinitionCount = br.ReadInt32();
+            int enumDefinitionCount = br.ReadInt32();
+            int dataMappingCount = br.ReadInt32();
+            int recordDefinitionCount = br.ReadInt32();
 
-			int structDefinitionCount = _br.ReadInt32();
-            int propertyDefinitionCount = _br.ReadInt32();
-            int enumDefinitionCount = _br.ReadInt32();
-            int dataMappingCount = _br.ReadInt32();
-            int recordDefinitionCount = _br.ReadInt32();
+            int booleanValueCount = br.ReadInt32();
+            int int8ValueCount = br.ReadInt32();
+            int int16ValueCount = br.ReadInt32();
+            int int32ValueCount = br.ReadInt32();
+            int int64ValueCount = br.ReadInt32();
+            int uint8ValueCount = br.ReadInt32();
+            int uint16ValueCount = br.ReadInt32();
+            int uint32ValueCount = br.ReadInt32();
+            int uint64ValueCount = br.ReadInt32();
 
-            int booleanValueCount = _br.ReadInt32();
-            int int8ValueCount = _br.ReadInt32();
-            int int16ValueCount = _br.ReadInt32();
-            int int32ValueCount = _br.ReadInt32();
-            int int64ValueCount = _br.ReadInt32();
-            int uint8ValueCount = _br.ReadInt32();
-            int uint16ValueCount = _br.ReadInt32();
-            int uint32ValueCount = _br.ReadInt32();
-            int uint64ValueCount = _br.ReadInt32();
+            int singleValueCount = br.ReadInt32();
+            int doubleValueCount = br.ReadInt32();
+            int guidValueCount = br.ReadInt32();
+            int stringValueCount = br.ReadInt32();
+            int localeValueCount = br.ReadInt32();
+            int enumValueCount = br.ReadInt32();
+            int strongValueCount = br.ReadInt32();
+            int weakValueCount = br.ReadInt32();
 
-            int singleValueCount = _br.ReadInt32();
-            int doubleValueCount = _br.ReadInt32();
-            int guidValueCount = _br.ReadInt32();
-            int stringValueCount = _br.ReadInt32();
-            int localeValueCount = _br.ReadInt32();
-            int enumValueCount = _br.ReadInt32();
-            int strongValueCount = _br.ReadInt32();
-            int weakValueCount = _br.ReadInt32();
-
-            int referenceValueCount = _br.ReadInt32();
-            int enumOptionCount = _br.ReadInt32();
-            uint textLength = _br.ReadUInt32();
-            uint unknown = IsLegacy ? 0 : _br.ReadUInt32();
+            int referenceValueCount = br.ReadInt32();
+            int enumOptionCount = br.ReadInt32();
+            uint textLength = br.ReadUInt32();
 
 			StructDefinitionTable = ReadArray<DataForgeStructDefinition>(structDefinitionCount);
 			PropertyDefinitionTable = ReadArray<DataForgePropertyDefinition>(propertyDefinitionCount);
@@ -147,18 +127,17 @@ namespace unforge
             EnumOptionTable = ReadArray<DataForgeStringLookup>(enumOptionCount);
 
             List<DataForgeString> buffer = new();
-            long maxPosition = _br.BaseStream.Position + textLength;
-            long startPosition = _br.BaseStream.Position;
+            long maxPosition = br.BaseStream.Position + textLength;
+            long startPosition = br.BaseStream.Position;
             ValueMap = new();
-            while (_br.BaseStream.Position < maxPosition)
+            while (br.BaseStream.Position < maxPosition)
             {
-                long offset = _br.BaseStream.Position - startPosition;
+                long offset = br.BaseStream.Position - startPosition;
                 DataForgeString dfString = new(this);
                 buffer.Add(dfString);
                 ValueMap[(uint)offset] = dfString.Value;
             }
             ValueTable = buffer.ToArray();
-
             DataTable = new();
             DataMap = new();
 
@@ -176,16 +155,7 @@ namespace unforge
 
             foreach (ClassMapping dataMapping in Require_ClassMapping)
             {
-                if (dataMapping.StructIndex is 0xFFFF)
-                {
-#if NONULL
-                    dataMapping.Node.ParentNode.RemoveChild(dataMapping.Node);
-#else
-                    dataMapping.Item1.ParentNode.ReplaceChild(
-                        _xmlDocument.CreateElement("null"),
-                        dataMapping.Item1);
-#endif
-                }
+                if (dataMapping.StructIndex is 0xFFFF) dataMapping.Node.ParentNode.RemoveChild(dataMapping.Node);
                 else if (DataMap.ContainsKey(dataMapping.StructIndex) && DataMap[dataMapping.StructIndex].Count > dataMapping.RecordIndex) 
                     dataMapping.Node.ParentNode.ReplaceChild(DataMap[dataMapping.StructIndex][dataMapping.RecordIndex], dataMapping.Node);
                 else
@@ -215,23 +185,17 @@ namespace unforge
 			}
 		}
 
-        public void Save(string filename)
+        public void Save(FileInfo outFile)
         {
 			if (string.IsNullOrWhiteSpace(_xmlDocument?.InnerXml)) Compile();
 			
-			var i = 0;
-			foreach (var record in RecordDefinitionTable)
+			foreach (DataForgeRecord record in RecordDefinitionTable)
 			{
-				string fileReference = record.FileName;
-				if (fileReference.Split('/').Length is 2) fileReference = fileReference.Split('/')[1];
-				if (string.IsNullOrWhiteSpace(fileReference)) fileReference = string.Format(@"Dump\{0}_{1}.xml", record.Name, i++);
-				string newPath = Path.Combine(Path.GetDirectoryName(filename), fileReference);
-				if (!Directory.Exists(Path.GetDirectoryName(newPath))) Directory.CreateDirectory(Path.GetDirectoryName(newPath));
 				XmlDocument doc = new();
 				doc.LoadXml(DataMap[record.StructIndex][record.VariantIndex].OuterXml);
-				doc.Save(newPath);
+                doc.Save(outFile.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.None));
 			}
-			_xmlDocument.Save(filename);
+            _xmlDocument.Save(outFile.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.None));
         }
 
 		internal void Compile()
@@ -242,16 +206,7 @@ namespace unforge
 			foreach (ClassMapping dataMapping in Require_StrongMapping)
 			{
 				DataForgePointer strong = Array_StrongValues[dataMapping.RecordIndex];
-				if (strong.Index is 0xFFFFFFFF)
-				{
-#if NONULL
-					dataMapping.Node.ParentNode.RemoveChild(dataMapping.Node);
-#else
-                    dataMapping.Item1.ParentNode.ReplaceChild(
-                        _xmlDocument.CreateElement("null"),
-                        dataMapping.Item1);
-#endif
-				}
+				if (strong.Index is 0xFFFFFFFF) dataMapping.Node.ParentNode.RemoveChild(dataMapping.Node);
 				else dataMapping.Node.ParentNode.ReplaceChild( DataMap[strong.StructType][(int)strong.Index], dataMapping.Node);
 			}
 
@@ -283,7 +238,7 @@ namespace unforge
 				}
 			}
 
-			var i = 0;
+			int i = 0;
 			foreach (DataForgeRecord record in RecordDefinitionTable)
 			{
 				string fileReference = record.FileName;
@@ -320,6 +275,8 @@ namespace unforge
 			return outStream;
 		}
 
+        /*
+         * TODO: Not sure what this is, it is unused.
 		public void GenerateSerializationClasses(string path = "AutoGen", string assemblyName = "HoloXPLOR.Data.DataForge")
         {
             path = new DirectoryInfo(path).FullName;
@@ -386,10 +343,11 @@ namespace unforge
                 File.WriteAllText(Path.Combine(path, string.Format("{0}.cs", structDefinition.Name)), code);
             }
         }
+        */
 
 		public IEnumerator GetEnumerator()
 		{
-            var i = 0;
+            int i = 0;
             if (string.IsNullOrWhiteSpace(_xmlDocument?.InnerXml)) Compile();
 			foreach (DataForgeRecord record in RecordDefinitionTable)
 			{
@@ -404,6 +362,9 @@ namespace unforge
 			}
 		}
 
+        /*
+         * TODO: Not sure what this is, it is unused.
 		public int Length => RecordDefinitionTable.Length;
-	}
+        */
+    }
 }

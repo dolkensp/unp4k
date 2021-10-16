@@ -6,7 +6,7 @@ namespace unforge
     {
         public bool Value { get; set; }
 
-        public DataForgeBoolean(DataForge documentRoot) : base(documentRoot) { Value = _br.ReadBoolean(); }
+        public DataForgeBoolean(DataForge documentRoot) : base(documentRoot) { Value = br.ReadBoolean(); }
 
         public override string ToString() => string.Format("{0}", Value ? "1" : "0");
 

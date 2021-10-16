@@ -5,12 +5,12 @@ namespace unforge
     public abstract class DataForgeSerializable
     {
         internal DataForge DocumentRoot { get; private set; }
-        internal BinaryReader _br;
+        internal BinaryReader br;
         
         public DataForgeSerializable(DataForge documentRoot)
         {
             DocumentRoot = documentRoot;
-            _br = documentRoot._br;
+            br = documentRoot.br;
         }
     }
 }
