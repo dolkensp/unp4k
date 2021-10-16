@@ -2,6 +2,8 @@
 
 using Serilog;
 
+using unlib;
+
 public static class Logger
 {
     private static Serilog.Core.Logger InternalConsoleLogger;
@@ -11,7 +13,7 @@ public static class Logger
         try
         {
             InternalConsoleLogger = new LoggerConfiguration().WriteTo.Console(outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {Level:u3}] {Message}{NewLine}{Exception}").CreateLogger();
-            Console.BufferWidth = Console.WindowWidth;
+            if (OS.IsWindows) Console.BufferWidth = Console.WindowWidth;
             ClearBuffer();
         }
         catch

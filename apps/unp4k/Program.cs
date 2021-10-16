@@ -1,12 +1,17 @@
-﻿using System.Xml;
-using System.Reflection;
-using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Concurrent;
-
-using unforge;
+using System.Threading.Tasks;
+using System.Linq;
+using System.IO;
+using System.Xml;
+using System.Diagnostics;
 
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
+
+using unforge;
+using unlib;
 
 /*
  * TODO: While Linux is supported, we need to add in everything when Star Citizen becomes available on Linux
@@ -14,9 +19,10 @@ using ICSharpCode.SharpZipLib.Zip;
 
 #region Initialisation
 
-DirectoryInfo? appPath = new(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location));
-FileInfo? defaultp4kFile = new(@"C:\Program Files\Roberts Space Industries\StarCitizen\LIVE\Data.p4k");
-DirectoryInfo? defaultExtractionDirectory = new(Path.Join(appPath.FullName, "star_citizen_extraction"));
+DirectoryInfo? defaultOutputDirectory = new(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "unp4k"));
+FileInfo? defaultp4kFile = OS.IsWindows ? new(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Roberts Space Industries", "StarCitizen", "LIVE", "Data.p4k")) :
+    new(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Desktop", "unp4k", "Data.p4k"));
+DirectoryInfo? defaultExtractionDirectory = new(Path.Join(defaultOutputDirectory.FullName, "output"));
 
 FileInfo? p4kFile = null;
 DirectoryInfo? outDirectory = null;
@@ -29,51 +35,78 @@ bool shouldSmelt = false;
 Logger.ClearBuffer();
 Logger.LogInfo("Initialising...");
 
-if (appPath is null)
-{
-    Logger.LogError("Could not discern application path! Cannot continue!");
-    Console.ReadKey();
-    Logger.ClearBuffer();
-    Environment.Exit(0);
-}
-
 if (args.Length is 0) 
 {
-    p4kFile = new("Data.p4k");
+    p4kFile = defaultp4kFile;
     outDirectory = defaultExtractionDirectory;
     filters.Add("*.*");
-    Logger.LogInfo("################################################################################\n");
-    Logger.LogInfo("                             unp4ck <> Star Citizen                             ");
-    Logger.LogInfo(
-        "\nExtracts Star Citizen's Data.p4k into a directory of choice and even convert them into xml files!\n"
-        );
-    Logger.NewLine();
-    Logger.LogInfo(@"Windows PowerShell: .\unp4ck -d -i " + '"' + "[InFilePath]" + '"' + " -o " + '"' + "[OutDirectoryPath]" + '"' + 
-        " -f " + '"' + "[filter(Example: *.* for all files, this is the default)]" + '"');
-    Logger.LogInfo(@"Windows Command Prompt: unp4ck -d -i " + '"' + "[InFilePath]" + '"' + " -o " + '"' + "[OutDirectoryPath]" + '"' +
-        " -f " + '"' + "[filter(Example: *.* for all files, this is the default)]" + '"');
-    Logger.LogInfo(@"Linux Terminal: ./unp4ck -d -i " + '"' + "[InFilePath]" + '"' + " -o " + '"' + "[OutDirectoryPath]" + '"' +
-        " -f " + '"' + "[filter(Example: *.* for all files, this is the default)]" + '"');
-    Logger.NewLine();
-    Logger.LogInfo(@"A Windows Example: unp4ck -i " + '"' + @"C:\Program Files\Roberts Space Industries\StarCitizen\LIVE\Data.p4k" + '"' + 
-        " -o " + '"' + @"C:\Windows\SC" + '"' + 
-        " -f " + '"' + "*.*" + '"' + " -d");
-    Logger.LogInfo("-d: Enables the detailed logging mode.");
-    Logger.LogInfo("-i: Delcares the input file path.");
-    Logger.LogInfo("-o: Declared the output directory path.");
-    Logger.LogInfo("-f: Allows you to filter in the files you want.");
-    Logger.NewLine();
-    Logger.LogInfo("File Type Selection: .dcb");
-    Logger.LogInfo("Multi-File Type Selection: .dcb,.png,.gif");
-    Logger.LogInfo("Specific File Selection: Game.dcb");
-    Logger.LogInfo("Multi-Specific File Selection: Game.dcb,smiley_face.png,its_working.gif");
-    Logger.LogInfo("\n################################################################################\n");
-    Logger.LogWarn($"\nNO INPUT Data.p4k PATH HAS BEEN DECLARED. USING DEFAULT PATH " + '"' + $"{defaultp4kFile.FullName}" + '"');
-    Logger.LogWarn("\nNO OUTPUT DIRECTORY PATH HAS BEEN DECLARED. ALL EXTRACTS WILL GO INTO " + '"' + $"{defaultExtractionDirectory.FullName}" + '"');
-    Logger.LogInfo("\nPress any key to continue!");
+    Logger.ClearBuffer();
+    Logger.LogInfo('\n' +
+        "################################################################################" + '\n' + '\n' +
+        "                             unp4ck <> Star Citizen                             " + '\n' + '\n' +
+        "Extracts Star Citizen's Data.p4k into a directory of choice and even convert them into xml files!" + '\n' + '\n' +
+       @"\" + '\n' +
+       @" | Windows PowerShell: .\unp4ck -d -i " + '"' + "[InFilePath]" + '"' + " -o " + '"' + "[OutDirectoryPath]" + '"' + '\n' +
+       @" | Windows Command Prompt: unp4ck -d -i " + '"' + "[InFilePath]" + '"' + " -o " + '"' + "[OutDirectoryPath]" + '"' + '\n' +
+       @" | Linux Terminal: ./unp4ck -d -i " + '"' + "[InFilePath]" + '"' + " -o " + '"' + "[OutDirectoryPath]" + '"' + '\n' +
+        " | " + '\n' +
+       @" | Windows Example: unp4ck -i " + '"' + @"C:\Program Files\Roberts Space Industries\StarCitizen\LIVE\Data.p4k" + '"' + " -o " + '"' + @"C:\Windows\SC" + '"' + " -f " + '"' + "*.*" + '"' + " -d" + '\n' +
+       @" | Ubuntu Example: unp4ck -i " + '"' + @"/home/USERNAME/unp4k/Data.p4k" + '"' + " -o " + '"' + @"/home/USERNAME/unp4k/output" + '"' + " -f " + '"' + "*.*" + '"' + " -d" + '\n' +
+        " | " + '\n' +
+       @" |\" + '\n' +
+        " | - Mandatory arguments:" + '\n' +
+        " | | -i: Delcares the input file path." + '\n' +
+        " | | -o: Declared the output directory path." + '\n' +
+        " | |" + '\n' +
+        " | - Optional arguments:" + '\n' +
+        " | | -f: Allows you to filter in the files you want." + '\n' +
+        " | | -e: Enables exception printing to console." + '\n' +
+        " | | -l: Enabled writing of logs to categoric files." + '\n' +
+        " | | -w: Forces all files to be re-extraced and/or re-smelted." + '\n' +
+        " | |" + '\n' +
+        " | - Independent arguments:" + '\n' +
+        " | | -v: Prints the version of unp4k." + '\n' +
+        " |/" + '\n' +
+        " | " + '\n' +
+       @" |\" + '\n' +
+        " | - Format Examples:" + '\n' +
+        " | | File Type Selection: .dcb" + '\n' +
+        " | | Multi-File Type Selection: .dcb,.png,.gif" + '\n' +
+        " | | Specific File Selection: Game.dcb" + '\n' +
+        " | | Multi-Specific File Selection: Game.dcb,smiley_face.png,its_working.gif" + '\n' +
+        " |/" + '\n' +
+        "/" + '\n' +
+        "################################################################################" + '\n' + '\n' +
+       $"NO INPUT Data.p4k PATH HAS BEEN DECLARED. USING DEFAULT PATH " + '"' + $"{defaultp4kFile.FullName}" + '"' + '\n' +
+        "NO OUTPUT DIRECTORY PATH HAS BEEN DECLARED. ALL EXTRACTS WILL GO INTO " + '"' + $"{defaultExtractionDirectory.FullName}" + '"' + '\n' + '\n' +
+        "Press any key to continue!");
     Console.ReadKey();
     Logger.ClearBuffer();
-    Environment.Exit(0);
+}
+
+if (OS.IsLinux)
+{
+    char? proceedAsRoot = null;
+    while (proceedAsRoot is null)
+    {
+        Logger.LogWarn("unp4k has been run as root via the sudo command.");
+        Logger.LogWarn("This may cause issues because it will make the app target the /root/ path!");
+        Logger.NewLine();
+        Logger.LogInfo("Are you sure you want to proceed? y/n: ");
+        proceedAsRoot = Console.ReadKey().KeyChar;
+        if (proceedAsRoot is null || proceedAsRoot != 'y' && proceedAsRoot != 'n')
+        {
+            Logger.LogError("Please input y for yes or n for no!");
+            await Task.Delay(TimeSpan.FromSeconds(3));
+            Logger.ClearBuffer();
+            proceedAsRoot = null;
+        }
+        else if (proceedAsRoot is 'n')
+        {
+            Logger.ClearBuffer();
+            Environment.Exit(0);
+        }
+    }
 }
 
 try
@@ -98,6 +131,7 @@ catch (IndexOutOfRangeException e)
 
 if (p4kFile is null) p4kFile = defaultp4kFile;
 if (outDirectory is null) outDirectory = defaultExtractionDirectory;
+if (smelterOutDirectory is null) smelterOutDirectory = new(Path.Join(outDirectory.FullName, "Smelted"));
 if (filters.Count is 0) filters.Add("*.*");
 
 if (!p4kFile.Exists)
@@ -108,15 +142,8 @@ if (!p4kFile.Exists)
     Logger.ClearBuffer();
     Environment.Exit(0);
 }
-if (!outDirectory.Exists)
-{
-    Logger.LogError($"Output path '{outDirectory.FullName}' does not exist!");
-    Console.ReadKey();
-    Logger.ClearBuffer();
-    Environment.Exit(0);
-}
 
-smelterOutDirectory = new(Path.Join(outDirectory.FullName, "Smelted"));
+if (!outDirectory.Exists) outDirectory.Create();
 if (!smelterOutDirectory.Exists) smelterOutDirectory.Create();
 
 #endregion
@@ -128,7 +155,6 @@ Logger.ClearBuffer();
 Logger.LogInfo($"Processing Data.p4k before extraction{(shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
 
 byte[] decomBuffer = new byte[4096];
-
 ConcurrentQueue<ZipEntry> filteredEntries = new();
 ConcurrentQueue<ZipEntry> existenceFilteredExtractionEntries = new();
 ConcurrentQueue<ZipEntry> existenceFilteredSmeltingEntries = new();
@@ -153,7 +179,7 @@ existenceFilteredExtractionEntries = new(filteredEntries.Where(x => !new FileInf
 existenceFilteredSmeltingEntries   = new(filteredEntries.Where(x => !new FileInfo(Path.ChangeExtension(Path.Join(smelterOutDirectory.FullName, x.Name), "xml")).Exists));
 
 Logger.ClearBuffer();
-DriveInfo outputDrive = DriveInfo.GetDrives().First(x => x.Name == outDirectory.FullName[..3]);
+DriveInfo outputDrive = DriveInfo.GetDrives().First(x => OS.IsWindows ? x.Name == outDirectory.FullName[..3] : new DirectoryInfo(x.Name).Exists);
 if (outputDrive.AvailableFreeSpace < bytesSize)
 {
     Logger.LogError(
@@ -175,8 +201,8 @@ if (outputDrive.AvailableFreeSpace < bytesSize)
     Environment.Exit(0);
 }
 
-char? confirm = null;
-while (confirm is null)
+char? goAheadWithExtraction = null;
+while (goAheadWithExtraction is null)
 {
     Logger.LogInfo(
          "| - The output path you have chosen is on a storage drive which does not have enough available free space!" + '\n' +
@@ -194,15 +220,15 @@ while (confirm is null)
         @"                              |  /");
     Logger.NewLine();
     Logger.LogInfo("Should the extraction go ahead? y/n: ");
-    confirm = Console.ReadKey().KeyChar;
-    if (confirm is null || confirm != 'y' && confirm != 'n')
+    goAheadWithExtraction = Console.ReadKey().KeyChar;
+    if (goAheadWithExtraction is null || goAheadWithExtraction != 'y' && goAheadWithExtraction != 'n')
     {
         Logger.LogError("Please input y for yes or n for no!");
-        Thread.Sleep(TimeSpan.FromSeconds(3));
+        await Task.Delay(TimeSpan.FromSeconds(3));
         Logger.ClearBuffer();
-        confirm = null;
+        goAheadWithExtraction = null;
     }
-    else if (confirm is 'n')
+    else if (goAheadWithExtraction is 'n')
     {
         Logger.ClearBuffer();
         Environment.Exit(0);
@@ -211,7 +237,6 @@ while (confirm is null)
 
 Logger.ClearBuffer();
 
-List<Task> tasks = new();
 Stopwatch watch = new();
 watch.Start();
 
@@ -316,6 +341,18 @@ if (existenceFilteredSmeltingEntries.Count > 0)
                     // Unsupported file type
                     // TODO: See if we can do anything about the .PeekChar() overflow
                 }
+                catch (DirectoryNotFoundException e)
+                {
+                    Logger.LogException(e);
+                }
+                catch (FileNotFoundException e)
+                {
+                    Logger.LogException(e);
+                }
+                catch (IOException e)
+                {
+                    Logger.LogException(e);
+                }
             }
         });
     }
@@ -331,6 +368,6 @@ Logger.LogWarn("  |  Due to the nature of SSD's/NVMe's, do not excessively run t
 Logger.NewLine(2);
 Logger.LogInfo("Would you like to open the output directory? (Application will close on input) y/n: ");
 char openOutput = Console.ReadKey().KeyChar;
-if (openOutput is 'y') Process.Start("explorer.exe", outDirectory.FullName);
+if (openOutput is 'y') Process.Start(OS.IsWindows ? "explorer" : "nautilus", outDirectory.FullName);
 
 #endregion Program
