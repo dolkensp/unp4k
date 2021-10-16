@@ -219,6 +219,7 @@ if (outputDrive.AvailableFreeSpace < bytesSize)
                                                 $"{(shouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
         $"                              |   | Files Cannot Be Decompressed: {isDecompressableCount}" + '\n' +
         $"                              |   | Files Locked: {isLockedCount}" + '\n' +
+        $"                              |   | Using Combined Pass: {combinePasses}" + '\n' +
         @"                              |  /");
     Console.ReadKey();
     Logger.ClearBuffer();
@@ -241,6 +242,7 @@ while (goAheadWithExtraction is null)
                                                 $"{(shouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
         $"                              |   | Files Cannot Be Decompressed: {isDecompressableCount}" + '\n' +
         $"                              |   | Files Locked: {isLockedCount}" + '\n' +
+        $"                              |   | Using Combined Pass: {combinePasses}" + '\n' +
         @"                              |  /");
     Logger.NewLine();
     Logger.LogInfo("Should the extraction go ahead? y/n: ");
@@ -294,7 +296,7 @@ if (existenceFilteredExtractionEntries.Count > 0)
             using FileStream fs = extractedFile.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite); // Dont want people accessing incomplete files.
             using Stream decompStream = pak.GetInputStream(entry);
             StreamUtils.Copy(decompStream, fs, decomBuffer);
-            if (combinePasses) Smelt(extractedFile, new(Path.Join(smelterOutDirectory.FullName, entry.Name)));
+            if (shouldSmelt && combinePasses) Smelt(extractedFile, new(Path.Join(smelterOutDirectory.FullName, entry.Name)));
         }
         catch (DirectoryNotFoundException e)
         {
