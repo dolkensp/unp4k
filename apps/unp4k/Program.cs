@@ -311,48 +311,45 @@ if (existenceFilteredSmeltingEntries.Count > 0)
         {
             FileInfo extractedFile = new(Path.Join(outDirectory.FullName, entry.Name));
             FileInfo smeltedFile = new(Path.Join(smelterOutDirectory.FullName, entry.Name));
-            if (!smeltedFile.Exists)
+            Logger.LogInfo($"| - Smelting: {entry.Name}");
+            if (!smeltedFile.Directory.Exists) smeltedFile.Directory.Create();
+            try
             {
-                Logger.LogInfo($"| - Smelting: {entry.Name}");
-                if (!smeltedFile.Directory.Exists) smeltedFile.Directory.Create();
-                try
+                if (extractedFile.Extension is ".dcb")
                 {
-                    if (extractedFile.Extension is ".dcb")
-                    {
-                        bool legacy = File.OpenRead(extractedFile.FullName).Length < 0x0e2e00; // May be a .NET bug but for some reason FileInfo.Length cannot access the file.
-                        using BinaryReader br = new(extractedFile.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
-                        new DataForge(br, legacy).Save(Path.ChangeExtension(smeltedFile.FullName, "xml"));
-                    }
-                    else
-                    {
-                        XmlDocument xml = CryXmlSerializer.ReadFile(extractedFile.FullName);
-                        if (xml != null) xml.Save(Path.ChangeExtension(smeltedFile.FullName, "xml"));
-                    }
+                    bool legacy = File.OpenRead(extractedFile.FullName).Length < 0x0e2e00; // May be a .NET bug but for some reason FileInfo.Length cannot access the file.
+                    using BinaryReader br = new(extractedFile.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+                    new DataForge(br, legacy).Save(Path.ChangeExtension(smeltedFile.FullName, "xml"));
                 }
-                catch (ArgumentException e)
+                else
                 {
-                    Logger.LogException(e);
-                    // Unsupported file type
-                    // TODO: See if we can do anything about the .PeekChar() overflow
+                    XmlDocument xml = CryXmlSerializer.ReadFile(extractedFile.FullName);
+                    if (xml != null) xml.Save(Path.ChangeExtension(smeltedFile.FullName, "xml"));
                 }
-                catch (EndOfStreamException e)
-                {
-                    Logger.LogException(e);
-                    // Unsupported file type
-                    // TODO: See if we can do anything about the .PeekChar() overflow
-                }
-                catch (DirectoryNotFoundException e)
-                {
-                    Logger.LogException(e);
-                }
-                catch (FileNotFoundException e)
-                {
-                    Logger.LogException(e);
-                }
-                catch (IOException e)
-                {
-                    Logger.LogException(e);
-                }
+            }
+            catch (ArgumentException e)
+            {
+                Logger.LogException(e);
+                // Unsupported file type
+                // TODO: See if we can do anything about the .PeekChar() overflow
+            }
+            catch (EndOfStreamException e)
+            {
+                Logger.LogException(e);
+                // Unsupported file type
+                // TODO: See if we can do anything about the .PeekChar() overflow
+            }
+            catch (DirectoryNotFoundException e)
+            {
+                Logger.LogException(e);
+            }
+            catch (FileNotFoundException e)
+            {
+                Logger.LogException(e);
+            }
+            catch (IOException e)
+            {
+                Logger.LogException(e);
             }
         });
     }
