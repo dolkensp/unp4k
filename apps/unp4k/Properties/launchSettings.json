@@ -30,43 +30,43 @@
     },
     "unp4k - Smelt LIVE Install Full": {
       "commandName": "Project",
-      "commandLineArgs": "-o \"C:\\SC\" -d -forge -e",
+      "commandLineArgs": "-o \"C:\\SC\" -d -forge -e -c",
       "hotReloadEnabled": false,
       "authenticationMode": "None"
     },
     "unp4k - Smelt LIVE Install Quick": {
       "commandName": "Project",
-      "commandLineArgs": "-o \"C:\\SC\" -f \".xml\" -d -forge -e",
+      "commandLineArgs": "-o \"C:\\SC\" -f \".xml\" -d -forge -e -c",
       "hotReloadEnabled": false,
       "authenticationMode": "None"
     },
     "unp4k - Smelt PTU Install Full": {
       "commandName": "Project",
-      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -o \"C:\\SC\" -d -forge -e",
+      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -o \"C:\\SC\" -d -forge -e -c",
       "hotReloadEnabled": false,
       "authenticationMode": "None"
     },
     "unp4k - Smelt PTU Install Quick": {
       "commandName": "Project",
-      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -o \"C:\\SC\" -f \".xml\" -d -forge -e",
+      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -o \"C:\\SC\" -f \".xml\" -d -forge -e -c",
       "hotReloadEnabled": false,
       "authenticationMode": "None"
     },
     "unp4k - Smelt LIVE Game.dcb": {
       "commandName": "Project",
-      "commandLineArgs": "-o \"C:\\SC\" -f \".dcb\" -d -forge -e",
+      "commandLineArgs": "-o \"C:\\SC\" -f \".dcb\" -d -forge -e -c",
       "hotReloadEnabled": false,
       "authenticationMode": "None"
     },
     "unp4k - Smelt PTU Game.dcb": {
       "commandName": "Project",
-      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -o \"C:\\SC\" -f \".dcb\" -d -forge -e",
+      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -o \"C:\\SC\" -f \".dcb\" -d -forge -e -c",
       "hotReloadEnabled": false,
       "authenticationMode": "None"
     },
     "unp4k - Smelt WSL": {
       "commandName": "Project",
-      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -o \"C:\\SC\" -d -forge -e",
+      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -o \"C:\\SC\" -d -forge -e -c",
       "hotReloadEnabled": false,
       "authenticationMode": "None"
     }
