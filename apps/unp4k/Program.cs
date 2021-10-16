@@ -64,7 +64,6 @@ if (args.Length is 0)
         " | - Optional arguments:" + '\n' +
         " | | -f: Allows you to filter in the files you want." + '\n' +
         " | | -e: Enables error and exception printing to console." + '\n' +
-        " | | -l: Enabled writing of logs to categoric files." + '\n' +
         " | | -w: Forces all files to be re-extraced and/or re-smelted." + '\n' +
         " | | -c: Makes extraction and smelting run at the same time (requires a lot of RAM)." + '\n' +
         " |/" + '\n' +
