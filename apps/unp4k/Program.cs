@@ -29,6 +29,7 @@ DirectoryInfo? outDirectory = null;
 DirectoryInfo? smelterOutDirectory = null;
 List<string> filters = new();
 
+bool printErrors = false;
 bool detailedLogs = false;
 bool shouldSmelt = false;
 
@@ -60,7 +61,7 @@ if (args.Length is 0)
         " | |" + '\n' +
         " | - Optional arguments:" + '\n' +
         " | | -f: Allows you to filter in the files you want." + '\n' +
-        " | | -e: Enables exception printing to console." + '\n' +
+        " | | -e: Enables error and exception printing to console." + '\n' +
         " | | -l: Enabled writing of logs to categoric files." + '\n' +
         " | | -w: Forces all files to be re-extraced and/or re-smelted." + '\n' +
         " | |" + '\n' +
@@ -116,6 +117,7 @@ try
         if (args[i].ToLowerInvariant() is "-i") p4kFile = new(args[i + 1]);
         else if (args[i].ToLowerInvariant() is "-o") outDirectory = new(args[i + 1]);
         else if (args[i].ToLowerInvariant() is "-f") filters = args[i + 1].Split(',').ToList();
+        else if (args[i].ToLowerInvariant() is "-e") printErrors = true;
         else if (args[i].ToLowerInvariant() is "-d") detailedLogs = true;
 
         else if (args[i].ToLowerInvariant() is "-forge") shouldSmelt = true;
@@ -123,7 +125,8 @@ try
 }
 catch (IndexOutOfRangeException e)
 {
-    Logger.LogException(e);
+    if (printErrors) Logger.LogException(e);
+    else Logger.LogError("An error has occured with the argument parser. Please ensure you have provided the relevant arguments!");
     Console.ReadKey();
     Logger.ClearBuffer();
     Environment.Exit(0);
@@ -276,19 +279,19 @@ if (existenceFilteredExtractionEntries.Count > 0)
             }
             catch (DirectoryNotFoundException e)
             {
-                Logger.LogException(e);
+                if (printErrors) Logger.LogException(e);
             }
             catch (FileNotFoundException e)
             {
-                Logger.LogException(e);
+                if (printErrors) Logger.LogException(e);
             }
             catch (IOException e)
             {
-                Logger.LogException(e);
+                if (printErrors) Logger.LogException(e);
             }
             catch (AggregateException e)
             {
-                Logger.LogException(e);
+                if (printErrors) Logger.LogException(e);
             }
         }
     });
@@ -317,39 +320,38 @@ if (existenceFilteredSmeltingEntries.Count > 0)
             {
                 if (extractedFile.Extension is ".dcb")
                 {
-                    bool legacy = File.OpenRead(extractedFile.FullName).Length < 0x0e2e00; // May be a .NET bug but for some reason FileInfo.Length cannot access the file.
                     using BinaryReader br = new(extractedFile.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
-                    new DataForge(br, legacy).Save(Path.ChangeExtension(smeltedFile.FullName, "xml"));
+                    new DataForge(br, File.OpenRead(extractedFile.FullName).Length < 0x0e2e00 /* May be a .NET bug but for some reason FileInfo.Length cannot access the file.*/).Save(Path.ChangeExtension(smeltedFile.FullName, "xml"));
                 }
                 else
                 {
-                    XmlDocument xml = CryXmlSerializer.ReadFile(extractedFile.FullName);
+                    XmlDocument xml = CryXmlSerializer.ReadFile(extractedFile);
                     if (xml != null) xml.Save(Path.ChangeExtension(smeltedFile.FullName, "xml"));
                 }
             }
             catch (ArgumentException e)
             {
-                Logger.LogException(e);
+                if (printErrors) Logger.LogException(e);
                 // Unsupported file type
                 // TODO: See if we can do anything about the .PeekChar() overflow
             }
             catch (EndOfStreamException e)
             {
-                Logger.LogException(e);
+                if (printErrors) Logger.LogException(e);
                 // Unsupported file type
                 // TODO: See if we can do anything about the .PeekChar() overflow
             }
             catch (DirectoryNotFoundException e)
             {
-                Logger.LogException(e);
+                if (printErrors) Logger.LogException(e);
             }
             catch (FileNotFoundException e)
             {
-                Logger.LogException(e);
+                if (printErrors) Logger.LogException(e);
             }
             catch (IOException e)
             {
-                Logger.LogException(e);
+                if (printErrors) Logger.LogException(e);
             }
         });
     }
