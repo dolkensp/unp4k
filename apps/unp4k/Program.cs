@@ -292,9 +292,11 @@ if (existenceFilteredExtractionEntries.Count > 0)
         if (!extractedFile.Directory.Exists) extractedFile.Directory.Create();
         try
         {
-            using FileStream fs = extractedFile.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite); // Dont want people accessing incomplete files.
-            using Stream decompStream = pak.GetInputStream(entry);
+            FileStream fs = extractedFile.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite); // Dont want people accessing incomplete files.
+            Stream decompStream = pak.GetInputStream(entry);
             StreamUtils.Copy(decompStream, fs, decomBuffer);
+            decompStream.Close();
+            fs.Close();
             if (shouldSmelt && combinePasses) Smelt(extractedFile, new(Path.Join(smelterOutDirectory.FullName, entry.Name)));
         }
         catch (DirectoryNotFoundException e)
