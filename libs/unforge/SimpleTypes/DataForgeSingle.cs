@@ -6,7 +6,7 @@ namespace unforge
     {
         public float Value { get; set; }
 
-        public DataForgeSingle(DataForge documentRoot) : base(documentRoot) { Value = _br.ReadSingle(); }
+        public DataForgeSingle(DataForge documentRoot) : base(documentRoot) { Value = br.ReadSingle(); }
 
         public override string ToString() => string.Format("{0}", Value);
 

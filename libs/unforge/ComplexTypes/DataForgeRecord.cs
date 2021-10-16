@@ -24,12 +24,12 @@ namespace unforge
 
         public DataForgeRecord(DataForge documentRoot) : base(documentRoot)
         {
-            NameOffset = _br.ReadUInt32();
-            if (!DocumentRoot.IsLegacy) FileNameOffset = _br.ReadUInt32();
-            StructIndex = _br.ReadUInt32();
-            Hash = _br.ReadGuid(false);
-            VariantIndex = _br.ReadUInt16();
-            OtherIndex = _br.ReadUInt16();
+            NameOffset = br.ReadUInt32();
+            FileNameOffset = br.ReadUInt32();
+            StructIndex = br.ReadUInt32();
+            Hash = br.ReadGuid(false);
+            VariantIndex = br.ReadUInt16();
+            OtherIndex = br.ReadUInt16();
         }
 
         public override string ToString() => string.Format("<{0} {1:X4} />", Name, StructIndex);

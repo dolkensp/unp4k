@@ -25,11 +25,11 @@ namespace unforge
 
         public DataForgeStructDefinition(DataForge documentRoot) : base(documentRoot)
         {
-            NameOffset = _br.ReadUInt32();
-            ParentTypeIndex = _br.ReadUInt32();
-            AttributeCount = _br.ReadUInt16();
-            FirstAttributeIndex = _br.ReadUInt16();
-            NodeType = _br.ReadUInt32();
+            NameOffset = br.ReadUInt32();
+            ParentTypeIndex = br.ReadUInt32();
+            AttributeCount = br.ReadUInt16();
+            FirstAttributeIndex = br.ReadUInt16();
+            NodeType = br.ReadUInt32();
         }
 
         public XmlElement Read(string name = null)
@@ -74,7 +74,7 @@ namespace unforge
                         XmlElement emptySP = DocumentRoot.CreateElement(string.Format("{0}", node.DataType));
                         parentSP.AppendChild(emptySP);
                         element.AppendChild(parentSP);
-                        DocumentRoot.Require_ClassMapping.Add(new ClassMapping { Node = emptySP, StructIndex = (ushort)_br.ReadUInt32(), RecordIndex = (int)_br.ReadUInt32() });
+                        DocumentRoot.Require_ClassMapping.Add(new ClassMapping { Node = emptySP, StructIndex = (ushort)br.ReadUInt32(), RecordIndex = (int)br.ReadUInt32() });
                     }
                     else
                     {
@@ -84,8 +84,8 @@ namespace unforge
                 }
                 else
                 {
-                    uint arrayCount = _br.ReadUInt32();
-                    uint firstIndex = _br.ReadUInt32();
+                    uint arrayCount = br.ReadUInt32();
+                    uint firstIndex = br.ReadUInt32();
                     XmlElement child = DocumentRoot.CreateElement(node.Name);
                     for (int i = 0; i < arrayCount; i++)
                     {

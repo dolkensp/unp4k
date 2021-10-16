@@ -6,7 +6,7 @@ namespace unforge
     {
         public double Value { get; set; }
 
-        public DataForgeDouble(DataForge documentRoot) : base(documentRoot) { Value = _br.ReadDouble(); }
+        public DataForgeDouble(DataForge documentRoot) : base(documentRoot) { Value = br.ReadDouble(); }
 
         public override string ToString() => string.Format("{0}", Value);
 

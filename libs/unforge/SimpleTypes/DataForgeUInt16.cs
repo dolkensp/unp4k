@@ -6,7 +6,7 @@ namespace unforge
     {
         public ushort Value { get; set; }
 
-        public DataForgeUInt16(DataForge documentRoot) : base(documentRoot) { Value = _br.ReadUInt16(); }
+        public DataForgeUInt16(DataForge documentRoot) : base(documentRoot) { Value = br.ReadUInt16(); }
 
         public override string ToString() => string.Format("{0}", Value);
 

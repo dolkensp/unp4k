@@ -7,7 +7,7 @@ namespace unforge
         private uint _value;
         public string Value { get { return DocumentRoot.ValueMap[_value]; } }
 
-        public DataForgeStringLookup(DataForge documentRoot) : base(documentRoot) { _value = _br.ReadUInt32(); }
+        public DataForgeStringLookup(DataForge documentRoot) : base(documentRoot) { _value = br.ReadUInt32(); }
 
         public override string ToString() => Value;
 

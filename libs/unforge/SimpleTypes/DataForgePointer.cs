@@ -9,8 +9,8 @@ namespace unforge
 
         public DataForgePointer(DataForge documentRoot) : base(documentRoot)
         {
-            StructType = _br.ReadUInt32();
-            Index = _br.ReadUInt32();
+            StructType = br.ReadUInt32();
+            Index = br.ReadUInt32();
         }
 
         public override string ToString() => string.Format("0x{0:X8} 0x{1:X8}", StructType, Index);

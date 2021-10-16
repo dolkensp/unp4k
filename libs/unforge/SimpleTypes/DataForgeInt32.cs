@@ -6,7 +6,7 @@ namespace unforge
     {
         public int Value { get; set; }
 
-        public DataForgeInt32(DataForge documentRoot) : base(documentRoot) { Value = _br.ReadInt32(); }
+        public DataForgeInt32(DataForge documentRoot) : base(documentRoot) { Value = br.ReadInt32(); }
 
         public override string ToString() => string.Format("{0}", Value);
 

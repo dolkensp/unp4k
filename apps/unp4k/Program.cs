@@ -318,16 +318,8 @@ if (existenceFilteredSmeltingEntries.Count > 0)
             if (!smeltedFile.Directory.Exists) smeltedFile.Directory.Create();
             try
             {
-                if (extractedFile.Extension is ".dcb")
-                {
-                    using BinaryReader br = new(extractedFile.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
-                    new DataForge(br, File.OpenRead(extractedFile.FullName).Length < 0x0e2e00 /* May be a .NET bug but for some reason FileInfo.Length cannot access the file.*/).Save(Path.ChangeExtension(smeltedFile.FullName, "xml"));
-                }
-                else
-                {
-                    XmlDocument xml = CryXmlSerializer.ReadFile(extractedFile);
-                    if (xml != null) xml.Save(Path.ChangeExtension(smeltedFile.FullName, "xml"));
-                }
+                if (extractedFile.Extension is ".dcb") new DataForge(extractedFile).Save(smeltedFile);
+                else new CryXmlSerializer(extractedFile).Save(smeltedFile);
             }
             catch (ArgumentException e)
             {
