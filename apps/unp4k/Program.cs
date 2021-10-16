@@ -157,21 +157,24 @@ if (!smelterOutDirectory.Exists) smelterOutDirectory.Create();
 
 Console.Title = $"unp4k: Processing {p4kFile.FullName}";
 Logger.ClearBuffer();
-Logger.LogInfo($"Processing Data.p4k before extraction{(shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
+Logger.LogInfo($"[0% Complete] Processing Data.p4k before extraction{(shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
+
+using FileStream p4kStream = p4kFile.Open(FileMode.Open, FileAccess.Read, FileShare.None); // The Data.p4k must be locked while it is being read to avoid corruption.
+ZipFile pak = new(p4kStream);
+pak.KeysRequired += (object sender, KeysRequiredEventArgs e) => e.Key = new byte[] { 0x5E, 0x7A, 0x20, 0x02, 0x30, 0x2E, 0xEB, 0x1A, 0x3B, 0xB6, 0x17, 0xC3, 0x0F, 0xDE, 0x1E, 0x47 };
 
 byte[] decomBuffer = new byte[4096];
 ConcurrentQueue<ZipEntry> filteredEntries = new();
 ConcurrentQueue<ZipEntry> existenceFilteredExtractionEntries = new();
 ConcurrentQueue<ZipEntry> existenceFilteredSmeltingEntries = new();
-using FileStream p4kStream = p4kFile.Open(FileMode.Open, FileAccess.Read, FileShare.None); // The Data.p4k must be locked while it is being read to avoid corruption.
-ZipFile pak = new(p4kStream);
-pak.KeysRequired += (object sender, KeysRequiredEventArgs e) => e.Key = new byte[] { 0x5E, 0x7A, 0x20, 0x02, 0x30, 0x2E, 0xEB, 0x1A, 0x3B, 0xB6, 0x17, 0xC3, 0x0F, 0xDE, 0x1E, 0x47 };
 
 bool additionalFiles = false;
 int isDecompressableCount = 0;
 int isLockedCount = 0;
 long bytesSize = 0L;
 foreach (ZipEntry entry in pak) filteredEntries.Enqueue(entry);
+Logger.ClearBuffer();
+Logger.LogInfo($"[25% Complete] Processing Data.p4k before extraction{(shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
 filteredEntries = new(filteredEntries.Where(x => filters.Contains("*.*") ? true : filters.Any(o => x.Name.Contains(o))).Where(x =>
 {
     bool isDecompressable = x.CanDecompress;
@@ -180,7 +183,11 @@ filteredEntries = new(filteredEntries.Where(x => filters.Contains("*.*") ? true 
     if (isLocked) isLockedCount++;
     return isDecompressable && !isLocked;
 }).OrderBy(x => x.Name));
+Logger.ClearBuffer();
+Logger.LogInfo($"[50% Complete] Processing Data.p4k before extraction{(shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
 existenceFilteredExtractionEntries = new(filteredEntries.Where(x => !new FileInfo(Path.Join(outDirectory.FullName, x.Name)).Exists));
+Logger.ClearBuffer();
+Logger.LogInfo($"[75% Complete] Processing Data.p4k before extraction{(shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
 existenceFilteredSmeltingEntries   = new(filteredEntries.Where(x => !new FileInfo(Path.ChangeExtension(Path.Join(smelterOutDirectory.FullName, x.Name), "xml")).Exists));
 
 Logger.ClearBuffer();
