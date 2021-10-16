@@ -175,6 +175,7 @@ long bytesSize = 0L;
 foreach (ZipEntry entry in pak) filteredEntries.Enqueue(entry);
 Logger.ClearBuffer();
 Logger.LogInfo($"[25% Complete] Processing Data.p4k before extraction{(shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
+Logger.LogInfo("Testing Data.p4k Entry Integrity...");
 filteredEntries = new(filteredEntries.Where(x => filters.Contains("*.*") ? true : filters.Any(o => x.Name.Contains(o))).Where(x =>
 {
     bool isDecompressable = x.CanDecompress;
@@ -185,9 +186,11 @@ filteredEntries = new(filteredEntries.Where(x => filters.Contains("*.*") ? true 
 }).OrderBy(x => x.Name));
 Logger.ClearBuffer();
 Logger.LogInfo($"[50% Complete] Processing Data.p4k before extraction{(shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
+Logger.LogInfo("Optimising Extractable Files...");
 existenceFilteredExtractionEntries = new(filteredEntries.Where(x => !new FileInfo(Path.Join(outDirectory.FullName, x.Name)).Exists));
 Logger.ClearBuffer();
 Logger.LogInfo($"[75% Complete] Processing Data.p4k before extraction{(shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
+Logger.LogInfo("Optimising Smeltable Files...");
 existenceFilteredSmeltingEntries   = new(filteredEntries.Where(x => !new FileInfo(Path.ChangeExtension(Path.Join(smelterOutDirectory.FullName, x.Name), "xml")).Exists));
 
 Logger.ClearBuffer();
