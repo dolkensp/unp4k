@@ -75,7 +75,7 @@ namespace unforge
             */
 
             // TODO: Never used
-          //List<CryXmlNode> nodeTable = new();
+            List<CryXmlNode> nodeTable = new();
             br.BaseStream.Seek(nodeTableOffset, SeekOrigin.Begin);
             int nodeID = 0;
             while (br.BaseStream.Position < nodeTableOffset + nodeTableCount * nodeTableSize)
@@ -94,7 +94,7 @@ namespace unforge
                     FirstChildIndex = br.ReadInt32(byteOrder),
                     Reserved = br.ReadInt32(byteOrder),
                 };
-              //nodeTable.Add(value);
+                nodeTable.Add(value);
                 /*
                  * TODO: Write this to Debug Log File
                 if (writeLog)
@@ -124,7 +124,7 @@ namespace unforge
             */
 
             // TODO: Never used
-          //List<CryXmlReference> attributeTable = new();
+            List<CryXmlReference> attributeTable = new();
             br.BaseStream.Seek(attributeTableOffset, SeekOrigin.Begin);
             while (br.BaseStream.Position < attributeTableOffset + attributeTableCount * referenceTableSize)
             {
@@ -134,7 +134,7 @@ namespace unforge
                     NameOffset = br.ReadInt32(byteOrder),
                     ValueOffset = br.ReadInt32(byteOrder)
                 };
-              //attributeTable.Add(value);
+                attributeTable.Add(value);
                 /*
                  * TODO: Write this to Debug Log File
                 if (writeLog)
