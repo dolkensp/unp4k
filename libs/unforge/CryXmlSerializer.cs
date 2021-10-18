@@ -220,7 +220,7 @@ namespace unforge
             xml = xmlDoc;
         }
 
-        public TObject Deserialize<TObject>(FileInfo inFile, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian, bool writeLog = false) where TObject : class
+        public TObject Deserialize<TObject>() where TObject : class
         {
             using MemoryStream ms = new();
             xml.Save(ms);
