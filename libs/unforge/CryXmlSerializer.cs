@@ -20,10 +20,13 @@ namespace unforge
 
             string header = br.ReadFString(7);
             if (header is "CryXml" || header is "CryXmlB") br.ReadCString();
+            /*
+             * TODO: Not sure what this is, it is unused.
             else if (header is "CRY3SDK")
             {
-                //byte[] bytes = br.ReadBytes(2);
+                byte[] bytes = br.ReadBytes(2);
             }
+            */
             else return; // Unknown file format
 
             long headerLength = br.BaseStream.Position;
