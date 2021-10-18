@@ -229,7 +229,6 @@ namespace unforge
 				}
 			}
 
-			int i = 0;
 			foreach (DataForgeRecord record in RecordDefinitionTable)
 			{
                     /*
