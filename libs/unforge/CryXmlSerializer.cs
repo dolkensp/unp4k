@@ -220,6 +220,8 @@ namespace unforge
             xml = xmlDoc;
         }
 
+        /*
+         * TODO: Not sure what this is, it is unused.
         public TObject Deserialize<TObject>() where TObject : class
         {
             using MemoryStream ms = new();
@@ -228,6 +230,7 @@ namespace unforge
             XmlSerializer xs = new(typeof(TObject));
             return xs.Deserialize(ms) as TObject;
         }
+        */
 
         public void Save(FileInfo outFile)
         {
