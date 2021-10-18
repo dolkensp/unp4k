@@ -346,7 +346,6 @@ namespace unforge
                 File.WriteAllText(Path.Combine(path, string.Format("{0}.cs", structDefinition.Name)), code);
             }
         }
-        */
 
         public IEnumerator GetEnumerator()
 		{
@@ -365,8 +364,6 @@ namespace unforge
 			}
 		}
 
-        /*
-         * TODO: Not sure what this is, it is unused.
 		public int Length => RecordDefinitionTable.Length;
         */
     }
