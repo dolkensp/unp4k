@@ -14,7 +14,7 @@ namespace unforge
         public int RecordIndex { get; set; }
     }
 
-    public class DataForge : IEnumerable
+    public class DataForge //: IEnumerable
 	{
         internal BinaryReader br;
         internal int FileVersion { get; set; }
