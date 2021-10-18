@@ -189,19 +189,6 @@ namespace unforge
 			}
 		}
 
-        public void Save(FileInfo outFile)
-        {
-			if (string.IsNullOrWhiteSpace(_xmlDocument?.InnerXml)) Compile();
-			
-			foreach (DataForgeRecord record in RecordDefinitionTable)
-			{
-				XmlDocument doc = new();
-				doc.LoadXml(DataMap[record.StructIndex][record.VariantIndex].OuterXml);
-                doc.Save(outFile.Open(FileMode.Create, FileAccess.Write, FileShare.None));
-			}
-            if (_xmlDocument is not null) _xmlDocument.Save(outFile.Open(FileMode.Create, FileAccess.Write, FileShare.None));
-        }
-
 		internal void Compile()
 		{
 			XmlElement root = _xmlDocument.CreateElement("DataForge");
@@ -267,6 +254,19 @@ namespace unforge
 				root.AppendChild(DataMap[record.StructIndex][record.VariantIndex]);
 			}
 		}
+
+        public void Save(FileInfo outFile)
+        {
+            if (string.IsNullOrWhiteSpace(_xmlDocument?.InnerXml)) Compile();
+
+            foreach (DataForgeRecord record in RecordDefinitionTable)
+            {
+                XmlDocument doc = new();
+                doc.LoadXml(DataMap[record.StructIndex][record.VariantIndex].OuterXml);
+                doc.Save(outFile.Open(FileMode.Create, FileAccess.Write, FileShare.None));
+            }
+            if (_xmlDocument is not null) _xmlDocument.Save(outFile.Open(FileMode.Create, FileAccess.Write, FileShare.None));
+        }
 
         /*
          * TODO: Not sure what this is, it is unused.
@@ -347,7 +347,7 @@ namespace unforge
         }
         */
 
-		public IEnumerator GetEnumerator()
+        public IEnumerator GetEnumerator()
 		{
             int i = 0;
             if (string.IsNullOrWhiteSpace(_xmlDocument?.InnerXml)) Compile();
