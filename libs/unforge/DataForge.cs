@@ -185,7 +185,7 @@ namespace unforge
 			get
 			{
 				if (string.IsNullOrWhiteSpace(_xmlDocument?.InnerXml)) Compile();
-				return _xmlDocument.OuterXml ?? string.Empty;
+				return _xmlDocument.OuterXml;
 			}
 		}
 
