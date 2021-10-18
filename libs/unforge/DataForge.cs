@@ -184,80 +184,82 @@ namespace unforge
 		{
 			get
 			{
-				if (string.IsNullOrWhiteSpace(_xmlDocument?.InnerXml)) Compile();
+				Compile();
 				return _xmlDocument.OuterXml;
 			}
 		}
 
 		internal void Compile()
 		{
-			XmlElement root = _xmlDocument.CreateElement("DataForge");
-			_xmlDocument.AppendChild(root);
+            if (string.IsNullOrWhiteSpace(_xmlDocument?.InnerXml))
+            {
+                XmlElement root = _xmlDocument.CreateElement("DataForge");
+                _xmlDocument.AppendChild(root);
 
-			foreach (ClassMapping dataMapping in Require_StrongMapping)
-			{
-				DataForgePointer strong = Array_StrongValues[dataMapping.RecordIndex];
-				if (strong.Index is 0xFFFFFFFF) dataMapping.Node.ParentNode.RemoveChild(dataMapping.Node);
-				else dataMapping.Node.ParentNode.ReplaceChild( DataMap[strong.StructType][(int)strong.Index], dataMapping.Node);
-			}
+                foreach (ClassMapping dataMapping in Require_StrongMapping)
+                {
+                    DataForgePointer strong = Array_StrongValues[dataMapping.RecordIndex];
+                    if (strong.Index is 0xFFFFFFFF) dataMapping.Node.ParentNode.RemoveChild(dataMapping.Node);
+                    else dataMapping.Node.ParentNode.ReplaceChild(DataMap[strong.StructType][(int)strong.Index], dataMapping.Node);
+                }
 
-			foreach (ClassMapping dataMapping in Require_WeakMapping1)
-			{
-				DataForgePointer weak = Array_WeakValues[dataMapping.RecordIndex];
-				XmlNode weakAttribute = dataMapping.Node;
-				if (weak.Index is 0xFFFFFFFF) weakAttribute.Value = string.Format("0");
-				else
-				{
-					XmlElement targetElement = DataMap[weak.StructType][(int)weak.Index];
-					weakAttribute.Value = targetElement.GetPath();
-				}
-			}
+                foreach (ClassMapping dataMapping in Require_WeakMapping1)
+                {
+                    DataForgePointer weak = Array_WeakValues[dataMapping.RecordIndex];
+                    XmlNode weakAttribute = dataMapping.Node;
+                    if (weak.Index is 0xFFFFFFFF) weakAttribute.Value = string.Format("0");
+                    else
+                    {
+                        XmlElement targetElement = DataMap[weak.StructType][(int)weak.Index];
+                        weakAttribute.Value = targetElement.GetPath();
+                    }
+                }
 
-			foreach (ClassMapping dataMapping in Require_WeakMapping2)
-			{
-				XmlNode weakAttribute = dataMapping.Node;
-				if (dataMapping.StructIndex is 0xFFFF) weakAttribute.Value = "null";
-				else if (dataMapping.RecordIndex is -1)
-				{
-					List<XmlElement> targetElement = DataMap[dataMapping.StructIndex];
-					weakAttribute.Value = targetElement.FirstOrDefault()?.GetPath();
-				}
-				else
-				{
-                    XmlElement targetElement = DataMap[dataMapping.StructIndex][dataMapping.RecordIndex];
-					weakAttribute.Value = targetElement.GetPath();
-				}
-			}
+                foreach (ClassMapping dataMapping in Require_WeakMapping2)
+                {
+                    XmlNode weakAttribute = dataMapping.Node;
+                    if (dataMapping.StructIndex is 0xFFFF) weakAttribute.Value = "null";
+                    else if (dataMapping.RecordIndex is -1)
+                    {
+                        List<XmlElement> targetElement = DataMap[dataMapping.StructIndex];
+                        weakAttribute.Value = targetElement.FirstOrDefault()?.GetPath();
+                    }
+                    else
+                    {
+                        XmlElement targetElement = DataMap[dataMapping.StructIndex][dataMapping.RecordIndex];
+                        weakAttribute.Value = targetElement.GetPath();
+                    }
+                }
 
-			foreach (DataForgeRecord record in RecordDefinitionTable)
-			{
+                foreach (DataForgeRecord record in RecordDefinitionTable)
+                {
                     /*
                      * TODO: Write this to Debug Log File
 				if (!record.FileName.ToLowerInvariant().Contains(record.Name.ToLowerInvariant()) &&
 					!record.FileName.ToLowerInvariant().Contains(record.Name.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries).Last().ToLowerInvariant()))
 				        Console.WriteLine("Warning {0} doesn't match {1}", record.Name, record.FileName);
                     */
-				if (record.Hash.HasValue && record.Hash != Guid.Empty)
-				{
-					XmlAttribute hash = CreateAttribute("__ref");
-					hash.Value = $"{record.Hash}";
-					DataMap[record.StructIndex][record.VariantIndex].Attributes.Append(hash);
-				}
-				if (!string.IsNullOrWhiteSpace(record.FileName))
-				{
-                    XmlAttribute path = CreateAttribute("__path");
-					path.Value = $"{record.FileName}";
-					DataMap[record.StructIndex][record.VariantIndex].Attributes.Append(path);
-				}
-				DataMap[record.StructIndex][record.VariantIndex] = DataMap[record.StructIndex][record.VariantIndex].Rename(record.Name);
-				root.AppendChild(DataMap[record.StructIndex][record.VariantIndex]);
-			}
+                    if (record.Hash.HasValue && record.Hash != Guid.Empty)
+                    {
+                        XmlAttribute hash = CreateAttribute("__ref");
+                        hash.Value = $"{record.Hash}";
+                        DataMap[record.StructIndex][record.VariantIndex].Attributes.Append(hash);
+                    }
+                    if (!string.IsNullOrWhiteSpace(record.FileName))
+                    {
+                        XmlAttribute path = CreateAttribute("__path");
+                        path.Value = $"{record.FileName}";
+                        DataMap[record.StructIndex][record.VariantIndex].Attributes.Append(path);
+                    }
+                    DataMap[record.StructIndex][record.VariantIndex] = DataMap[record.StructIndex][record.VariantIndex].Rename(record.Name);
+                    root.AppendChild(DataMap[record.StructIndex][record.VariantIndex]);
+                }
+            }
 		}
 
         public void Save(FileInfo outFile)
         {
-            if (string.IsNullOrWhiteSpace(_xmlDocument?.InnerXml)) Compile();
-
+            Compile();
             foreach (DataForgeRecord record in RecordDefinitionTable)
             {
                 XmlDocument doc = new();
@@ -272,7 +274,7 @@ namespace unforge
 
 		public Stream GetStream()
 		{
-			if (string.IsNullOrWhiteSpace(_xmlDocument?.InnerXml)) Compile();
+			Compile();
 			MemoryStream outStream = new();
 			_xmlDocument.Save(outStream);
 			return outStream;
@@ -349,7 +351,7 @@ namespace unforge
         public IEnumerator GetEnumerator()
 		{
             int i = 0;
-            if (string.IsNullOrWhiteSpace(_xmlDocument?.InnerXml)) Compile();
+            Compile();
 			foreach (DataForgeRecord record in RecordDefinitionTable)
 			{
 				string fileReference = record.FileName;
