@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Xml;
 
 namespace unforge
@@ -47,7 +46,16 @@ namespace unforge
 
         public DataForgeInstancePackage(FileInfo inFile, FileInfo outFile)
         {
-            U[] ReadArray<U>(int arraySize) where U : DataForgeSerializable => arraySize is -1 ? null : (from i in Enumerable.Range(0, arraySize) let data = (U)Activator.CreateInstance(typeof(U), this) select data).ToArray();
+            U[] ReadArray<U>(int arraySize) where U : DataForgeSerializable
+            {
+                if (arraySize is -1) return null;
+                else
+                {
+                    U[] o = new U[arraySize];
+                    for (int i = 0; i < arraySize; i++) o[i] = (U)Activator.CreateInstance(typeof(U), this);
+                    return o;
+                }
+            }
 
             InFile = inFile;
             OutFile = outFile;

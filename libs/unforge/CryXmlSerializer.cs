@@ -70,7 +70,6 @@ namespace unforge
             br.BaseStream.Seek(attributeTableOffset, SeekOrigin.Begin);
             while (br.BaseStream.Position < attributeTableOffset + attributeTableCount * referenceTableSize)
             {
-                long position = br.BaseStream.Position;
                 CryXmlReference value = new()
                 {
                     NameOffset = br.ReadInt32(byteOrder),
@@ -79,16 +78,11 @@ namespace unforge
                 attributeTable.Add(value);
             }
 
-            List<int> parentTable = new() { };
+            List<int> parentTable = new();
             br.BaseStream.Seek(childTableOffset, SeekOrigin.Begin);
-            while (br.BaseStream.Position < childTableOffset + childTableCount * length3)
-            {
-                long position = br.BaseStream.Position;
-                int value = br.ReadInt32(byteOrder);
-                parentTable.Add(value);
-            }
+            while (br.BaseStream.Position < childTableOffset + childTableCount * length3) br.ReadInt32(byteOrder); // Offset - Apparently reads value
 
-            List<CryXmlValue> dataTable = new() { };
+            List<CryXmlValue> dataTable = new();
             br.BaseStream.Seek(stringTableOffset, SeekOrigin.Begin);
             while (br.BaseStream.Position < br.BaseStream.Length)
             {
@@ -104,7 +98,7 @@ namespace unforge
             Dictionary<int, string> dataMap = dataTable.ToDictionary(k => k.Offset, v => v.Value);
             int attributeIndex = 0;
             XmlDocument xmlDoc = new();
-            Dictionary<int, XmlElement> xmlMap = new() { };
+            Dictionary<int, XmlElement> xmlMap = new();
             foreach (CryXmlNode node in nodeTable)
             {
                 XmlElement element = xmlDoc.CreateElement(dataMap[node.NodeNameOffset]);
