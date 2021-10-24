@@ -158,6 +158,7 @@ namespace unforge
                 }
             }
 
+            /*
             foreach (ClassMapping dataMapping in Require_ClassMapping)
             {
                 if (dataMapping.StructIndex is 0xFFFF) dataMapping.Node.ParentNode.RemoveChild(dataMapping.Node);
@@ -175,6 +176,7 @@ namespace unforge
                     dataMapping.Node.ParentNode.ReplaceChild(bugged, dataMapping.Node);
                 }
             }
+            */
         }
 
         private XmlDocument _xmlDocument = new();
