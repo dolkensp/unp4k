@@ -1,4 +1,5 @@
-﻿
+﻿using System.Text;
+
 using Serilog;
 
 using unlib;
@@ -101,22 +102,19 @@ public static class Logger
 
     public static void DivideBuffer()
     {
-        string text = string.Empty;
-        for (int i = 0; i < Console.BufferWidth - 1; i++) text += "-";
+        StringBuilder b = new();
+        for (int i = 0; i < Console.BufferWidth - 1; i++) b.Append("-");
         LogPackage pckg = default;
         pckg.ClearMode = 1;
-        pckg.Message = text;
+        pckg.Message = b.ToString();
         PushLog(pckg);
     }
 
     public static void ClearLine(string? content = null)
     {
-        if (string.IsNullOrEmpty(content))
-        {
-            content = string.Empty;
-            for (int i = 0; i < Console.BufferWidth - 1; i++) content += " ";
-        }
-        Console.Write("\r{0}", content);
+        StringBuilder b = new(content is null ? string.Empty : content);
+        for (int i = 0; i < Console.BufferWidth - 1; i++) b.Append(" ");
+        Console.Write("\r{0}", b.ToString());
     }
 
     public static void ClearBuffer()
