@@ -233,12 +233,6 @@ namespace unforge
 
                 foreach (DataForgeRecord record in RecordDefinitionTable)
                 {
-                    /*
-                     * TODO: Write this to Debug Log File
-				if (!record.FileName.ToLowerInvariant().Contains(record.Name.ToLowerInvariant()) &&
-					!record.FileName.ToLowerInvariant().Contains(record.Name.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries).Last().ToLowerInvariant()))
-				        Console.WriteLine("Warning {0} doesn't match {1}", record.Name, record.FileName);
-                    */
                     if (record.Hash.HasValue && record.Hash != Guid.Empty)
                     {
                         XmlAttribute hash = CreateAttribute("__ref");
@@ -268,103 +262,5 @@ namespace unforge
             }
             if (_xmlDocument is not null) _xmlDocument.Save(outFile.Open(FileMode.Create, FileAccess.Write, FileShare.None));
         }
-
-        /*
-         * TODO: Not sure what this is, it is unused.
-
-		public Stream GetStream()
-		{
-			Compile();
-			MemoryStream outStream = new();
-			_xmlDocument.Save(outStream);
-			return outStream;
-		}
-
-		public void GenerateSerializationClasses(string path = "AutoGen", string assemblyName = "HoloXPLOR.Data.DataForge")
-        {
-            path = new DirectoryInfo(path).FullName;
-            if (Directory.Exists(path) && path != new DirectoryInfo(".").FullName)
-            {
-                Directory.Delete(path, true);
-                while (Directory.Exists(path)) Thread.Sleep(100);
-            }
-            Directory.CreateDirectory(path);
-            while (!Directory.Exists(path)) Thread.Sleep(100);
-            StringBuilder sb = new();
-            sb.AppendLine(@"using System.Xml.Serialization;");
-            sb.AppendLine();
-            sb.AppendFormat(@"namespace {0}", assemblyName);
-            sb.AppendLine();
-            sb.AppendLine(@"{");
-            foreach (DataForgeEnumDefinition enumDefinition in EnumDefinitionTable) sb.Append(enumDefinition.Export());
-            sb.AppendLine(@"}");
-            File.WriteAllText(Path.Combine(path, "Enums.cs"), sb.ToString());
-            sb = new();
-            sb.AppendLine(@"using System;");
-            sb.AppendLine(@"using System.Xml.Serialization;");
-            sb.AppendLine();
-            sb.AppendFormat(@"namespace {0}", assemblyName);
-            sb.AppendLine();
-            sb.AppendLine(@"{");
-            foreach (EDataType typeDefinition in Enum.GetValues(typeof(EDataType)))
-            {
-                string typeName = typeDefinition.ToString().Replace("var", "");
-                switch (typeDefinition)
-                {
-                    case EDataType.varStrongPointer:
-                    case EDataType.varClass: break;
-                    case EDataType.varLocale:
-                    case EDataType.varWeakPointer:
-                        sb.AppendFormat(@"    public class _{0}", typeName);
-                        sb.AppendLine();
-                        sb.AppendLine(@"    {");
-                        sb.AppendLine(@"        public string Value { get; set; }");
-                        sb.AppendLine(@"    }");
-                        break;
-                    case EDataType.varReference:
-                        sb.AppendFormat(@"    public class _{0}", typeName);
-                        sb.AppendLine();
-                        sb.AppendLine(@"    {");
-                        sb.AppendLine(@"        public Guid Value { get; set; }");
-                        sb.AppendLine(@"    }");
-                        break;
-                    default:
-                        sb.AppendFormat(@"    public class _{0}", typeName);
-                        sb.AppendLine();
-                        sb.AppendLine(@"    {");
-                        sb.AppendFormat(@"        public {0} Value {{ get; set; }}", typeName);
-                        sb.AppendLine();
-                        sb.AppendLine(@"    }");
-                        break;
-                }
-            }
-            sb.AppendLine(@"}");
-            File.WriteAllText(Path.Combine(path, "Arrays.cs"), sb.ToString());
-            foreach (DataForgeStructDefinition structDefinition in StructDefinitionTable)
-            {
-                string code = structDefinition.Export(assemblyName);
-                File.WriteAllText(Path.Combine(path, string.Format("{0}.cs", structDefinition.Name)), code);
-            }
-        }
-
-        public IEnumerator GetEnumerator()
-		{
-            int i = 0;
-            Compile();
-			foreach (DataForgeRecord record in RecordDefinitionTable)
-			{
-				string fileReference = record.FileName;
-				if (fileReference.Split('/').Length is 2) fileReference = fileReference.Split('/')[1];
-				if (string.IsNullOrWhiteSpace(fileReference)) fileReference = string.Format(@"Dump\{0}_{1}.xml", record.Name, i++);
-				string newPath = fileReference;
-				if (!Directory.Exists(Path.GetDirectoryName(newPath))) Directory.CreateDirectory(Path.GetDirectoryName(newPath));
-				XmlDocument doc = new();
-				doc.LoadXml(DataMap[record.StructIndex][record.VariantIndex].OuterXml);
-				yield return (FileName: newPath, XmlDocument: doc);
-			}
-		}
-
-		public int Length => RecordDefinitionTable.Length;
-        */
     }
 }
