@@ -78,7 +78,6 @@ namespace unforge
                 attributeTable.Add(value);
             }
 
-            List<int> parentTable = new();
             br.BaseStream.Seek(childTableOffset, SeekOrigin.Begin);
             while (br.BaseStream.Position < childTableOffset + childTableCount * length3) br.ReadInt32(byteOrder); // Offset - Apparently reads value
 
