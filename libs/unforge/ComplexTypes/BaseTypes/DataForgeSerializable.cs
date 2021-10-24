@@ -6,7 +6,7 @@ namespace unforge
     {
         internal DataForgeInstancePackage DocumentRoot { get; private set; }
         internal BinaryReader Br { get { return DocumentRoot.Br; } }
-        
+
         public DataForgeSerializable(DataForgeInstancePackage documentRoot)
         {
             DocumentRoot = documentRoot;

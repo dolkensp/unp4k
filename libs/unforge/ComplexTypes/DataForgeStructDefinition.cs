@@ -52,7 +52,7 @@ namespace unforge
             }
 
             await writer.WriteStartElementAsync(null, name ?? baseStruct.Name, null); // Master Element
-            foreach (DataForgePropertyDefinition node in properties.Where(x => (EConversionType)((int)x.ConversionType & 0xFF) is EConversionType.varAttribute && 
+            foreach (DataForgePropertyDefinition node in properties.Where(x => (EConversionType)((int)x.ConversionType & 0xFF) is EConversionType.varAttribute &&
                 x.DataType is not EDataType.varClass && x.DataType is not EDataType.varStrongPointer)) await node.ReadAttribute(writer);
             await writer.WriteAttributeStringAsync(null, "__type", null, baseStruct.Name);
             if (ParentTypeIndex != 0xFFFFFFFF) await writer.WriteAttributeStringAsync(null, "__polymorphicType", null, Name);

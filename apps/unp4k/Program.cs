@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.Threading.Tasks;
-using System.Linq;
-using System.IO;
-using System.Xml;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 
 using ICSharpCode.SharpZipLib.Core;
@@ -34,7 +28,7 @@ bool forceOverwrite = false;
 Logger.ClearBuffer();
 Logger.LogInfo("Initialising...");
 
-if (args.Length is 0) 
+if (args.Length is 0)
 {
     p4kFile = defaultp4kFile;
     outDirectory = defaultExtractionDirectory;
@@ -181,7 +175,7 @@ filteredEntries = new(filteredEntries.Where(x => filters.Contains("*.*") ? true 
 Logger.ClearBuffer();
 Logger.LogInfo($"[{(shouldSmelt ? "50" : "66")}% Complete] Processing Data.p4k before extraction{(shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
 Logger.LogInfo("Optimising Extractable File List...");
-existenceFilteredExtractionEntries = new(filteredEntries.Where(x => 
+existenceFilteredExtractionEntries = new(filteredEntries.Where(x =>
 {
     FileInfo f = new(Path.Join(outDirectory.FullName, x.Name));
     return forceOverwrite || !f.Exists || f.Length != x.Size;
@@ -191,7 +185,7 @@ if (shouldSmelt)
     Logger.ClearBuffer();
     Logger.LogInfo($"[75% Complete] Processing Data.p4k before extraction{(shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
     Logger.LogInfo("Optimising Smeltable File List...");
-    existenceFilteredSmeltingEntries = new(filteredEntries.Where(x => 
+    existenceFilteredSmeltingEntries = new(filteredEntries.Where(x =>
     {
         FileInfo f = new(Path.ChangeExtension(Path.Join(smelterOutDirectory.FullName, x.Name), "xml"));
         return forceOverwrite || !f.Exists || f.Length != x.Size;
