@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,7 +13,7 @@ namespace unforge
         public int RecordIndex { get; set; }
     }
 
-    public class DataForge //: IEnumerable
+    public class DataForge
 	{
         internal BinaryReader br;
         internal int FileVersion { get; set; }
