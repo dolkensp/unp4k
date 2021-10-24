@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Xml;
+using System.Threading.Tasks;
 
 namespace unforge
 {
@@ -8,17 +9,15 @@ namespace unforge
     {
         public Guid Value { get; set; }
 
-        public DataForgeGuid(DataForge documentRoot)  : base(documentRoot) { Value = br.ReadGuid(false).Value; }
+        public DataForgeGuid(DataForgeInstancePackage documentRoot)  : base(documentRoot) { Value = Br.ReadGuid(false).Value; }
 
         public override string ToString() => Value.ToString();
 
-        public XmlElement Read()
+        public async Task Read(XmlWriter writer)
         {
-            XmlElement element = DocumentRoot.CreateElement("Guid");
-            XmlAttribute attribute = DocumentRoot.CreateAttribute("value");
-            attribute.Value = Value.ToString();
-            element.Attributes.Append(attribute);
-            return element;
+            await writer.WriteStartElementAsync(null, "Guid", null);
+            await writer.WriteAttributeStringAsync(null, "Value", null, Value.ToString());
+            await writer.WriteEndElementAsync();
         }
     }
 }

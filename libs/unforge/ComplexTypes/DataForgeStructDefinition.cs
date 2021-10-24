@@ -1,49 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Xml;
+using System.Threading.Tasks;
 
 namespace unforge
 {
     public class DataForgeStructDefinition : DataForgeSerializable
     {
-        public uint NameOffset { get; set; }
-        public string Name { get { return DocumentRoot.ValueMap[NameOffset]; } }
+        internal uint NameOffset { get; set; }
+        internal string Name { get { return DocumentRoot.ValueMap[NameOffset]; } }
 
-        public string __parentTypeIndex { get { return string.Format("{0:X4}", ParentTypeIndex); } }
-        public uint ParentTypeIndex { get; set; }
+        internal string __parentTypeIndex { get { return string.Format("{0:X4}", ParentTypeIndex); } }
+        internal uint ParentTypeIndex { get; set; }
 
-        public string __attributeCount { get { return string.Format("{0:X4}", AttributeCount); } }
-        public ushort AttributeCount { get; set; }
+        internal string __attributeCount { get { return string.Format("{0:X4}", AttributeCount); } }
+        internal ushort AttributeCount { get; set; }
 
-        public string __firstAttributeIndex { get { return string.Format("{0:X4}", FirstAttributeIndex); } }
-        public ushort FirstAttributeIndex { get; set; }
+        internal string __firstAttributeIndex { get { return string.Format("{0:X4}", FirstAttributeIndex); } }
+        internal ushort FirstAttributeIndex { get; set; }
 
-        public string __nodeType { get { return string.Format("{0:X4}", NodeType); } }
-        public uint NodeType { get; set; }
+        internal string __nodeType { get { return string.Format("{0:X4}", NodeType); } }
+        internal uint NodeType { get; set; }
 
-        public DataForgeStructDefinition(DataForge documentRoot) : base(documentRoot)
+        public DataForgeStructDefinition(DataForgeInstancePackage documentRoot) : base(documentRoot)
         {
-            NameOffset = br.ReadUInt32();
-            ParentTypeIndex = br.ReadUInt32();
-            AttributeCount = br.ReadUInt16();
-            FirstAttributeIndex = br.ReadUInt16();
-            NodeType = br.ReadUInt32();
+            NameOffset = Br.ReadUInt32();
+            ParentTypeIndex = Br.ReadUInt32();
+            AttributeCount = Br.ReadUInt16();
+            FirstAttributeIndex = Br.ReadUInt16();
+            NodeType = Br.ReadUInt32();
         }
 
-        public XmlElement Read(string name = null)
+        public async Task Read(XmlWriter writer, string name = null)
         {
-            XmlAttribute attribute;
             DataForgeStructDefinition baseStruct = this;
             List<DataForgePropertyDefinition> properties = new();
-
-            // TODO: Do we need to handle property overrides
 
             properties.InsertRange(0,
                 from index in Enumerable.Range(FirstAttributeIndex, AttributeCount)
                 let property = DocumentRoot.PropertyDefinitionTable[index]
-                // where !properties.Select(p => p.Name).Contains(property.Name)
                 select property);
 
             while (baseStruct.ParentTypeIndex != 0xFFFFFFFF)
@@ -52,11 +48,14 @@ namespace unforge
                 properties.InsertRange(0,
                     from index in Enumerable.Range(baseStruct.FirstAttributeIndex, baseStruct.AttributeCount)
                     let property = DocumentRoot.PropertyDefinitionTable[index]
-                    // where !properties.Contains(property)
                     select property);
             }
 
-            XmlElement element = DocumentRoot.CreateElement(name ?? baseStruct.Name);
+            await writer.WriteStartElementAsync(null, name ?? baseStruct.Name, null); // Master Element
+            foreach (DataForgePropertyDefinition node in properties.Where(x => (EConversionType)((int)x.ConversionType & 0xFF) is EConversionType.varAttribute && 
+                x.DataType is not EDataType.varClass && x.DataType is not EDataType.varStrongPointer)) await node.ReadAttribute(writer);
+            await writer.WriteAttributeStringAsync(null, "__type", null, baseStruct.Name);
+            if (ParentTypeIndex != 0xFFFFFFFF) await writer.WriteAttributeStringAsync(null, "__polymorphicType", null, Name);
             foreach (DataForgePropertyDefinition node in properties)
             {
                 node.ConversionType = (EConversionType)((int)node.ConversionType & 0xFF);
@@ -65,241 +64,96 @@ namespace unforge
                     if (node.DataType is EDataType.varClass)
                     {
                         DataForgeStructDefinition dataStruct = DocumentRoot.StructDefinitionTable[node.StructIndex];
-                        XmlElement child = dataStruct.Read(node.Name);
-                        element.AppendChild(child);
+                        await writer.WriteStartElementAsync(null, node.Name, null);
+                        await dataStruct.Read(writer);
+                        await writer.WriteEndElementAsync();
                     }
                     else if (node.DataType is EDataType.varStrongPointer)
                     {
-                        XmlElement parentSP = DocumentRoot.CreateElement(node.Name);
-                        XmlElement emptySP = DocumentRoot.CreateElement(string.Format("{0}", node.DataType));
-                        parentSP.AppendChild(emptySP);
-                        element.AppendChild(parentSP);
-                        DocumentRoot.Require_ClassMapping.Add(new ClassMapping { Node = emptySP, StructIndex = (ushort)br.ReadUInt32(), RecordIndex = (int)br.ReadUInt32() });
-                    }
-                    else
-                    {
-                        XmlAttribute childAttribute = node.Read();
-                        element.Attributes.Append(childAttribute);
+                        await writer.WriteStartElementAsync(null, node.Name, null);
+                        await writer.WriteStartElementAsync(null, node.DataType.ToString(), null);
+                        await writer.WriteEndElementAsync();
+                        await writer.WriteEndElementAsync();
                     }
                 }
                 else
                 {
-                    uint arrayCount = br.ReadUInt32();
-                    uint firstIndex = br.ReadUInt32();
-                    XmlElement child = DocumentRoot.CreateElement(node.Name);
+                    uint arrayCount = Br.ReadUInt32();
+                    uint firstIndex = Br.ReadUInt32();
+                    await writer.WriteStartElementAsync(null, node.Name, null);
                     for (int i = 0; i < arrayCount; i++)
                     {
                         switch (node.DataType)
                         {
                             case EDataType.varBoolean:
-                                child.AppendChild(DocumentRoot.Array_BooleanValues[firstIndex + i].Read());
+                                await DocumentRoot.Array_BooleanValues[firstIndex + i].Read(writer);
                                 break;
                             case EDataType.varDouble:
-                                child.AppendChild(DocumentRoot.Array_DoubleValues[firstIndex + i].Read());
+                                await DocumentRoot.Array_DoubleValues[firstIndex + i].Read(writer);
                                 break;
                             case EDataType.varEnum:
-                                child.AppendChild(DocumentRoot.Array_EnumValues[firstIndex + i].Read());
+                                await DocumentRoot.Array_EnumValues[firstIndex + i].Read(writer);
                                 break;
                             case EDataType.varGuid:
-                                child.AppendChild(DocumentRoot.Array_GuidValues[firstIndex + i].Read());
+                                await DocumentRoot.Array_GuidValues[firstIndex + i].Read(writer);
                                 break;
                             case EDataType.varInt16:
-                                child.AppendChild(DocumentRoot.Array_Int16Values[firstIndex + i].Read());
+                                await DocumentRoot.Array_Int16Values[firstIndex + i].Read(writer);
                                 break;
                             case EDataType.varInt32:
-                                child.AppendChild(DocumentRoot.Array_Int32Values[firstIndex + i].Read());
+                                await DocumentRoot.Array_Int32Values[firstIndex + i].Read(writer);
                                 break;
                             case EDataType.varInt64:
-                                child.AppendChild(DocumentRoot.Array_Int64Values[firstIndex + i].Read());
+                                await DocumentRoot.Array_Int64Values[firstIndex + i].Read(writer);
                                 break;
                             case EDataType.varSByte:
-                                child.AppendChild(DocumentRoot.Array_Int8Values[firstIndex + i].Read());
+                                await DocumentRoot.Array_Int8Values[firstIndex + i].Read(writer);
                                 break;
                             case EDataType.varLocale:
-                                child.AppendChild(DocumentRoot.Array_LocaleValues[firstIndex + i].Read());
+                                await DocumentRoot.Array_LocaleValues[firstIndex + i].Read(writer);
                                 break;
                             case EDataType.varReference:
-                                child.AppendChild(DocumentRoot.Array_ReferenceValues[firstIndex + i].Read());
+                                await DocumentRoot.Array_ReferenceValues[firstIndex + i].Read(writer);
                                 break;
                             case EDataType.varSingle:
-                                child.AppendChild(DocumentRoot.Array_SingleValues[firstIndex + i].Read());
+                                await DocumentRoot.Array_SingleValues[firstIndex + i].Read(writer);
                                 break;
                             case EDataType.varString:
-                                child.AppendChild(DocumentRoot.Array_StringValues[firstIndex + i].Read());
+                                await DocumentRoot.Array_StringValues[firstIndex + i].Read(writer);
                                 break;
                             case EDataType.varUInt16:
-                                child.AppendChild(DocumentRoot.Array_UInt16Values[firstIndex + i].Read());
+                                await DocumentRoot.Array_UInt16Values[firstIndex + i].Read(writer);
                                 break;
                             case EDataType.varUInt32:
-                                child.AppendChild(DocumentRoot.Array_UInt32Values[firstIndex + i].Read());
+                                await DocumentRoot.Array_UInt32Values[firstIndex + i].Read(writer);
                                 break;
                             case EDataType.varUInt64:
-                                child.AppendChild(DocumentRoot.Array_UInt64Values[firstIndex + i].Read());
+                                await DocumentRoot.Array_UInt64Values[firstIndex + i].Read(writer);
                                 break;
                             case EDataType.varByte:
-                                child.AppendChild(DocumentRoot.Array_UInt8Values[firstIndex + i].Read());
+                                await DocumentRoot.Array_UInt8Values[firstIndex + i].Read(writer);
                                 break;
                             case EDataType.varClass:
-                                XmlElement emptyC = DocumentRoot.CreateElement(string.Format("{0}", node.DataType));
-                                child.AppendChild(emptyC);
-                                DocumentRoot.Require_ClassMapping.Add(new ClassMapping { Node = emptyC, StructIndex = node.StructIndex, RecordIndex = (int)(firstIndex + i) });
+                                await writer.WriteStartElementAsync(null, node.DataType.ToString(), null);
+                                await writer.WriteEndElementAsync();
                                 break;
                             case EDataType.varStrongPointer:
-                                XmlElement emptySP = DocumentRoot.CreateElement(string.Format("{0}", node.DataType));
-                                child.AppendChild(emptySP);
-                                DocumentRoot.Require_StrongMapping.Add(new ClassMapping { Node = emptySP, StructIndex = node.StructIndex, RecordIndex = (int)(firstIndex + i) });
+                                await writer.WriteStartElementAsync(null, node.DataType.ToString(), null);
+                                await writer.WriteEndElementAsync();
                                 break;
                             case EDataType.varWeakPointer:
-                                XmlElement weakPointerElement = DocumentRoot.CreateElement("WeakPointer");
-                                XmlAttribute weakPointerAttribute = DocumentRoot.CreateAttribute(node.Name);
-                                weakPointerElement.Attributes.Append(weakPointerAttribute);
-                                child.AppendChild(weakPointerElement);
-                                DocumentRoot.Require_WeakMapping1.Add(new ClassMapping { Node = weakPointerAttribute, StructIndex = node.StructIndex, RecordIndex = (int)(firstIndex + i) });
+                                await writer.WriteStartElementAsync(null, "WeakPointer", null);
+                                await writer.WriteAttributeStringAsync(null, node.Name, null, null);
+                                await writer.WriteEndElementAsync();
                                 break;
                             default:
                                 throw new NotImplementedException();
-
-                                // var tempe = DocumentRoot.CreateElement(string.Format("{0}", node.DataType));
-                                // var tempa = DocumentRoot.CreateAttribute("__child");
-                                // tempa.Value = (firstIndex + i).Tostring();
-                                // tempe.Attributes.Append(tempa);
-                                // var tempb = DocumentRoot.CreateAttribute("__parent");
-                                // tempb.Value = node.StructIndex.Tostring();
-                                // tempe.Attributes.Append(tempb);
-                                // child.AppendChild(tempe);
-                                // break;
                         }
                     }
-                    element.AppendChild(child);
+                    await writer.WriteEndElementAsync();
                 }
             }
-            attribute = DocumentRoot.CreateAttribute("__type");
-            attribute.Value = baseStruct.Name;
-            element.Attributes.Append(attribute);
-
-            if (ParentTypeIndex != 0xFFFFFFFF)
-            {
-                attribute = DocumentRoot.CreateAttribute("__polymorphicType");
-                attribute.Value = Name;
-                element.Attributes.Append(attribute);
-            }
-            return element;
-        }
-
-        public string Export(string assemblyName = "HoloXPLOR.Data.DataForge")
-        {
-            StringBuilder sb = new();
-
-            sb.AppendLine(@"using System;");
-            sb.AppendLine(@"using System.Xml.Serialization;");
-            sb.AppendLine(@"");
-            sb.AppendFormat(@"namespace {0}", assemblyName);
-            sb.AppendLine();
-            sb.AppendLine(@"{");
-            sb.AppendFormat(@"    [XmlRoot(ElementName = ""{0}"")]", Name);
-            sb.AppendLine();
-            sb.AppendFormat(@"    public partial class {0}", Name);
-            if (ParentTypeIndex != 0xFFFFFFFF) sb.AppendFormat(" : {0}", DocumentRoot.StructDefinitionTable[ParentTypeIndex].Name);
-            sb.AppendLine();
-            sb.AppendLine(@"    {");
-
-            for (uint i = FirstAttributeIndex, j = (uint)(FirstAttributeIndex + AttributeCount); i < j; i++)
-            {
-                DataForgePropertyDefinition property = DocumentRoot.PropertyDefinitionTable[i];
-                property.ConversionType = (EConversionType)((int)property.ConversionType | 0x6900);
-                string arraySuffix = string.Empty;
-                switch (property.ConversionType)
-                {
-                    case EConversionType.varAttribute:
-                        if (property.DataType is EDataType.varClass) sb.AppendFormat(@"        [XmlElement(ElementName = ""{0}"")]", property.Name);
-                        else if (property.DataType is EDataType.varStrongPointer)
-                        {
-                            sb.AppendFormat(@"        [XmlArray(ElementName = ""{0}"")]", property.Name);
-                            arraySuffix = "[]";
-                        }
-                        else sb.AppendFormat(@"        [XmlAttribute(AttributeName = ""{0}"")]", property.Name);
-                        break;
-                    case EConversionType.varComplexArray:
-                    case EConversionType.varSimpleArray:
-                        sb.AppendFormat(@"        [XmlArray(ElementName = ""{0}"")]", property.Name);
-                        arraySuffix = "[]";
-                        break;
-                }
-
-                sb.AppendLine();
-                var arrayPrefix = "";
-                if (arraySuffix is "[]")
-                {
-                    if (property.DataType is EDataType.varClass || property.DataType is EDataType.varStrongPointer) sb.Append(property.Export());
-                    else if (property.DataType is EDataType.varEnum)
-                    {
-                        arrayPrefix = "_";
-                        sb.AppendFormat(@"        [XmlArrayItem(ElementName = ""Enum"", Type=typeof(_{0}))]", DocumentRoot.EnumDefinitionTable[property.StructIndex].Name);
-                        sb.AppendLine();
-                    }
-                    else if (property.DataType is EDataType.varSByte)
-                    {
-                        arrayPrefix = "_";
-                        sb.AppendFormat(@"        [XmlArrayItem(ElementName = ""Int8"", Type=typeof(_{0}))]", property.DataType.ToString().Replace("var", ""));
-                        sb.AppendLine();
-                    }
-                    else if (property.DataType is EDataType.varByte)
-                    {
-                        arrayPrefix = "_";
-                        sb.AppendFormat(@"        [XmlArrayItem(ElementName = ""UInt8"", Type=typeof(_{0}))]", property.DataType.ToString().Replace("var", ""));
-                        sb.AppendLine();
-                    }
-                    else
-                    {
-                        arrayPrefix = "_";
-                        sb.AppendFormat(@"        [XmlArrayItem(ElementName = ""{0}"", Type=typeof(_{0}))]", property.DataType.ToString().Replace("var", ""));
-                        sb.AppendLine();
-                    }
-                }
-
-                HashSet<string> keywords = new()
-                {
-                    "Dynamic",
-                    "Int16",
-                    "int",
-                    "Int64",
-                    "ushort",
-                    "uint",
-                    "UInt64",
-                    "Double",
-                    "Single",
-                };
-                string propertyName = property.Name;
-                propertyName = propertyName[0].ToString().ToUpper() + propertyName[1..];
-
-                switch (property.DataType)
-                {
-                    case EDataType.varClass:
-                    case EDataType.varStrongPointer:
-                        sb.AppendFormat("        public {0}{2} {1} {{ get; set; }}", DocumentRoot.StructDefinitionTable[property.StructIndex].Name, propertyName, arraySuffix);
-                        break;
-                    case EDataType.varEnum:
-                        sb.AppendFormat("        public {3}{0}{2} {1} {{ get; set; }}", DocumentRoot.EnumDefinitionTable[property.StructIndex].Name, propertyName, arraySuffix, arrayPrefix);
-                        break;
-                    case EDataType.varReference:
-                        if (arraySuffix is "[]") sb.AppendFormat("        public {3}{0}{2} {1} {{ get; set; }}", property.DataType.ToString().Replace("var", ""), propertyName, arraySuffix, arrayPrefix);
-                        else sb.AppendFormat("        public Guid{2} {1} {{ get; set; }}", DocumentRoot.StructDefinitionTable[property.StructIndex].Name, propertyName, arraySuffix);
-                        break;
-                    case EDataType.varLocale:
-                    case EDataType.varWeakPointer:
-                        if (arraySuffix is "[]") sb.AppendFormat("        public {3}{0}{2} {1} {{ get; set; }}", property.DataType.ToString().Replace("var", ""), propertyName, arraySuffix, arrayPrefix);
-                        else sb.AppendFormat("        public string{2} {1} {{ get; set; }}", DocumentRoot.StructDefinitionTable[property.StructIndex].Name, propertyName, arraySuffix);
-                        break;
-                    default:
-                        sb.AppendFormat("        public {3}{0}{2} {1} {{ get; set; }}", property.DataType.ToString().Replace("var", ""), propertyName, arraySuffix, arrayPrefix);
-                        break;
-                }
-                sb.AppendLine();
-                sb.AppendLine();
-            }
-            sb.AppendLine(@"    }");
-            sb.AppendLine(@"}");
-            return sb.ToString();
+            await writer.WriteEndElementAsync(); // MasterElement
         }
 
         public override string ToString() => string.Format("<{0} />", Name);

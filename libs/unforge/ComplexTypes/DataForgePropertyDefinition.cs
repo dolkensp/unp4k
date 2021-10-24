@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.Text;
 using System.Xml;
+using System.Threading.Tasks;
 
 namespace unforge
 {
@@ -14,111 +14,85 @@ namespace unforge
         public EConversionType ConversionType { get; set; }
         public ushort Padding { get; set; }
 
-        public DataForgePropertyDefinition(DataForge documentRoot) : base(documentRoot)
+        public DataForgePropertyDefinition(DataForgeInstancePackage documentRoot) : base(documentRoot)
         {
-            NameOffset = br.ReadUInt32();
-            StructIndex = br.ReadUInt16();
-            DataType = (EDataType)br.ReadUInt16();
-            ConversionType = (EConversionType)br.ReadUInt16();
-            Padding = br.ReadUInt16();
+            NameOffset = Br.ReadUInt32();
+            StructIndex = Br.ReadUInt16();
+            DataType = (EDataType)Br.ReadUInt16();
+            ConversionType = (EConversionType)Br.ReadUInt16();
+            Padding = Br.ReadUInt16();
         }
 
-        public XmlAttribute Read()
+        public async Task ReadAttribute(XmlWriter writer)
         {
-            XmlAttribute attribute = DocumentRoot.CreateAttribute(Name);
-
+            string val;
             switch (DataType)
             {
                 case EDataType.varReference:
-                    attribute.Value = br.ReadGuid(false).ToString();
+                    val = Br.ReadGuid(false).ToString();
                     break;
                 case EDataType.varLocale:
-                    attribute.Value = DocumentRoot.ValueMap[br.ReadUInt32()];
+                    val = DocumentRoot.ValueMap[Br.ReadUInt32()];
                     break;
                 case EDataType.varStrongPointer:
-                    attribute.Value = string.Format("{0}:{1:X8} {2:X8}", DataType, br.ReadUInt32(), br.ReadUInt32());
+                    val = string.Format("{0}:{1:X8} {2:X8}", DataType, Br.ReadUInt32(), Br.ReadUInt32());
                     break;
                 case EDataType.varWeakPointer:
-                    uint structIndex = br.ReadUInt32();
-                    uint itemIndex = br.ReadUInt32();
-                    attribute.Value = string.Format("{0}:{1:X8} {1:X8}", DataType, structIndex);
-                    DocumentRoot.Require_WeakMapping2.Add(new ClassMapping { Node = attribute, StructIndex = (ushort)structIndex, RecordIndex = (int)itemIndex });
+                    uint structIndex = Br.ReadUInt32();
+                    Br.ReadUInt32(); // Item Index offset
+                    val = string.Format("{0}:{1:X8} {1:X8}", DataType, structIndex);
                     break;
                 case EDataType.varString:
-                    uint stringKey = br.ReadUInt32();
-                    attribute.Value = DocumentRoot.ValueMap.ContainsKey(stringKey) ? DocumentRoot.ValueMap[stringKey] : DataType.ToString();
+                    uint stringKey = Br.ReadUInt32();
+                    val = DocumentRoot.ValueMap.ContainsKey(stringKey) ? DocumentRoot.ValueMap[stringKey] : DataType.ToString();
                     break;
                 case EDataType.varBoolean:
-                    attribute.Value = br.ReadByte().ToString();
+                    val = Br.ReadByte().ToString();
                     break;
                 case EDataType.varSingle:
-                    attribute.Value = br.ReadSingle().ToString();
+                    val = Br.ReadSingle().ToString();
                     break;
                 case EDataType.varDouble:
-                    attribute.Value = br.ReadDouble().ToString();
+                    val = Br.ReadDouble().ToString();
                     break;
                 case EDataType.varGuid:
-                    attribute.Value = br.ReadGuid(false).ToString();
+                    val = Br.ReadGuid(false).ToString();
                     break;
                 case EDataType.varSByte:
-                    attribute.Value = br.ReadSByte().ToString();
+                    val = Br.ReadSByte().ToString();
                     break;
                 case EDataType.varInt16:
-                    attribute.Value = br.ReadInt16().ToString();
+                    val = Br.ReadInt16().ToString();
                     break;
                 case EDataType.varInt32:
-                    attribute.Value = br.ReadInt32().ToString();
+                    val = Br.ReadInt32().ToString();
                     break;
                 case EDataType.varInt64:
-                    attribute.Value = br.ReadInt64().ToString();
+                    val = Br.ReadInt64().ToString();
                     break;
                 case EDataType.varByte:
-                    attribute.Value = br.ReadByte().ToString();
+                    val = Br.ReadByte().ToString();
                     break;
                 case EDataType.varUInt16:
-                    attribute.Value = br.ReadUInt16().ToString();
+                    val = Br.ReadUInt16().ToString();
                     break;
                 case EDataType.varUInt32:
-                    attribute.Value = br.ReadUInt32().ToString();
+                    val = Br.ReadUInt32().ToString();
                     break;
                 case EDataType.varUInt64:
-                    attribute.Value = br.ReadUInt64().ToString();
+                    val = Br.ReadUInt64().ToString();
                     break;
                 case EDataType.varEnum:
                     DataForgeEnumDefinition enumDefinition = DocumentRoot.EnumDefinitionTable[StructIndex];
-                    uint enumKey = br.ReadUInt32();
-                    attribute.Value = DocumentRoot.ValueMap.ContainsKey(enumKey) ? DocumentRoot.ValueMap[enumKey] : enumDefinition.Name;
+                    uint enumKey = Br.ReadUInt32();
+                    val = DocumentRoot.ValueMap.ContainsKey(enumKey) ? DocumentRoot.ValueMap[enumKey] : enumDefinition.Name;
                     break;
                 default:
                     throw new NotImplementedException();
             }
-            return attribute;
+            await writer.WriteAttributeStringAsync(null, Name, null, val);
         }
 
         public override string ToString() => string.Format("<{0} />", Name);
-
-        public string Export()
-        {
-            StringBuilder sb = new();
-            sb.AppendFormat(@"        [XmlArrayItem(Type = typeof({0}))]", DocumentRoot.StructDefinitionTable[StructIndex].Name);
-            sb.AppendLine();
-            foreach (var structDefinition in DocumentRoot.StructDefinitionTable)
-            {
-                bool allowed = false;
-                DataForgeStructDefinition baseStruct = structDefinition;
-                while (baseStruct.ParentTypeIndex != 0xFFFFFFFF && !allowed)
-                {
-                    allowed |= (baseStruct.ParentTypeIndex == StructIndex);
-                    baseStruct = DocumentRoot.StructDefinitionTable[baseStruct.ParentTypeIndex];
-                }
-
-                if (allowed)
-                {
-                    sb.AppendFormat(@"        [XmlArrayItem(Type = typeof({0}))]", structDefinition.Name);
-                    sb.AppendLine();
-                }
-            }
-            return sb.ToString();
-        }
     }
 }
