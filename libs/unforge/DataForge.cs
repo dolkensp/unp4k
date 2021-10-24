@@ -1,268 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Xml;
+using System.Threading.Tasks;
 
 namespace unforge
 {
-    public class ClassMapping
-    {
-        public XmlNode Node { get; set; }
-        public ushort StructIndex { get; set; }
-        public int RecordIndex { get; set; }
-    }
-
-    public class DataForge
+    public static class DataForge
 	{
-        internal BinaryReader br;
-        internal int FileVersion { get; set; }
-
-        internal DataForgeStructDefinition[] StructDefinitionTable { get; set; }
-        internal DataForgePropertyDefinition[] PropertyDefinitionTable { get; set; }
-        internal DataForgeEnumDefinition[] EnumDefinitionTable { get; set; }
-        internal DataForgeDataMapping[] DataMappingTable { get; set; }
-        internal DataForgeRecord[] RecordDefinitionTable { get; set; }
-        internal DataForgeStringLookup[] EnumOptionTable { get; set; }
-        internal DataForgeString[] ValueTable { get; set; }
-
-        internal DataForgeReference[] Array_ReferenceValues { get; set; }
-        internal DataForgeGuid[] Array_GuidValues { get; set; }
-        internal DataForgeStringLookup[] Array_StringValues { get; set; }
-        internal DataForgeLocale[] Array_LocaleValues { get; set; }
-        internal DataForgeEnum[] Array_EnumValues { get; set; }
-        internal DataForgeInt8[] Array_Int8Values { get; set; }
-        internal DataForgeInt16[] Array_Int16Values { get; set; }
-        internal DataForgeInt32[] Array_Int32Values { get; set; }
-        internal DataForgeInt64[] Array_Int64Values { get; set; }
-        internal DataForgeUInt8[] Array_UInt8Values { get; set; }
-        internal DataForgeUInt16[] Array_UInt16Values { get; set; }
-        internal DataForgeUInt32[] Array_UInt32Values { get; set; }
-        internal DataForgeUInt64[] Array_UInt64Values { get; set; }
-        internal DataForgeBoolean[] Array_BooleanValues { get; set; }
-        internal DataForgeSingle[] Array_SingleValues { get; set; }
-        internal DataForgeDouble[] Array_DoubleValues { get; set; }
-        internal DataForgePointer[] Array_StrongValues { get; set; }
-        internal DataForgePointer[] Array_WeakValues { get; set; }
-
-        internal Dictionary<uint, string> ValueMap { get; set; }
-        internal Dictionary<uint, List<XmlElement>> DataMap { get; set; }
-        internal List<ClassMapping> Require_ClassMapping { get; set; }
-        internal List<ClassMapping> Require_StrongMapping { get; set; }
-        internal List<ClassMapping> Require_WeakMapping1 { get; set; }
-        internal List<ClassMapping> Require_WeakMapping2 { get; set; }
-        internal List<XmlElement> DataTable { get; set; }
-
-        internal U[] ReadArray<U>(int arraySize) where U : DataForgeSerializable
+        public static async Task Forge(DataForgeInstancePackage pckg)
         {
-            if (arraySize is -1) return null; 
-            return (from i in Enumerable.Range(0, arraySize) let data = (U)Activator.CreateInstance(typeof(U), this) select data).ToArray();
-        }
-
-		public DataForge(FileInfo inFile)
-		{
-            br = new(inFile.Open(FileMode.Open, FileAccess.Read, FileShare.None));
-            br.ReadInt32(); // Offset
-            FileVersion = br.ReadInt32();
-
-            Require_ClassMapping = new();
-			Require_StrongMapping = new();
-			Require_WeakMapping1 = new();
-			Require_WeakMapping2 = new();
-
-            for (int i = 0; i < 4; i++) br.ReadUInt16(); // Offset
-
-            int structDefinitionCount = br.ReadInt32();
-            int propertyDefinitionCount = br.ReadInt32();
-            int enumDefinitionCount = br.ReadInt32();
-            int dataMappingCount = br.ReadInt32();
-            int recordDefinitionCount = br.ReadInt32();
-
-            int booleanValueCount = br.ReadInt32();
-            int int8ValueCount = br.ReadInt32();
-            int int16ValueCount = br.ReadInt32();
-            int int32ValueCount = br.ReadInt32();
-            int int64ValueCount = br.ReadInt32();
-            int uint8ValueCount = br.ReadInt32();
-            int uint16ValueCount = br.ReadInt32();
-            int uint32ValueCount = br.ReadInt32();
-            int uint64ValueCount = br.ReadInt32();
-
-            int singleValueCount = br.ReadInt32();
-            int doubleValueCount = br.ReadInt32();
-            int guidValueCount = br.ReadInt32();
-            int stringValueCount = br.ReadInt32();
-            int localeValueCount = br.ReadInt32();
-            int enumValueCount = br.ReadInt32();
-            int strongValueCount = br.ReadInt32();
-            int weakValueCount = br.ReadInt32();
-
-            int referenceValueCount = br.ReadInt32();
-            int enumOptionCount = br.ReadInt32();
-            uint textLength = br.ReadUInt32();
-            br.ReadUInt32(); // Offset
-
-            StructDefinitionTable = ReadArray<DataForgeStructDefinition>(structDefinitionCount);
-			PropertyDefinitionTable = ReadArray<DataForgePropertyDefinition>(propertyDefinitionCount);
-			EnumDefinitionTable = ReadArray<DataForgeEnumDefinition>(enumDefinitionCount);
-			DataMappingTable = ReadArray<DataForgeDataMapping>(dataMappingCount);
-			RecordDefinitionTable = ReadArray<DataForgeRecord>(recordDefinitionCount);
-
-            Array_Int8Values = ReadArray<DataForgeInt8>(int8ValueCount);
-            Array_Int16Values = ReadArray<DataForgeInt16>(int16ValueCount);
-            Array_Int32Values = ReadArray<DataForgeInt32>(int32ValueCount);
-            Array_Int64Values = ReadArray<DataForgeInt64>(int64ValueCount);
-            Array_UInt8Values = ReadArray<DataForgeUInt8>(uint8ValueCount);
-            Array_UInt16Values = ReadArray<DataForgeUInt16>(uint16ValueCount);
-            Array_UInt32Values = ReadArray<DataForgeUInt32>(uint32ValueCount);
-            Array_UInt64Values = ReadArray<DataForgeUInt64>(uint64ValueCount);
-            Array_BooleanValues = ReadArray<DataForgeBoolean>(booleanValueCount);
-            Array_SingleValues = ReadArray<DataForgeSingle>(singleValueCount);
-            Array_DoubleValues = ReadArray<DataForgeDouble>(doubleValueCount);
-            Array_GuidValues = ReadArray<DataForgeGuid>(guidValueCount);
-            Array_StringValues = ReadArray<DataForgeStringLookup>(stringValueCount);
-            Array_LocaleValues = ReadArray<DataForgeLocale>(localeValueCount);
-            Array_EnumValues = ReadArray<DataForgeEnum>(enumValueCount);
-            Array_StrongValues = ReadArray<DataForgePointer>(strongValueCount);
-            Array_WeakValues = ReadArray<DataForgePointer>(weakValueCount);
-
-            Array_ReferenceValues = ReadArray<DataForgeReference>(referenceValueCount);
-            EnumOptionTable = ReadArray<DataForgeStringLookup>(enumOptionCount);
-
-            List<DataForgeString> buffer = new();
-            long maxPosition = br.BaseStream.Position + textLength;
-            long startPosition = br.BaseStream.Position;
-            ValueMap = new();
-            while (br.BaseStream.Position < maxPosition)
+            XmlWriter writer = null;
+            string currentSection = null;
+            foreach (DataForgeDataMapping dm in pckg.DataMappingTable)
             {
-                long offset = br.BaseStream.Position - startPosition;
-                DataForgeString dfString = new(this);
-                buffer.Add(dfString);
-                ValueMap[(uint)offset] = dfString.Value;
+                if (writer is null || currentSection != dm.Name)
+                {
+                    currentSection = dm.Name;
+                    CreateWriter(currentSection);
+                }
+                await pckg.StructDefinitionTable[dm.StructIndex].Read(writer);
             }
-            ValueTable = buffer.ToArray();
-            DataTable = new();
-            DataMap = new();
+            writer.Close();
 
-            // TODO: Make this part write into a file stream instead of storing in memory, Game.dcb uses obscene amounts of memory
-            foreach (DataForgeDataMapping dataMapping in DataMappingTable)
+            void CreateWriter(string name)
             {
-                DataMap[dataMapping.StructIndex] = new();
-                DataForgeStructDefinition dataStruct = StructDefinitionTable[dataMapping.StructIndex];
-                for (int i = 0; i < dataMapping.StructCount; i++)
-                {
-                    XmlElement node = dataStruct.Read(dataMapping.Name);
-                    DataMap[dataMapping.StructIndex].Add(node);
-                    DataTable.Add(node);
-                }
+                writer?.Close();
+                writer = XmlWriter.Create(new FileInfo(Path.Join(pckg.OutFile.FullName[..pckg.OutFile.FullName.LastIndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar })],
+                        $"{pckg.OutFile.Name.Replace(pckg.OutFile.Extension, string.Empty)}_{name}.xml")).Open(FileMode.Create, FileAccess.Write, FileShare.None), new XmlWriterSettings 
+                        {
+                            Indent = true,
+                            Async = true
+                        });
             }
-
-            /*
-            foreach (ClassMapping dataMapping in Require_ClassMapping)
-            {
-                if (dataMapping.StructIndex is 0xFFFF) dataMapping.Node.ParentNode.RemoveChild(dataMapping.Node);
-                else if (DataMap.ContainsKey(dataMapping.StructIndex) && DataMap[dataMapping.StructIndex].Count > dataMapping.RecordIndex) 
-                    dataMapping.Node.ParentNode.ReplaceChild(DataMap[dataMapping.StructIndex][dataMapping.RecordIndex], dataMapping.Node);
-                else
-                {
-                    XmlElement bugged = _xmlDocument.CreateElement("bugged");
-                    XmlAttribute __class = _xmlDocument.CreateAttribute("__class");
-                    XmlAttribute __index = _xmlDocument.CreateAttribute("__index");
-                    __class.Value = $"{dataMapping.StructIndex:X8}";
-                    __index.Value = $"{dataMapping.RecordIndex:X8}";
-                    bugged.Attributes.Append(__class);
-                    bugged.Attributes.Append(__index);
-                    dataMapping.Node.ParentNode.ReplaceChild(bugged, dataMapping.Node);
-                }
-            }
-            */
-        }
-
-        private XmlDocument _xmlDocument = new();
-		internal XmlElement CreateElement(string name) { return _xmlDocument.CreateElement(name); }
-        internal XmlAttribute CreateAttribute(string name) { return _xmlDocument.CreateAttribute(name); }
-
-        public string OuterXML
-		{
-			get
-			{
-				Compile();
-				return _xmlDocument.OuterXml;
-			}
-		}
-
-		internal void Compile()
-		{
-            if (string.IsNullOrWhiteSpace(_xmlDocument?.InnerXml))
-            {
-                XmlElement root = _xmlDocument.CreateElement("DataForge");
-                _xmlDocument.AppendChild(root);
-
-                foreach (ClassMapping dataMapping in Require_StrongMapping)
-                {
-                    DataForgePointer strong = Array_StrongValues[dataMapping.RecordIndex];
-                    if (strong.Index is 0xFFFFFFFF) dataMapping.Node.ParentNode.RemoveChild(dataMapping.Node);
-                    else dataMapping.Node.ParentNode.ReplaceChild(DataMap[strong.StructType][(int)strong.Index], dataMapping.Node);
-                }
-
-                foreach (ClassMapping dataMapping in Require_WeakMapping1)
-                {
-                    DataForgePointer weak = Array_WeakValues[dataMapping.RecordIndex];
-                    XmlNode weakAttribute = dataMapping.Node;
-                    if (weak.Index is 0xFFFFFFFF) weakAttribute.Value = string.Format("0");
-                    else
-                    {
-                        XmlElement targetElement = DataMap[weak.StructType][(int)weak.Index];
-                        weakAttribute.Value = targetElement.GetPath();
-                    }
-                }
-
-                foreach (ClassMapping dataMapping in Require_WeakMapping2)
-                {
-                    XmlNode weakAttribute = dataMapping.Node;
-                    if (dataMapping.StructIndex is 0xFFFF) weakAttribute.Value = "null";
-                    else if (dataMapping.RecordIndex is -1)
-                    {
-                        List<XmlElement> targetElement = DataMap[dataMapping.StructIndex];
-                        weakAttribute.Value = targetElement.FirstOrDefault()?.GetPath();
-                    }
-                    else
-                    {
-                        XmlElement targetElement = DataMap[dataMapping.StructIndex][dataMapping.RecordIndex];
-                        weakAttribute.Value = targetElement.GetPath();
-                    }
-                }
-
-                foreach (DataForgeRecord record in RecordDefinitionTable)
-                {
-                    if (record.Hash.HasValue && record.Hash != Guid.Empty)
-                    {
-                        XmlAttribute hash = CreateAttribute("__ref");
-                        hash.Value = $"{record.Hash}";
-                        DataMap[record.StructIndex][record.VariantIndex].Attributes.Append(hash);
-                    }
-                    if (!string.IsNullOrWhiteSpace(record.FileName))
-                    {
-                        XmlAttribute path = CreateAttribute("__path");
-                        path.Value = $"{record.FileName}";
-                        DataMap[record.StructIndex][record.VariantIndex].Attributes.Append(path);
-                    }
-                    DataMap[record.StructIndex][record.VariantIndex] = DataMap[record.StructIndex][record.VariantIndex].Rename(record.Name);
-                    root.AppendChild(DataMap[record.StructIndex][record.VariantIndex]);
-                }
-            }
-		}
-
-        public void Save(FileInfo outFile)
-        {
-            Compile();
-            foreach (DataForgeRecord record in RecordDefinitionTable)
-            {
-                XmlDocument doc = new();
-                doc.LoadXml(DataMap[record.StructIndex][record.VariantIndex].OuterXml);
-                doc.Save(outFile.Open(FileMode.Create, FileAccess.Write, FileShare.None));
-            }
-            if (_xmlDocument is not null) _xmlDocument.Save(outFile.Open(FileMode.Create, FileAccess.Write, FileShare.None));
         }
     }
 }

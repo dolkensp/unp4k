@@ -13,10 +13,6 @@ using ICSharpCode.SharpZipLib.Zip;
 using unforge;
 using unlib;
 
-/*
- * TODO: While Linux is supported, we need to add in everything when Star Citizen becomes available on Linux
- */
-
 #region Initialisation
 
 DirectoryInfo? defaultOutputDirectory = new(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "unp4k"));
@@ -347,20 +343,16 @@ void Smelt(FileInfo extractedFile, FileInfo smeltedFile)
     if (!smeltedFile.Directory.Exists) smeltedFile.Directory.Create();
     try
     {
-        if (extractedFile.Extension is ".dcb") new DataForge(extractedFile).Save(smeltedFile);
+        if (extractedFile.Extension is ".dcb") DataForge.Forge(new(extractedFile, smeltedFile)).GetAwaiter().GetResult();
         else new CryXmlSerializer(extractedFile).Save(smeltedFile);
     }
     catch (ArgumentException e)
     {
         if (printErrors) Logger.LogException(e);
-        // Unsupported file type
-        // TODO: See if we can do anything about the .PeekChar() overflow
     }
     catch (EndOfStreamException e)
     {
         if (printErrors) Logger.LogException(e);
-        // Unsupported file type
-        // TODO: See if we can do anything about the .PeekChar() overflow
     }
     catch (DirectoryNotFoundException e)
     {

@@ -1,4 +1,5 @@
 ﻿using System.Xml;
+using System.Threading.Tasks;
 
 namespace unforge
 {
@@ -7,18 +8,15 @@ namespace unforge
         private uint _value;
         public string Value { get { return DocumentRoot.ValueMap[_value]; } }
 
-        public DataForgeLocale(DataForge documentRoot)  : base(documentRoot) { _value = br.ReadUInt32(); }
+        public DataForgeLocale(DataForgeInstancePackage documentRoot)  : base(documentRoot) { _value = Br.ReadUInt32(); }
 
         public override string ToString() => Value;
 
-        public XmlElement Read()
+        public async Task Read(XmlWriter writer)
         {
-            XmlElement element = DocumentRoot.CreateElement("LocID");
-            XmlAttribute attribute = DocumentRoot.CreateAttribute("value");
-            attribute.Value = Value.ToString();
-            // TODO: More work here
-            element.Attributes.Append(attribute);
-            return element;
+            await writer.WriteStartElementAsync(null, "LocID", null);
+            await writer.WriteAttributeStringAsync(null, "Value", null, Value.ToString());
+            await writer.WriteEndElementAsync();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Xml;
+using System.Threading.Tasks;
 
 namespace unforge
 {
@@ -6,17 +7,15 @@ namespace unforge
     {
         public bool Value { get; set; }
 
-        public DataForgeBoolean(DataForge documentRoot) : base(documentRoot) { Value = br.ReadBoolean(); }
+        public DataForgeBoolean(DataForgeInstancePackage documentRoot) : base(documentRoot) { Value = Br.ReadBoolean(); }
 
         public override string ToString() => string.Format("{0}", Value ? "1" : "0");
 
-        public XmlElement Read()
+        public async Task Read(XmlWriter writer)
         {
-            XmlElement element = DocumentRoot.CreateElement("Bool");
-            XmlAttribute attribute = DocumentRoot.CreateAttribute("value");
-            attribute.Value = Value ? "1" : "0";
-            element.Attributes.Append(attribute);
-            return element;
+            await writer.WriteStartElementAsync(null, "Bool", null);
+            await writer.WriteAttributeStringAsync(null, "Value", null, Value ? "1" : "0");
+            await writer.WriteEndElementAsync();
         }
     }
 }

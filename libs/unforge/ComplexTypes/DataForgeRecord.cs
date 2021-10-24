@@ -22,14 +22,14 @@ namespace unforge
         public string __otherIndex { get { return string.Format("{0:X4}", OtherIndex); } }
         public ushort OtherIndex { get; set; }
 
-        public DataForgeRecord(DataForge documentRoot) : base(documentRoot)
+        public DataForgeRecord(DataForgeInstancePackage documentRoot) : base(documentRoot)
         {
-            NameOffset = br.ReadUInt32();
-            FileNameOffset = br.ReadUInt32();
-            StructIndex = br.ReadUInt32();
-            Hash = br.ReadGuid(false);
-            VariantIndex = br.ReadUInt16();
-            OtherIndex = br.ReadUInt16();
+            NameOffset = Br.ReadUInt32();
+            FileNameOffset = Br.ReadUInt32();
+            StructIndex = Br.ReadUInt32();
+            Hash = Br.ReadGuid(false);
+            VariantIndex = Br.ReadUInt16();
+            OtherIndex = Br.ReadUInt16();
         }
 
         public override string ToString() => string.Format("<{0} {1:X4} />", Name, StructIndex);

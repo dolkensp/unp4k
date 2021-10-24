@@ -9,37 +9,13 @@ namespace unforge
         public ushort ValueCount { get; set; }
         public ushort FirstValueIndex { get; set; }
 
-        public DataForgeEnumDefinition(DataForge documentRoot) : base(documentRoot)
+        public DataForgeEnumDefinition(DataForgeInstancePackage documentRoot) : base(documentRoot)
         {
-            NameOffset = br.ReadUInt32();
-            ValueCount = br.ReadUInt16();
-            FirstValueIndex = br.ReadUInt16();
+            NameOffset = Br.ReadUInt32();
+            ValueCount = Br.ReadUInt16();
+            FirstValueIndex = Br.ReadUInt16();
         }
 
         public override string ToString() => string.Format("<{0} />", Name);
-
-        public string Export()
-        {
-            var sb = new StringBuilder();
-            sb.AppendFormat(@"    public enum {0}", Name);
-            sb.AppendLine();
-            sb.AppendLine(@"    {");
-            for (uint i = FirstValueIndex, j = (uint)(FirstValueIndex + ValueCount); i < j;  i++)
-            {
-                sb.AppendFormat(@"        [XmlEnum(Name = ""{0}"")]", DocumentRoot.EnumOptionTable[i].Value);
-                sb.AppendLine();
-                sb.AppendFormat(@"        _{0},", DocumentRoot.EnumOptionTable[i].Value);
-                sb.AppendLine();
-            }
-            sb.AppendLine(@"    }");
-            sb.AppendLine();
-            sb.AppendFormat(@"    public class _{0}", Name);
-            sb.AppendLine();
-            sb.AppendLine(@"    {");
-            sb.AppendFormat(@"        public {0} Value {{ get; set; }}", Name);
-            sb.AppendLine();
-            sb.AppendLine(@"    }");
-            return sb.ToString();
-        }
     }
 }

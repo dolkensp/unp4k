@@ -8,7 +8,7 @@ namespace unforge
 {
     public class CryXmlSerializer
     {
-        private XmlDocument xml;
+        private XmlDocument XMLDoc;
 
         public CryXmlSerializer(FileInfo inFile, ByteOrderEnum byteOrder = ByteOrderEnum.AutoDetect)
         {
@@ -19,13 +19,6 @@ namespace unforge
 
             string header = br.ReadFString(7);
             if (header is "CryXml" || header is "CryXmlB") br.ReadCString();
-            /*
-             * TODO: Not sure what this is, it is unused.
-            else if (header is "CRY3SDK")
-            {
-                byte[] bytes = br.ReadBytes(2);
-            }
-            */
             else return; // Unknown file format
 
             long headerLength = br.BaseStream.Position;
@@ -35,8 +28,7 @@ namespace unforge
             {
                 br.BaseStream.Seek(headerLength, SeekOrigin.Begin);
                 byteOrder = ByteOrderEnum.LittleEndian;
-                // TODO: Unused
-              /*fileLength = */br.ReadInt32(byteOrder);
+                br.ReadInt32(byteOrder); // Offset - Apparently reads fileLength
             }
 
             int nodeTableOffset = br.ReadInt32(byteOrder);
@@ -52,38 +44,13 @@ namespace unforge
             int length3 = 4;
 
             int stringTableOffset = br.ReadInt32(byteOrder);
-            // TODO: Unused
-          /*int stringTableCount = */br.ReadInt32(byteOrder);
+            br.ReadInt32(byteOrder); // Offset - Apparently reads stringTableCount
 
-            /*
-             * TODO: Write this to Debug Log File
-            if (writeLog)
-            {
-                // Regex byteFormatter = new Regex("([0-9A-F]{8})");
-                Console.WriteLine("Header");
-                Console.WriteLine("0x{0:X6}: {1}", 0x00, header);
-                Console.WriteLine("0x{0:X6}: {1:X8} (Dec: {1:D8})", headerLength + 0x00, fileLength);
-                Console.WriteLine("0x{0:X6}: {1:X8} (Dec: {1:D8}) node offset", headerLength + 0x04, nodeTableOffset);
-                Console.WriteLine("0x{0:X6}: {1:X8} (Dec: {1:D8}) nodes", headerLength + 0x08, nodeTableCount);
-                Console.WriteLine("0x{0:X6}: {1:X8} (Dec: {1:D8}) reference offset", headerLength + 0x12, attributeTableOffset);
-                Console.WriteLine("0x{0:X6}: {1:X8} (Dec: {1:D8}) references", headerLength + 0x16, attributeTableCount);
-                Console.WriteLine("0x{0:X6}: {1:X8} (Dec: {1:D8}) child offset", headerLength + 0x20, childTableOffset);
-                Console.WriteLine("0x{0:X6}: {1:X8} (Dec: {1:D8}) child", headerLength + 0x24, childTableCount);
-                Console.WriteLine("0x{0:X6}: {1:X8} (Dec: {1:D8}) content offset", headerLength + 0x28, stringTableOffset);
-                Console.WriteLine("0x{0:X6}: {1:X8} (Dec: {1:D8}) content", headerLength + 0x32, stringTableCount);
-                Console.WriteLine("");
-                Console.WriteLine("Node Table");
-            }
-            */
-
-            // TODO: Never used
             List<CryXmlNode> nodeTable = new();
             br.BaseStream.Seek(nodeTableOffset, SeekOrigin.Begin);
             int nodeID = 0;
             while (br.BaseStream.Position < nodeTableOffset + nodeTableCount * nodeTableSize)
             {
-              // TODO: Unused
-              //long position = br.BaseStream.Position;
                 CryXmlNode value = new()
                 {
                     NodeID = nodeID++,
@@ -97,35 +64,8 @@ namespace unforge
                     Reserved = br.ReadInt32(byteOrder),
                 };
                 nodeTable.Add(value);
-                /*
-                 * TODO: Write this to Debug Log File
-                if (writeLog)
-                {
-                    Console.WriteLine(
-                        "0x{0:X6}: {1:X8} {2:X8} attr:{3:X4} {4:X4} {5:X8} {6:X8} {7:X8} {8:X8}",
-                        position,
-                        value.NodeNameOffset,
-                        value.ContentOffset,
-                        value.AttributeCount,
-                        value.ChildCount,
-                        value.ParentNodeID,
-                        value.FirstAttributeIndex,
-                        value.FirstChildIndex,
-                        value.Reserved);
-                }
-                */
             }
 
-            /*
-             * TODO: Write this to Debug Log File
-            if (writeLog)
-            {
-                Console.WriteLine("");
-                Console.WriteLine("Reference Table");
-            }
-            */
-
-            // TODO: Never used
             List<CryXmlReference> attributeTable = new();
             br.BaseStream.Seek(attributeTableOffset, SeekOrigin.Begin);
             while (br.BaseStream.Position < attributeTableOffset + attributeTableCount * referenceTableSize)
@@ -137,22 +77,7 @@ namespace unforge
                     ValueOffset = br.ReadInt32(byteOrder)
                 };
                 attributeTable.Add(value);
-                /*
-                 * TODO: Write this to Debug Log File
-                if (writeLog)
-                {
-                    Console.WriteLine("0x{0:X6}: {1:X8} {2:X8}", position, value.NameOffset, value.ValueOffset);
-                }
-                 */
             }
-            /*
-             * TODO: Write this to Debug Log File
-            if (writeLog)
-            {
-                Console.WriteLine("");
-                Console.WriteLine("Order Table");
-            }
-            */
 
             List<int> parentTable = new() { };
             br.BaseStream.Seek(childTableOffset, SeekOrigin.Begin);
@@ -161,22 +86,7 @@ namespace unforge
                 long position = br.BaseStream.Position;
                 int value = br.ReadInt32(byteOrder);
                 parentTable.Add(value);
-                /*
-                 * TODO: Write this to Debug Log File
-                if (writeLog)
-                {
-                    Console.WriteLine("0x{0:X6}: {1:X8}", position, value);
-                }
-                */
             }
-            /*
-             * TODO: Write this to Debug Log File
-            if (writeLog)
-            {
-                Console.WriteLine("");
-                Console.WriteLine("Dynamic Dictionary");
-            }
-            */
 
             List<CryXmlValue> dataTable = new() { };
             br.BaseStream.Seek(stringTableOffset, SeekOrigin.Begin);
@@ -189,13 +99,6 @@ namespace unforge
                     Value = br.ReadCString(),
                 };
                 dataTable.Add(value);
-                /*
-                 * TODO: Write this to Debug Log File
-                if (writeLog)
-                {
-                    Console.WriteLine("0x{0:X6}: {1:X8} {2}", position, value.Offset, value.Value);
-                }
-                */
             }
 
             Dictionary<int, string> dataMap = dataTable.ToDictionary(k => k.Offset, v => v.Value);
@@ -219,24 +122,12 @@ namespace unforge
                 if (xmlMap.ContainsKey(node.ParentNodeID)) xmlMap[node.ParentNodeID].AppendChild(element);
                 else xmlDoc.AppendChild(element);
             }
-            xml = xmlDoc;
+            XMLDoc = xmlDoc;
         }
-
-        /*
-         * TODO: Not sure what this is, it is unused.
-        public TObject Deserialize<TObject>() where TObject : class
-        {
-            using MemoryStream ms = new();
-            xml.Save(ms);
-            ms.Seek(0, SeekOrigin.Begin);
-            XmlSerializer xs = new(typeof(TObject));
-            return xs.Deserialize(ms) as TObject;
-        }
-        */
 
         public void Save(FileInfo outFile)
         {
-            if (xml is not null) xml.Save(outFile.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.None));
+            if (XMLDoc is not null) XMLDoc.Save(outFile.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.None));
         }
     }
 

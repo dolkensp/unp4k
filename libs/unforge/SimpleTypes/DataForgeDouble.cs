@@ -1,4 +1,5 @@
 ﻿using System.Xml;
+using System.Threading.Tasks;
 
 namespace unforge
 {
@@ -6,17 +7,15 @@ namespace unforge
     {
         public double Value { get; set; }
 
-        public DataForgeDouble(DataForge documentRoot) : base(documentRoot) { Value = br.ReadDouble(); }
+        public DataForgeDouble(DataForgeInstancePackage documentRoot) : base(documentRoot) { Value = Br.ReadDouble(); }
 
         public override string ToString() => string.Format("{0}", Value);
 
-        public XmlElement Read()
+        public async Task Read(XmlWriter writer)
         {
-            XmlElement element = DocumentRoot.CreateElement("Double");
-            XmlAttribute attribute = DocumentRoot.CreateAttribute("value");
-            attribute.Value = Value.ToString();
-            element.Attributes.Append(attribute);
-            return element;
+            await writer.WriteStartElementAsync(null, "Double", null);
+            await writer.WriteAttributeStringAsync(null, "Value", null, Value.ToString());
+            await writer.WriteEndElementAsync();
         }
     }
 }
