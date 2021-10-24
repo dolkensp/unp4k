@@ -9,7 +9,7 @@ namespace unforge
     {
         public Guid Value { get; set; }
 
-        public DataForgeGuid(DataForgeInstancePackage documentRoot)  : base(documentRoot) { Value = Br.ReadGuid(false).Value; }
+        public DataForgeGuid(DataForgeInstancePackage documentRoot) : base(documentRoot) { Value = Br.ReadGuid(false).Value; }
 
         public override string ToString() => Value.ToString();
 

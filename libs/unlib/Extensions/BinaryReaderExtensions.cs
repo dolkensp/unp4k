@@ -2,7 +2,7 @@
 
 namespace System
 {
-    public static  class BinaryReaderExtensions
+    public static class BinaryReaderExtensions
     {
         public static string ReadCString(this BinaryReader binaryReader)
         {

@@ -9,16 +9,16 @@
 
         public DataForgeDataMapping(DataForgeInstancePackage documentRoot) : base(documentRoot)
         {
-			if (DocumentRoot.FileVersion >= 5) 
+            if (DocumentRoot.FileVersion >= 5)
             {
-				StructCount = Br.ReadUInt32();
-            	StructIndex = Br.ReadUInt32();
-			} 
-            else 
+                StructCount = Br.ReadUInt32();
+                StructIndex = Br.ReadUInt32();
+            }
+            else
             {
-            	StructCount = Br.ReadUInt16();
-            	StructIndex = Br.ReadUInt16();
-			}
+                StructCount = Br.ReadUInt16();
+                StructIndex = Br.ReadUInt16();
+            }
             NameOffset = DocumentRoot.StructDefinitionTable[StructIndex].NameOffset;
         }
 

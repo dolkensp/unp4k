@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace unforge
+﻿namespace unforge
 {
     public class DataForgeEnumDefinition : DataForgeSerializable
     {

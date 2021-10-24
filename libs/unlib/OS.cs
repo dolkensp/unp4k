@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace unlib
+﻿namespace unlib
 {
     public static class OS
     {
