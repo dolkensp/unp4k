@@ -145,6 +145,7 @@ namespace unforge
             DataTable = new();
             DataMap = new();
 
+            // TODO: Make this part write into a file stream instead of storing in memory, Game.dcb uses obscene amounts of memory
             foreach (DataForgeDataMapping dataMapping in DataMappingTable)
             {
                 DataMap[dataMapping.StructIndex] = new();
