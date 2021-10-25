@@ -74,31 +74,6 @@ if (args.Length is 0)
     Logger.ClearBuffer();
 }
 
-if (OS.IsLinux && Environment.GetFolderPath(Environment.SpecialFolder.UserProfile).Contains("/root/"))
-{
-    char? proceedAsRoot = null;
-    while (proceedAsRoot is null)
-    {
-        Logger.LogWarn("unp4k has been run as root via the sudo command.");
-        Logger.LogWarn("This may cause issues because it will make the app target the /root/ path!");
-        Logger.NewLine();
-        Logger.LogInfo("Are you sure you want to proceed? y/n: ");
-        proceedAsRoot = Console.ReadKey().KeyChar;
-        if (proceedAsRoot is null || proceedAsRoot != 'y' && proceedAsRoot != 'n')
-        {
-            Logger.LogError("Please input y for yes or n for no!");
-            await Task.Delay(TimeSpan.FromSeconds(3));
-            Logger.ClearBuffer();
-            proceedAsRoot = null;
-        }
-        else if (proceedAsRoot is 'n')
-        {
-            Logger.ClearBuffer();
-            Environment.Exit(0);
-        }
-    }
-}
-
 try
 {
     for (int i = 0; i < args.Length; i++)
@@ -120,6 +95,47 @@ catch (IndexOutOfRangeException e)
     Console.ReadKey();
     Logger.ClearBuffer();
     Environment.Exit(0);
+}
+
+char? proceed = null;
+while (proceed is null)
+{
+    if (OS.IsLinux && Environment.GetFolderPath(Environment.SpecialFolder.UserProfile).Contains("/root/"))
+    {
+        Logger.NewLine();
+        Logger.LogWarn("LINUX ROOT WARNING:");
+        Logger.LogWarn("unp4k has been run as root via the sudo command!");
+        Logger.LogWarn("This may cause issues because it will make the app target the /root/ path!");
+    }
+    if (filters.Any(x => x.Contains("*.*") || x.Contains(".dcb")))
+    {
+        Logger.NewLine();
+        Logger.LogWarn("ENORMOUS JOB WARNING:");
+        Logger.LogWarn("unp4k has been run with filters which include Star Citizen's Game.dcb file!");
+        Logger.LogWarn("Due to what the Game.dcb contains, unp4k will need to run for far longer and will requires possibly hundreds of gigabytes of free space!");
+    }
+    if (filters.Any(x => x.Contains("*.*") || x.Contains(".dcb")))
+    {
+        Logger.NewLine();
+        Logger.LogWarn("OVERWRITE ENABLED:");
+        Logger.LogWarn("unp4k has been run with the overwrite option!");
+        Logger.LogWarn("Overwriting files could take very long depending on your other options!");
+    }
+    Logger.NewLine();
+    Logger.LogInfo("Are you sure you want to proceed? y/n: ");
+    proceed = Console.ReadKey().KeyChar;
+    if (proceed is null || proceed != 'y' && proceed != 'n')
+    {
+        Logger.LogError("Please input y for yes or n for no!");
+        await Task.Delay(TimeSpan.FromSeconds(3));
+        Logger.ClearBuffer();
+        proceed = null;
+    }
+    else if (proceed is 'n')
+    {
+        Logger.ClearBuffer();
+        Environment.Exit(0);
+    }
 }
 
 if (p4kFile is null) p4kFile = defaultp4kFile;
