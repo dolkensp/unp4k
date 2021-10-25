@@ -237,7 +237,7 @@ char? goAheadWithExtraction = null;
 while (goAheadWithExtraction is null)
 {
     Logger.LogInfo(
-         "| - The output path you have chosen is on a storage drive which does not have enough available free space!" + '\n' +
+         "| - Pre-Process Statistics" + '\n' +
         @"                              |  \" + '\n' +
         $"                              |   | Output Path: {outDirectory.FullName}" + '\n' +
         $"                              |   | Selected Drive Partition: {outputDrive.Name}" + '\n' +
