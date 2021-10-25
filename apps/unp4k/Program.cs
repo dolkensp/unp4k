@@ -257,10 +257,8 @@ Stopwatch watch = new();
 watch.Start();
 
 Logger.NewLine(2);
-Logger.LogInfo("##########  Beginning Extraction Pass...  ##########");
-Logger.LogInfo("##########  This may take a while...  ##########");
+Logger.LogInfo("Beginning Extraction Pass...");
 Logger.NewLine(2);
-await Task.Delay(TimeSpan.FromSeconds(2));
 if (existenceFilteredExtractionEntries.Count > 0)
 {
     int tasksCompleted = 0;
@@ -317,10 +315,8 @@ if (existenceFilteredSmeltingEntries.Count > 0)
     if (shouldSmelt && !combinePasses)
     {
         Logger.NewLine(2);
-        Logger.LogInfo("##########  Beginning Smelting Pass...  ##########");
-        Logger.LogInfo("##########  This may take a while...  ##########");
+        Logger.LogInfo("Beginning Smelting Pass...");
         Logger.NewLine(2);
-        await Task.Delay(TimeSpan.FromSeconds(2));
         int tasksCompleted = 0;
         Parallel.ForEach(existenceFilteredSmeltingEntries, entry =>
         {
