@@ -194,6 +194,7 @@ Logger.LogInfo("Optimising Extractable File List...");
 existenceFilteredExtractionEntries = new(filteredEntries.Where(x =>
 {
     FileInfo f = new(Path.Join(outDirectory.FullName, x.Name));
+    bytesSize += f.Length;
     return forceOverwrite || !f.Exists || f.Length != x.Size;
 }));
 if (shouldSmelt)
@@ -219,7 +220,7 @@ if (outputDrive.AvailableFreeSpace < bytesSize)
         $"                              |   | Selected Drive Partition: {outputDrive.Name}" + '\n' +
         $"                              |   | Selected Drive Partition Total Free Space:     {(float)outputDrive.TotalFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.TotalFreeSpace / 1000000000:#,#.###} GB" + '\n' +
         $"                              |   | Selected Drive Partition Available Free Space: {(float)outputDrive.AvailableFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.AvailableFreeSpace / 1000000000:#,#.###} GB" + '\n' +
-        $"                              |   | Estimated Required Space:       {(additionalFiles ? "An Additional " : "              ")}{(float)bytesSize / 1000000:#,#.###} MB  :  {(float)bytesSize / 1000000000:#,#.###} GB" +
+        $"                              |   | Estimated Required Space:        {(additionalFiles ? "An Additional " : "              ")}{(float)bytesSize / 1000000:#,#.###} MB  :  {(float)bytesSize / 1000000000:#,#.###} GB" +
                                                 $"{(shouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
         $"                              |   | File Count: {existenceFilteredExtractionEntries.Count}{(additionalFiles ? " Additional Files" : string.Empty)}{(filters[0] != "*.*" ? $" Filtered From {string.Join(",", filters)}" : string.Empty)}" +
                                                 $"{(shouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
@@ -242,7 +243,7 @@ while (goAheadWithExtraction is null)
         $"                              |   | Selected Drive Partition: {outputDrive.Name}" + '\n' +
         $"                              |   | Selected Drive Partition Total Free Space:     {(float)outputDrive.TotalFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.TotalFreeSpace / 1000000000:#,#.###} GB" + '\n' +
         $"                              |   | Selected Drive Partition Available Free Space: {(float)outputDrive.AvailableFreeSpace / 1000000:#,#.###} MB  :  {(float)outputDrive.AvailableFreeSpace / 1000000000:#,#.###} GB" + '\n' +
-        $"                              |   | Estimated Required Space:       {(additionalFiles ? "An Additional " : "              ")}{(float)bytesSize / 1000000:#,#.###} MB  :  {(float)bytesSize / 1000000000:#,#.###} GB" +
+        $"                              |   | Estimated Required Space:        {(additionalFiles ? "An Additional " : "              ")}{(float)bytesSize / 1000000:#,#.###} MB  :  {(float)bytesSize / 1000000000:#,#.###} GB" +
                                                 $"{(shouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
         $"                              |   | File Count: {existenceFilteredExtractionEntries.Count}{(additionalFiles ? " Additional Files" : string.Empty)}{(filters[0] != "*.*" ? $" Filtered From {string.Join(",", filters)}" : string.Empty)}" +
                                                 $"{(shouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
