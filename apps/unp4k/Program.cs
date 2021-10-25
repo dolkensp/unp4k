@@ -114,7 +114,7 @@ while (proceed is null)
         Logger.LogWarn("unp4k has been run with filters which include Star Citizen's Game.dcb file!");
         Logger.LogWarn("Due to what the Game.dcb contains, unp4k will need to run for far longer and will requires possibly hundreds of gigabytes of free space!");
     }
-    if (filters.Any(x => x.Contains("*.*") || x.Contains(".dcb")))
+    if (forceOverwrite)
     {
         Logger.NewLine();
         Logger.LogWarn("OVERWRITE ENABLED:");
