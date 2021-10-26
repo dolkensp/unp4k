@@ -100,6 +100,11 @@ catch (IndexOutOfRangeException e)
     Environment.Exit(0);
 }
 
+if (p4kFile is null) p4kFile = defaultp4kFile;
+if (outDirectory is null) outDirectory = defaultExtractionDirectory;
+if (smelterOutDirectory is null) smelterOutDirectory = new(Path.Join(outDirectory.FullName, "Smelted"));
+if (filters.Count is 0) filters.Add("*.*");
+
 char? proceed = null;
 bool shouldCheckProceed = false;
 while (proceed is null)
@@ -146,12 +151,8 @@ while (proceed is null)
             Environment.Exit(0);
         }
     }
+    else break;
 }
-
-if (p4kFile is null) p4kFile = defaultp4kFile;
-if (outDirectory is null) outDirectory = defaultExtractionDirectory;
-if (smelterOutDirectory is null) smelterOutDirectory = new(Path.Join(outDirectory.FullName, "Smelted"));
-if (filters.Count is 0) filters.Add("*.*");
 
 if (!p4kFile.Exists)
 {
@@ -220,7 +221,7 @@ if (shouldSmelt)
         DirectoryInfo d = new(smelterOutDirectory.FullName[..smelterOutDirectory.FullName.LastIndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar })]);
         try
         {
-            return forceOverwrite || !d.Exists || d.EnumerateFiles($"{x.Name.Substring(x.Name.LastIndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }), x.Name.LastIndexOf('.'))[..x.Name.LastIndexOf('.')]}_", 
+            return forceOverwrite || !d.Exists || d.EnumerateFiles($"{x.Name[(x.Name.LastIndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }) + 1)..x.Name.LastIndexOf('.')]}_", 
                 SearchOption.TopDirectoryOnly).ToList().Count == 0;
         }
         catch (DirectoryNotFoundException)
