@@ -1,4 +1,4 @@
-# unp4k [![Build status](https://ci.appveyor.com/api/projects/status/hkufa3njtl0x9v79/branch/master?svg=true)](https://ci.appveyor.com/project/dolkensp/unp4k/branch/master)
+# unp4k [![Release](https://github.com/dolkensp/unp4k/actions/workflows/release.yaml/badge.svg)](https://github.com/dolkensp/unp4k/actions/workflows/release.yaml)
 These tools allow users to open, decrypt, and extract data from Star Citizen `.p4k` files.
 
 # Installation:
