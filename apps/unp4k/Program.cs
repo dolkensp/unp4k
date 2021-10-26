@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Reflection;
 
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
@@ -109,34 +110,42 @@ while (proceed is null)
         Logger.LogWarn("unp4k has been run as root via the sudo command!");
         Logger.LogWarn("This may cause issues because it will make the app target the /root/ path!");
     }
-    if (filters.Any(x => x.Contains("*.*") || x.Contains(".dcb")))
+    else proceed = 'y';
+    if (filters.Contains("*.*") || filters.Any(x => x.Contains(".dcb")))
     {
         Logger.NewLine();
         Logger.LogWarn("ENORMOUS JOB WARNING:");
         Logger.LogWarn("unp4k has been run with filters which include Star Citizen's Game.dcb file!");
         Logger.LogWarn("Due to what the Game.dcb contains, unp4k will need to run for far longer and will requires possibly hundreds of gigabytes of free space!");
+        proceed = null;
     }
+    else proceed = 'y';
     if (forceOverwrite)
     {
         Logger.NewLine();
         Logger.LogWarn("OVERWRITE ENABLED:");
         Logger.LogWarn("unp4k has been run with the overwrite option!");
         Logger.LogWarn("Overwriting files could take very long depending on your other options!");
-    }
-    Logger.NewLine();
-    Logger.LogInfo("Are you sure you want to proceed? y/n: ");
-    proceed = Console.ReadKey().KeyChar;
-    if (proceed is null || proceed != 'y' && proceed != 'n')
-    {
-        Logger.LogError("Please input y for yes or n for no!");
-        await Task.Delay(TimeSpan.FromSeconds(3));
-        Logger.ClearBuffer();
         proceed = null;
     }
-    else if (proceed is 'n')
+    else proceed = 'y';
+    if (proceed != 'y')
     {
-        Logger.ClearBuffer();
-        Environment.Exit(0);
+        Logger.NewLine();
+        Logger.LogInfo("Are you sure you want to proceed? y/n: ");
+        proceed = Console.ReadKey().KeyChar;
+        if (proceed is null || proceed != 'y' && proceed != 'n')
+        {
+            Logger.LogError("Please input y for yes or n for no!");
+            await Task.Delay(TimeSpan.FromSeconds(3));
+            Logger.ClearBuffer();
+            proceed = null;
+        }
+        else if (proceed is 'n')
+        {
+            Logger.ClearBuffer();
+            Environment.Exit(0);
+        }
     }
 }
 
@@ -196,7 +205,8 @@ Logger.LogInfo("Optimising Extractable File List...");
 existenceFilteredExtractionEntries = new(filteredEntries.Where(x =>
 {
     FileInfo f = new(Path.Join(outDirectory.FullName, x.Name));
-    bytesSize += f.Length;
+    if (f.Exists) bytesSize -= f.Length;
+    else bytesSize += x.Size;
     return forceOverwrite || !f.Exists || f.Length != x.Size;
 }));
 if (shouldSmelt)
@@ -204,10 +214,20 @@ if (shouldSmelt)
     Logger.ClearBuffer();
     Logger.LogInfo($"[75% Complete] Processing Data.p4k before extraction{(shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
     Logger.LogInfo("Optimising Smeltable File List...");
+    Logger.NewLine();
+    Logger.LogInfo("If a single output file from the smelted file exists, it will be excluded from smelting.");
     existenceFilteredSmeltingEntries = new(filteredEntries.Where(x =>
     {
-        FileInfo f = new(Path.ChangeExtension(Path.Join(smelterOutDirectory.FullName, x.Name), "xml"));
-        return forceOverwrite || !f.Exists || f.Length != x.Size;
+        DirectoryInfo d = new(smelterOutDirectory.FullName[..smelterOutDirectory.FullName.LastIndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar })]);
+        try
+        {
+            return forceOverwrite || !d.Exists || d.EnumerateFiles($"{x.Name.Substring(x.Name.LastIndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }), x.Name.LastIndexOf('.'))[..x.Name.LastIndexOf('.')]}_", 
+                SearchOption.TopDirectoryOnly).ToList().Count == 0;
+        }
+        catch (DirectoryNotFoundException)
+        {
+            return true;
+        }
     }));
 }
 
@@ -229,6 +249,7 @@ if (outputDrive.AvailableFreeSpace < bytesSize)
         $"                              |   | Files Cannot Be Decompressed: {isDecompressableCount}" + '\n' +
         $"                              |   | Files Locked: {isLockedCount}" + '\n' +
         $"                              |   | Using Combined Pass: {combinePasses}" + '\n' +
+        $"                              |   | Is unforge Enabled: {shouldSmelt}" + '\n' +
         @"                              |  /");
     Console.ReadKey();
     Logger.ClearBuffer();
@@ -239,7 +260,7 @@ char? goAheadWithExtraction = null;
 while (goAheadWithExtraction is null)
 {
     Logger.LogInfo(
-         "| - Pre-Process Statistics" + '\n' +
+         "| - Pre-Process Summary" + '\n' +
         @"                              |  \" + '\n' +
         $"                              |   | Output Path: {outDirectory.FullName}" + '\n' +
         $"                              |   | Selected Drive Partition: {outputDrive.Name}" + '\n' +
@@ -252,6 +273,7 @@ while (goAheadWithExtraction is null)
         $"                              |   | Files Cannot Be Decompressed: {isDecompressableCount}" + '\n' +
         $"                              |   | Files Locked: {isLockedCount}" + '\n' +
         $"                              |   | Using Combined Pass: {combinePasses}" + '\n' +
+        $"                              |   | Is unforge Enabled: {shouldSmelt}" + '\n' +
         @"                              |  /");
     Logger.NewLine();
     Logger.LogInfo("Should the extraction go ahead? y/n: ");
@@ -295,7 +317,7 @@ if (existenceFilteredExtractionEntries.Count > 0)
                 $"                              |   | Uncompressed Size: {(float)entry.Size / 1000000:#,#.######} MB  :  {(float)entry.Size / 1000000000:#,#.#########} GB" + '\n' +
                 @"                              |  /");
         }
-        else Logger.LogInfo($"| [{percentage}%] - Extracting: {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
+        else Logger.LogInfo($"| [{percentage}%] - Extracting{(combinePasses ? " & Smelting" : string.Empty)}: {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
         if (!extractedFile.Directory.Exists) extractedFile.Directory.Create();
         try
         {
@@ -372,6 +394,18 @@ void Smelt(FileInfo extractedFile, FileInfo smeltedFile)
         if (printErrors) Logger.LogException(e);
     }
     catch (IOException e)
+    {
+        if (printErrors) Logger.LogException(e);
+    }
+    catch (AggregateException e)
+    {
+        if (printErrors) Logger.LogException(e);
+    }
+    catch (TargetInvocationException e)
+    {
+        if (printErrors) Logger.LogException(e);
+    }
+    catch (KeyNotFoundException e)
     {
         if (printErrors) Logger.LogException(e);
     }
