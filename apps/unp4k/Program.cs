@@ -101,35 +101,34 @@ catch (IndexOutOfRangeException e)
 }
 
 char? proceed = null;
+bool shouldCheckProceed = false;
 while (proceed is null)
 {
     if (OS.IsLinux && Environment.GetFolderPath(Environment.SpecialFolder.UserProfile).Contains("/root/"))
     {
+        shouldCheckProceed = true;
         Logger.NewLine();
         Logger.LogWarn("LINUX ROOT WARNING:");
         Logger.LogWarn("unp4k has been run as root via the sudo command!");
         Logger.LogWarn("This may cause issues because it will make the app target the /root/ path!");
     }
-    else proceed = 'y';
     if (filters.Contains("*.*") || filters.Any(x => x.Contains(".dcb")))
     {
+        shouldCheckProceed = true;
         Logger.NewLine();
         Logger.LogWarn("ENORMOUS JOB WARNING:");
         Logger.LogWarn("unp4k has been run with filters which include Star Citizen's Game.dcb file!");
         Logger.LogWarn("Due to what the Game.dcb contains, unp4k will need to run for far longer and will requires possibly hundreds of gigabytes of free space!");
-        proceed = null;
     }
-    else proceed = 'y';
     if (forceOverwrite)
     {
+        shouldCheckProceed = true;
         Logger.NewLine();
         Logger.LogWarn("OVERWRITE ENABLED:");
         Logger.LogWarn("unp4k has been run with the overwrite option!");
         Logger.LogWarn("Overwriting files could take very long depending on your other options!");
-        proceed = null;
     }
-    else proceed = 'y';
-    if (proceed != 'y')
+    if (shouldCheckProceed)
     {
         Logger.NewLine();
         Logger.LogInfo("Are you sure you want to proceed? y/n: ");
