@@ -282,9 +282,12 @@ Logger.ClearBuffer();
 Stopwatch watch = new();
 watch.Start();
 
-Logger.NewLine(2);
-Logger.LogInfo("Beginning Extraction Pass...");
-Logger.NewLine(2);
+if (shouldSmelt && !combinePasses)
+{
+    Logger.NewLine(2);
+    Logger.LogInfo("Beginning Extraction Pass...");
+    Logger.NewLine(2);
+}
 if (existenceFilteredExtractionEntries.Count > 0)
 {
     int tasksCompleted = 0;
@@ -346,7 +349,7 @@ if (existenceFilteredSmeltingEntries.Count > 0)
         int tasksCompleted = 0;
         Parallel.ForEach(existenceFilteredSmeltingEntries, entry =>
         {
-            Logger.LogInfo($"| [{(tasksCompleted is 0 ? 0F.ToString() : (100F * (float)tasksCompleted / existenceFilteredExtractionEntries.Count).ToString("#,#.###"))}%] - Smelting: {entry.Name}");
+            Logger.LogInfo($"| [{(tasksCompleted is 0 ? 0D : 100D * (double)tasksCompleted / (double)existenceFilteredExtractionEntries.Count).ToString("000.00000")}%] - Smelting: {entry.Name}");
             Smelt(new(Path.Join(outDirectory.FullName, entry.Name)), new(Path.Join(smelterOutDirectory.FullName, entry.Name)));
             tasksCompleted++;
         });
