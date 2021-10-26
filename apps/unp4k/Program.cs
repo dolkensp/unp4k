@@ -189,7 +189,7 @@ int isLockedCount = 0;
 long bytesSize = 0L;
 foreach (ZipEntry entry in pak) filteredEntries.Enqueue(entry);
 Logger.ClearBuffer();
-Logger.LogInfo($"[{(shouldSmelt ? "25" : "33")}% Complete] Processing Data.p4k before extraction{(shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
+Logger.LogInfo($"[33% Complete] Processing Data.p4k before extraction{(shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
 Logger.LogInfo("Testing Data.p4k Entry Integrity...");
 filteredEntries = new(filteredEntries.Where(x => filters.Contains("*.*") ? true : filters.Any(o => x.Name.Contains(o))).Where(x =>
 {
@@ -200,7 +200,7 @@ filteredEntries = new(filteredEntries.Where(x => filters.Contains("*.*") ? true 
     return isDecompressable && !isLocked;
 }).OrderBy(x => x.Name));
 Logger.ClearBuffer();
-Logger.LogInfo($"[{(shouldSmelt ? "50" : "66")}% Complete] Processing Data.p4k before extraction{(shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
+Logger.LogInfo($"[66% Complete] Processing Data.p4k before extraction{(shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
 Logger.LogInfo("Optimising Extractable File List...");
 existenceFilteredExtractionEntries = new(filteredEntries.Where(x =>
 {
@@ -209,27 +209,7 @@ existenceFilteredExtractionEntries = new(filteredEntries.Where(x =>
     else bytesSize += x.Size;
     return forceOverwrite || !f.Exists || f.Length != x.Size;
 }));
-if (shouldSmelt)
-{
-    Logger.ClearBuffer();
-    Logger.LogInfo($"[75% Complete] Processing Data.p4k before extraction{(shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
-    Logger.LogInfo("Optimising Smeltable File List...");
-    Logger.NewLine();
-    Logger.LogInfo("If a single output file from the smelted file exists, it will be excluded from smelting.");
-    existenceFilteredSmeltingEntries = new(filteredEntries.Where(x =>
-    {
-        DirectoryInfo d = new(smelterOutDirectory.FullName[..smelterOutDirectory.FullName.LastIndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar })]);
-        try
-        {
-            return forceOverwrite || !d.Exists || d.EnumerateFiles($"{x.Name[(x.Name.LastIndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }) + 1)..x.Name.LastIndexOf('.')]}_", 
-                SearchOption.TopDirectoryOnly).ToList().Count == 0;
-        }
-        catch (DirectoryNotFoundException)
-        {
-            return true;
-        }
-    }));
-}
+existenceFilteredSmeltingEntries = existenceFilteredExtractionEntries;
 
 Logger.ClearBuffer();
 DriveInfo outputDrive = DriveInfo.GetDrives().First(x => OS.IsWindows ? x.Name == outDirectory.FullName[..3] : new DirectoryInfo(x.Name).Exists);
