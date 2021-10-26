@@ -262,12 +262,10 @@ Logger.ClearBuffer();
 Stopwatch watch = new();
 watch.Start();
 
-if (shouldSmelt && !combinePasses)
-{
-    Logger.NewLine(2);
-    Logger.LogInfo("Beginning Extraction Pass...");
-    Logger.NewLine(2);
-}
+Logger.NewLine(2);
+if (shouldSmelt && !combinePasses) Logger.LogInfo("Beginning Extraction Pass...");
+Logger.LogInfo($"Beginning Extraction{(shouldSmelt && combinePasses ? " & Smelting" : string.Empty)} Pass...");
+Logger.NewLine(2);
 if (existenceFilteredExtractionEntries.Count > 0)
 {
     int tasksCompleted = 0;
