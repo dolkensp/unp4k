@@ -12,7 +12,7 @@ public static class Logger
     {
         try
         {
-            InternalConsoleLogger = new LoggerConfiguration().WriteTo.Console(outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {Level:u3}] {Message}{NewLine}{Exception}").CreateLogger();
+            InternalConsoleLogger = new LoggerConfiguration().WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {Message}{NewLine}{Exception}").CreateLogger();
             if (OS.IsWindows) Console.BufferWidth = Console.WindowWidth;
             ClearBuffer();
         }

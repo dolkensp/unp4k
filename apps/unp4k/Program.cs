@@ -214,20 +214,20 @@ existenceFilteredSmeltingEntries = existenceFilteredExtractionEntries;
 Logger.ClearBuffer();
 DriveInfo outputDrive = DriveInfo.GetDrives().First(x => OS.IsWindows ? x.Name == outDirectory.FullName[..3] : new DirectoryInfo(x.Name).Exists);
 string summary =
-        @"                              |  \" + '\n' +
-        $"                              |   | Output Path: {outDirectory.FullName}" + '\n' +
-        $"                              |   | Selected Drive Partition: {outputDrive.Name}" + '\n' +
-        $"                              |   | Selected Drive Partition Total Free Space:     {outputDrive.TotalFreeSpace / 1000000D:0,0.00000} MB  :  {outputDrive.TotalFreeSpace / 1000000000D:0,0.00000} GB" + '\n' +
-        $"                              |   | Selected Drive Partition Available Free Space: {outputDrive.AvailableFreeSpace / 1000000D:0,0.00000} MB  :  {outputDrive.AvailableFreeSpace / 1000000000D:0,0.00000} GB" + '\n' +
-        $"                              |   | Estimated Required Space:        {(additionalFiles ? "An Additional " : "              ")}{bytesSize / 1000000D:0,0.00000} MB  :  {bytesSize / 1000000000D:0,0.00000} GB" +
+        @"                     |  \" + '\n' +
+        $"                     |   | Output Path: {outDirectory.FullName}" + '\n' +
+        $"                     |   | Selected Drive Partition: {outputDrive.Name}" + '\n' +
+        $"                     |   | Selected Drive Partition Total Free Space:     {outputDrive.TotalFreeSpace / 1000000D:0,0.00000} MB  :  {outputDrive.TotalFreeSpace / 1000000000D:0,0.00000} GB" + '\n' +
+        $"                     |   | Selected Drive Partition Available Free Space: {outputDrive.AvailableFreeSpace / 1000000D:0,0.00000} MB  :  {outputDrive.AvailableFreeSpace / 1000000000D:0,0.00000} GB" + '\n' +
+        $"                     |   | Estimated Required Space:        {(additionalFiles ? "An Additional " : "              ")}{bytesSize / 1000000D:0,0.00000} MB  :  {bytesSize / 1000000000D:0,0.00000} GB" +
                                                 $"{(shouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
-        $"                              |   | File Count: {existenceFilteredExtractionEntries.Count}{(additionalFiles ? " Additional Files" : string.Empty)}{(filters[0] != "*.*" ? $" Filtered From {string.Join(",", filters)}" : string.Empty)}" +
+        $"                     |   | File Count: {existenceFilteredExtractionEntries.Count}{(additionalFiles ? " Additional Files" : string.Empty)}{(filters[0] != "*.*" ? $" Filtered From {string.Join(",", filters)}" : string.Empty)}" +
                                                 $"{(shouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
-        $"                              |   | Files Cannot Be Decompressed: {isDecompressableCount}" + '\n' +
-        $"                              |   | Files Locked: {isLockedCount}" + '\n' +
-        $"                              |   | Using Combined Pass: {combinePasses}" + '\n' +
-        $"                              |   | Is unforge Enabled: {shouldSmelt}" + '\n' +
-        @"                              |  /";
+        $"                     |   | Files Cannot Be Decompressed: {isDecompressableCount}" + '\n' +
+        $"                     |   | Files Locked: {isLockedCount}" + '\n' +
+        $"                     |   | Using Combined Pass: {combinePasses}" + '\n' +
+        $"                     |   | Is unforge Enabled: {shouldSmelt}" + '\n' +
+        @"                     |  /";
 if (outputDrive.AvailableFreeSpace < bytesSize)
 {
     Logger.LogError("| - The output path you have chosen is on a storage drive which does not have enough available free space!" + '\n' + summary);
@@ -285,12 +285,12 @@ if (existenceFilteredExtractionEntries.Count > 0)
             if (detailedLogs)
             {
                 Logger.LogInfo($"| [{percentage}%] - Extracted{(combinePasses ? " & Smelted" : string.Empty)}: {entry.Name}" + '\n' +
-                    @"                              |  \" + '\n' +
-                    $"                              |   | Date Last Modified: {entry.DateTime}" + '\n' +
-                    $"                              |   | Compression Method: {entry.CompressionMethod}" + '\n' +
-                    $"                              |   | Compressed Size:   {(double)entry.CompressedSize / 1000000D:0,0.00000} MB  :  {(double)entry.CompressedSize / 1000000000D:0,0.00000} GB" + '\n' +
-                    $"                              |   | Uncompressed Size: {(double)entry.Size / 1000000D:0,0.00000} MB  :  {(double)entry.Size / 1000000000D:0,0.00000} GB" + '\n' +
-                    @"                              |  /");
+                    @"                     |  \" + '\n' +
+                    $"                     |   | Date Last Modified: {entry.DateTime}" + '\n' +
+                    $"                     |   | Compression Method: {entry.CompressionMethod}" + '\n' +
+                    $"                     |   | Compressed Size:   {(double)entry.CompressedSize / 1000000D:0,0.00000} MB  :  {(double)entry.CompressedSize / 1000000000D:0,0.00000} GB" + '\n' +
+                    $"                     |   | Uncompressed Size: {(double)entry.Size / 1000000D:0,0.00000} MB  :  {(double)entry.Size / 1000000000D:0,0.00000} GB" + '\n' +
+                    @"                     |  /");
             }
             else Logger.LogInfo($"| [{percentage}%] - Extracted{(combinePasses ? " & Smelted" : string.Empty)}: {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
         }
