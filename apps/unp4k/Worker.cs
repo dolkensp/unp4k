@@ -64,25 +64,31 @@ internal class Worker
         bool additionalFiles = false;
         DriveInfo outputDrive = DriveInfo.GetDrives().First(x => OS.IsWindows ? x.Name == Globals.OutDirectory.FullName[..3] : new DirectoryInfo(x.Name).Exists);
         string summary =
-                @"                        \" + '\n' +
-                $"                         |                    Output Path | {Globals.OutDirectory.FullName}" + '\n' +
-                $"                         |                      Partition | {outputDrive.Name}" + '\n' +
-                $"                         |     Partition Total Free Space | {outputDrive.TotalFreeSpace / 1000000000D:0,0.00000} GB" + '\n' +
-                $"                         | Partition Available Free Space | {outputDrive.AvailableFreeSpace / 1000000000D:0,0.00000} GB" + '\n' +
-                $"                         |       Estimated Required Space | {(additionalFiles ? "An Additional " : string.Empty)}" +
+                @"                       \" + '\n' +
+                $"                        |                    Output Path | {Globals.OutDirectory.FullName}" + '\n' +
+                $"                        |                      Partition | {outputDrive.Name}" + '\n' +
+                $"                        |     Partition Total Free Space | {outputDrive.TotalFreeSpace / 1000000000D:0,0.00000} GB" + '\n' +
+                $"                        | Partition Available Free Space | {outputDrive.AvailableFreeSpace / 1000000000D:0,0.00000} GB" + '\n' +
+                $"                        |       Estimated Required Space | {(additionalFiles ? "An Additional " : string.Empty)}" +
                                                                                 $"{bytesSize / 1000000000D:0,0.00000} GB" +
                                                                                 $"{(Globals.ShouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
-                 "                         |                                | " + '\n' +
-                $"                         |                     File Count | {existenceFilteredExtractionEntries.Count}" +
+                 "                        |                                | " + '\n' +
+                $"                        |                     File Count | {existenceFilteredExtractionEntries.Count}" +
                                                                                 $"{(additionalFiles ? " Additional Files" : string.Empty)}" +
                                                                                 $"{(Globals.Filters[0] != "*.*" ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" +
                                                                                 $"{(Globals.ShouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
-                $"                         |             Files Incompatible | {isDecompressableCount}" + '\n' +
-                $"                         |                   Files Locked | {isLockedCount}" + '\n' +
-                 "                         |                                | " + '\n' +
-                $"                         | Combine Extract & Smelt Passes | {Globals.CombinePasses}" + '\n' +
-                $"                         |     Will Smelt Extracted Files | {Globals.ShouldSmelt}" + '\n' +
-                @"                        /";
+                $"                        |             Files Incompatible | {isDecompressableCount}" +
+                                                                                $"{(additionalFiles ? " Additional Files" : string.Empty)}" +
+                                                                                $"{(Globals.Filters[0] != "*.*" ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" +
+                                                                                $"{(Globals.ShouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
+                $"                        |                   Files Locked | {isLockedCount}" +
+                                                                                $"{(additionalFiles ? " Additional Files" : string.Empty)}" +
+                                                                                $"{(Globals.Filters[0] != "*.*" ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" +
+                                                                                $"{(Globals.ShouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
+                 "                        |                                | " + '\n' +
+                $"                        | Combine Extract & Smelt Passes | {Globals.CombinePasses}" + '\n' +
+                $"                        |     Will Smelt Extracted Files | {Globals.ShouldSmelt}" + '\n' +
+                @"                       /";
         // Never allow the extraction to go through if the target storage drive has too little available space.
         if (outputDrive.AvailableFreeSpace < bytesSize)
         {
@@ -148,12 +154,12 @@ internal class Worker
                     if (Globals.DetailedLogs)
                     {
                         Logger.LogInfo($"| [{percentage}%] - Extracted{(Globals.CombinePasses ? " & Smelted" : string.Empty)}: {entry.Name}" + '\n' +
-                            @"                        \" + '\n' +
-                            $"                         | Date Last Modified: {entry.DateTime}" + '\n' +
-                            $"                         | Compression Method: {entry.CompressionMethod}" + '\n' +
-                            $"                         | Compressed Size:    {entry.CompressedSize / 1000000000D:0,0.00000} GB" + '\n' +
-                            $"                         | Uncompressed Size:  {entry.Size / 1000000000D:0,0.00000} GB" + '\n' +
-                            @"                        /");
+                            @"                       \" + '\n' +
+                            $"                        | Date Last Modified: {entry.DateTime}" + '\n' +
+                            $"                        | Compression Method: {entry.CompressionMethod}" + '\n' +
+                            $"                        | Compressed Size:    {entry.CompressedSize / 1000000000D:0,0.00000} GB" + '\n' +
+                            $"                        | Uncompressed Size:  {entry.Size / 1000000000D:0,0.00000} GB" + '\n' +
+                            @"                       /");
                     }
                     else Logger.LogInfo($"| [{percentage}%] - Extracted{(Globals.CombinePasses ? " & Smelted" : string.Empty)}: {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
                 }
