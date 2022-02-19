@@ -1,16 +1,14 @@
-﻿using unlib;
-
-namespace unp4k;
+﻿namespace unp4k;
 internal static class Globals
 {
-    internal static FileInfo? p4kFile = null;
-    internal static DirectoryInfo? outDirectory = null;
-    internal static DirectoryInfo? smelterOutDirectory = null;
-    internal static List<string> filters = new();
+    internal static FileInfo? P4kFile = null;
+    internal static DirectoryInfo? OutDirectory = null;
+    internal static DirectoryInfo? SmelterOutDirectory = null;
+    internal static List<string> Filters = new();
 
-    internal static bool printErrors = false;
-    internal static bool detailedLogs = false;
-    internal static bool shouldSmelt = false;
-    internal static bool combinePasses = false;
-    internal static bool forceOverwrite = false;
+    internal static bool PrintErrors = false;
+    internal static bool DetailedLogs = false;
+    internal static bool ShouldSmelt = false;
+    internal static bool CombinePasses = false;
+    internal static bool ForceOverwrite = false;
 }

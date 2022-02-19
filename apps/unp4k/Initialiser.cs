@@ -15,9 +15,9 @@ internal static class Initialiser
 
         if (args.Length is 0)
         {
-            Globals.p4kFile = Defaultp4kFile;
-            Globals.outDirectory = DefaultExtractionDirectory;
-            Globals.filters.Add("*.*");
+            Globals.P4kFile = Defaultp4kFile;
+            Globals.OutDirectory = DefaultExtractionDirectory;
+            Globals.Filters.Add("*.*");
             Logger.ClearBuffer();
             // Basically show the user the manual if there are no arguments.
             Logger.LogInfo('\n' +
@@ -67,19 +67,19 @@ internal static class Initialiser
         {
             for (int i = 0; i < args.Length; i++)
             {
-                if (args[i].ToLowerInvariant() is "-i") Globals.p4kFile = new(args[i + 1]);
-                else if (args[i].ToLowerInvariant() is "-o") Globals.outDirectory = new(args[i + 1]);
-                else if (args[i].ToLowerInvariant() is "-f") Globals.filters = args[i + 1].Split(',').ToList();
-                else if (args[i].ToLowerInvariant() is "-e") Globals.printErrors = true;
-                else if (args[i].ToLowerInvariant() is "-d") Globals.detailedLogs = true;
-                else if (args[i].ToLowerInvariant() is "-c") Globals.combinePasses = true;
-                else if (args[i].ToLowerInvariant() is "-w") Globals.forceOverwrite = true;
-                else if (args[i].ToLowerInvariant() is "-forge") Globals.shouldSmelt = true;
+                if (args[i].ToLowerInvariant() is "-i") Globals.P4kFile = new(args[i + 1]);
+                else if (args[i].ToLowerInvariant() is "-o") Globals.OutDirectory = new(args[i + 1]);
+                else if (args[i].ToLowerInvariant() is "-f") Globals.Filters = args[i + 1].Split(',').ToList();
+                else if (args[i].ToLowerInvariant() is "-e") Globals.PrintErrors = true;
+                else if (args[i].ToLowerInvariant() is "-d") Globals.DetailedLogs = true;
+                else if (args[i].ToLowerInvariant() is "-c") Globals.CombinePasses = true;
+                else if (args[i].ToLowerInvariant() is "-w") Globals.ForceOverwrite = true;
+                else if (args[i].ToLowerInvariant() is "-forge") Globals.ShouldSmelt = true;
             }
         }
         catch (IndexOutOfRangeException e)
         {
-            if (Globals.printErrors) Logger.LogException(e);
+            if (Globals.PrintErrors) Logger.LogException(e);
             else Logger.LogError("An error has occured with the argument parser. Please ensure you have provided the relevant arguments!");
             Console.ReadKey();
             Logger.ClearBuffer();
@@ -92,22 +92,22 @@ internal static class Initialiser
         Console.Title = $"unp4k: Initializing...";
 
         // Default any of the null argument declared variables.
-        if (Globals.p4kFile is null) Globals.p4kFile = Defaultp4kFile;
-        if (Globals.outDirectory is null) Globals.outDirectory = DefaultExtractionDirectory;
-        if (Globals.smelterOutDirectory is null) Globals.smelterOutDirectory = new(Path.Join(Globals.outDirectory.FullName, "Smelted"));
-        if (Globals.filters.Count is 0) Globals.filters.Add("*.*");
+        if (Globals.P4kFile is null) Globals.P4kFile = Defaultp4kFile;
+        if (Globals.OutDirectory is null) Globals.OutDirectory = DefaultExtractionDirectory;
+        if (Globals.SmelterOutDirectory is null) Globals.SmelterOutDirectory = new(Path.Join(Globals.OutDirectory.FullName, "Smelted"));
+        if (Globals.Filters.Count is 0) Globals.Filters.Add("*.*");
 
-        if (!Globals.p4kFile.Exists)
+        if (!Globals.P4kFile.Exists)
         {
-            Logger.LogError($"Input path '{Globals.p4kFile.FullName}' does not exist!");
+            Logger.LogError($"Input path '{Globals.P4kFile.FullName}' does not exist!");
             Logger.LogError($"Make sure you have the path pointing to a Star Citizen Data.p4k file!");
             Console.ReadKey();
             Logger.ClearBuffer();
             Environment.Exit(0);
         }
 
-        if (!Globals.outDirectory.Exists) Globals.outDirectory.Create();
-        if (!Globals.smelterOutDirectory.Exists) Globals.smelterOutDirectory.Create();
+        if (!Globals.OutDirectory.Exists) Globals.OutDirectory.Create();
+        if (!Globals.SmelterOutDirectory.Exists) Globals.SmelterOutDirectory.Create();
     }
 
     internal static async Task PostInit()
@@ -127,7 +127,7 @@ internal static class Initialiser
                 Logger.LogWarn("unp4k has been run as root via the sudo command!");
                 Logger.LogWarn("This may cause issues because it will make the app target the /root/ path!");
             }
-            if (Globals.filters.Contains("*.*") || Globals.filters.Any(x => x.Contains(".dcb")))
+            if (Globals.Filters.Contains("*.*") || Globals.Filters.Any(x => x.Contains(".dcb")))
             {
                 shouldCheckProceed = true;
                 Logger.NewLine();
@@ -135,7 +135,7 @@ internal static class Initialiser
                 Logger.LogWarn("unp4k has been run with filters which include Star Citizen's Game.dcb file!");
                 Logger.LogWarn("Due to what the Game.dcb contains, unp4k will need to run for far longer and will requires possibly hundreds of gigabytes of free space!");
             }
-            if (Globals.forceOverwrite)
+            if (Globals.ForceOverwrite)
             {
                 shouldCheckProceed = true;
                 Logger.NewLine();
