@@ -18,7 +18,6 @@ internal static class Initialiser
             Globals.P4kFile = Defaultp4kFile;
             Globals.OutDirectory = DefaultExtractionDirectory;
             Globals.Filters.Add("*.*");
-            Logger.ClearBuffer();
             // Basically show the user the manual if there are no arguments.
             Logger.LogInfo('\n' +
                 "################################################################################" + '\n' + '\n' +
@@ -29,8 +28,10 @@ internal static class Initialiser
                @" | Windows Command Prompt: unp4ck -d -i " + '"' + "[InFilePath]" + '"' + " -o " + '"' + "[OutDirectoryPath]" + '"' + '\n' +
                @" | Linux Terminal: ./unp4ck -d -i " + '"' + "[InFilePath]" + '"' + " -o " + '"' + "[OutDirectoryPath]" + '"' + '\n' +
                 " | " + '\n' +
-               @" | Windows Example: unp4ck -i " + '"' + @"C:\Program Files\Roberts Space Industries\StarCitizen\LIVE\Data.p4k" + '"' + " -o " + '"' + @"C:\Windows\SC" + '"' + " -f " + '"' + "*.*" + '"' + " -d" + '\n' +
-               @" | Ubuntu Example: unp4ck -i " + '"' + @"/home/USERNAME/unp4k/Data.p4k" + '"' + " -o " + '"' + @"/home/USERNAME/unp4k/output" + '"' + " -f " + '"' + "*.*" + '"' + " -d" + '\n' +
+               @" | Windows Example: unp4ck -i " + '"' + @"C:\Program Files\Roberts Space Industries\StarCitizen\LIVE\Data.p4k" + '"' + " -o " + 
+                        '"' + @"C:\Windows\SC" + '"' + " -f " + '"' + "*.*" + '"' + " -d" + '\n' +
+               @" | Ubuntu Example: unp4ck -i " + '"' + @"/home/USERNAME/unp4k/Data.p4k" + '"' + " -o " + '"' + @"/home/USERNAME/unp4k/output" + 
+                        '"' + " -f " + '"' + "*.*" + '"' + " -d" + '\n' +
                 " | " + '\n' +
                @" |\" + '\n' +
                 " | - Mandatory arguments:" + '\n' +
@@ -56,9 +57,16 @@ internal static class Initialiser
                 "/" + '\n' +
                 "################################################################################" + '\n' + '\n' +
                $"NO INPUT Data.p4k PATH HAS BEEN DECLARED. USING DEFAULT PATH " + '"' + $"{Defaultp4kFile.FullName}" + '"' + '\n' +
-                "NO OUTPUT DIRECTORY PATH HAS BEEN DECLARED. ALL EXTRACTS WILL GO INTO " + '"' + $"{DefaultExtractionDirectory.FullName}" + '"' + '\n' + '\n' +
-                "Press any key to continue!" + '\n');
+                "NO OUTPUT DIRECTORY PATH HAS BEEN DECLARED. ALL EXTRACTS WILL GO INTO " + '"' + $"{DefaultExtractionDirectory.FullName}" + '"'
+                + '\n' + '\n' + "Press any key to continue!" + '\n');
             Console.ReadKey();
+        }
+        else
+        {
+            Logger.LogInfo('\n' +
+                "################################################################################" + '\n' + '\n' +
+                "                              unp4k <> Star Citizen                             " + '\n' + '\n' +
+                "################################################################################" + '\n' + '\n');
         }
 
         // Parse the arguments and do what they represent
