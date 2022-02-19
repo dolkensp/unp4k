@@ -62,6 +62,7 @@ internal class Worker
     internal static async Task ProvideSummary()
     {
         Logger.ClearBuffer();
+
         bool additionalFiles = false;
         DriveInfo outputDrive = DriveInfo.GetDrives().First(x => OS.IsWindows ? x.Name == Globals.outDirectory.FullName[..3] : new DirectoryInfo(x.Name).Exists);
         string summary =
@@ -83,6 +84,7 @@ internal class Worker
                 $"                     |   | Using Combined Pass: {Globals.combinePasses}" + '\n' +
                 $"                     |   | Is unforge Enabled: {Globals.shouldSmelt}" + '\n' +
                 @"                     |  /";
+        // Never allow the extraction to go through if the target storage drive has too little available space.
         if (outputDrive.AvailableFreeSpace < bytesSize)
         {
             Logger.LogError("| - The output path you have chosen is on a storage drive which does not have enough available free space!" + '\n' + summary);
@@ -91,6 +93,7 @@ internal class Worker
             Environment.Exit(0);
         }
 
+        // Give the user a summary of what unp4k/unforge is about to do and some statistics.
         char? goAheadWithExtraction = null;
         while (goAheadWithExtraction is null)
         {
