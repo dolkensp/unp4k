@@ -57,9 +57,8 @@ internal static class Initialiser
                 "################################################################################" + '\n' + '\n' +
                $"NO INPUT Data.p4k PATH HAS BEEN DECLARED. USING DEFAULT PATH " + '"' + $"{Defaultp4kFile.FullName}" + '"' + '\n' +
                 "NO OUTPUT DIRECTORY PATH HAS BEEN DECLARED. ALL EXTRACTS WILL GO INTO " + '"' + $"{DefaultExtractionDirectory.FullName}" + '"' + '\n' + '\n' +
-                "Press any key to continue!");
+                "Press any key to continue!" + '\n');
             Console.ReadKey();
-            Logger.ClearBuffer();
         }
 
         // Parse the arguments and do what they represent
@@ -129,15 +128,16 @@ internal static class Initialiser
             }
             if (Globals.Filters.Contains("*.*") || Globals.Filters.Any(x => x.Contains(".dcb")))
             {
-                shouldCheckProceed = true;
-                Logger.NewLine();
+                if (shouldCheckProceed) Logger.NewLine();
+                else shouldCheckProceed = true;
                 Logger.LogWarn("ENORMOUS JOB WARNING:");
                 Logger.LogWarn("unp4k has been run with filters which include Star Citizen's Game.dcb file!");
                 Logger.LogWarn("Due to what the Game.dcb contains, unp4k will need to run for far longer and will requires possibly hundreds of gigabytes of free space!");
             }
             if (Globals.ForceOverwrite)
             {
-                shouldCheckProceed = true;
+                if (shouldCheckProceed) Logger.NewLine();
+                else shouldCheckProceed = true;
                 Logger.NewLine();
                 Logger.LogWarn("OVERWRITE ENABLED:");
                 Logger.LogWarn("unp4k has been run with the overwrite option!");
