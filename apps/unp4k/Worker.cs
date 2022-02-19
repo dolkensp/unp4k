@@ -67,12 +67,9 @@ internal class Worker
                 @"                        \" + '\n' +
                 $"                         |                    Output Path | {Globals.outDirectory.FullName}" + '\n' +
                 $"                         |                      Partition | {outputDrive.Name}" + '\n' +
-                $"                         |     Partition Total Free Space | {outputDrive.TotalFreeSpace / 1000000D:0,0.00000} MB  :  " +
-                                                                                $"{outputDrive.TotalFreeSpace / 1000000000D:0,0.00000} GB" + '\n' +
-                $"                         | Partition Available Free Space | {outputDrive.AvailableFreeSpace / 1000000D:0,0.00000} MB  :  " +
-                                                                                $"{outputDrive.AvailableFreeSpace / 1000000000D:0,0.00000} GB" + '\n' +
+                $"                         |     Partition Total Free Space | {outputDrive.TotalFreeSpace / 1000000000D:0,0.00000} GB" + '\n' +
+                $"                         | Partition Available Free Space | {outputDrive.AvailableFreeSpace / 1000000000D:0,0.00000} GB" + '\n' +
                 $"                         |       Estimated Required Space | {(additionalFiles ? "An Additional " : string.Empty)}" +
-                                                                                $"{bytesSize / 1000000D:0,0.00000} MB  :  " +
                                                                                 $"{bytesSize / 1000000000D:0,0.00000} GB" +
                                                                                 $"{(Globals.shouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
                  "                         |                                | " + '\n' +
@@ -154,8 +151,8 @@ internal class Worker
                             @"                        \" + '\n' +
                             $"                         | Date Last Modified: {entry.DateTime}" + '\n' +
                             $"                         | Compression Method: {entry.CompressionMethod}" + '\n' +
-                            $"                         | Compressed Size:    {entry.CompressedSize / 1000000D:0,0.00000} MB  :  {entry.CompressedSize / 1000000000D:0,0.00000} GB" + '\n' +
-                            $"                         | Uncompressed Size:  {entry.Size / 1000000D:0,0.00000} MB  :  {entry.Size / 1000000000D:0,0.00000} GB" + '\n' +
+                            $"                         | Compressed Size:    {entry.CompressedSize / 1000000000D:0,0.00000} GB" + '\n' +
+                            $"                         | Uncompressed Size:  {entry.Size / 1000000000D:0,0.00000} GB" + '\n' +
                             @"                        /");
                     }
                     else Logger.LogInfo($"| [{percentage}%] - Extracted{(Globals.combinePasses ? " & Smelted" : string.Empty)}: {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
