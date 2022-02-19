@@ -26,7 +26,7 @@ internal class Worker
         Console.Title = $"unp4k: Working on {Globals.p4kFile.FullName}";
 
         // Setup the stream from the Data.p4k and contain it as an ICSC ZipFile with the appropriate keys then enqueue all zip entries.
-        Logger.LogInfo($"[0% Complete] Processing Data.p4k before extraction{(Globals.shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
+        Logger.LogInfo($"[0%] Processing Data.p4k before extraction{(Globals.shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
         using FileStream p4kStream = Globals.p4kFile.Open(FileMode.Open, FileAccess.Read, FileShare.None); // The Data.p4k must be locked while it is being read to avoid corruption.
         pak = new(p4kStream);
         pak.KeysRequired += (object sender, KeysRequiredEventArgs e) => e.Key = new byte[] { 0x5E, 0x7A, 0x20, 0x02, 0x30, 0x2E, 0xEB, 0x1A, 0x3B, 0xB6, 0x17, 0xC3, 0x0F, 0xDE, 0x1E, 0x47 };
@@ -89,7 +89,7 @@ internal class Worker
         // Never allow the extraction to go through if the target storage drive has too little available space.
         if (outputDrive.AvailableFreeSpace < bytesSize)
         {
-            Logger.LogError("| - The output path you have chosen is on a storage drive which does not have enough available free space!" + '\n' + summary);
+            Logger.LogError("| - The output path you have chosen is on a partition which does not have enough available free space!" + '\n' + summary);
             Console.ReadKey();
             Logger.ClearBuffer();
             Environment.Exit(0);
