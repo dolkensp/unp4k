@@ -163,5 +163,6 @@ internal static class Initialiser
             }
             else break;
         }
+        Logger.NewLine(2);
     }
 }
