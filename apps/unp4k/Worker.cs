@@ -61,29 +61,31 @@ internal class Worker
 
     internal static async Task ProvideSummary()
     {
-        Logger.ClearBuffer();
-
         bool additionalFiles = false;
         DriveInfo outputDrive = DriveInfo.GetDrives().First(x => OS.IsWindows ? x.Name == Globals.outDirectory.FullName[..3] : new DirectoryInfo(x.Name).Exists);
         string summary =
-                @"                     |  \" + '\n' +
-                $"                     |   | Output Path: {Globals.outDirectory.FullName}" + '\n' +
-                $"                     |   | Selected Drive Partition: {outputDrive.Name}" + '\n' +
-                $"                     |   | Selected Drive Partition Total Free Space:     {outputDrive.TotalFreeSpace / 1000000D:0,0.00000} MB  :  " +
-                                                        $"{outputDrive.TotalFreeSpace / 1000000000D:0,0.00000} GB" + '\n' +
-                $"                     |   | Selected Drive Partition Available Free Space: {outputDrive.AvailableFreeSpace / 1000000D:0,0.00000} MB  :  " +
-                                                        $"{outputDrive.AvailableFreeSpace / 1000000000D:0,0.00000} GB" + '\n' +
-                $"                     |   | Estimated Required Space:        {(additionalFiles ? "An Additional " : "              ")}{bytesSize / 1000000D:0,0.00000} MB  :  " +
-                                                        $"{bytesSize / 1000000000D:0,0.00000} GB" +
-                                                        $"{(Globals.shouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
-                $"                     |   | File Count: {existenceFilteredExtractionEntries.Count}{(additionalFiles ? " Additional Files" : string.Empty)}" +
-                                                        $"{(Globals.filters[0] != "*.*" ? $" Filtered From {string.Join(",", Globals.filters)}" : string.Empty)}" +
-                                                        $"{(Globals.shouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
-                $"                     |   | Files Cannot Be Decompressed: {isDecompressableCount}" + '\n' +
-                $"                     |   | Files Locked: {isLockedCount}" + '\n' +
-                $"                     |   | Using Combined Pass: {Globals.combinePasses}" + '\n' +
-                $"                     |   | Is unforge Enabled: {Globals.shouldSmelt}" + '\n' +
-                @"                     |  /";
+                @"                        \" + '\n' +
+                $"                         |                    Output Path | {Globals.outDirectory.FullName}" + '\n' +
+                $"                         |                      Partition | {outputDrive.Name}" + '\n' +
+                $"                         |     Partition Total Free Space | {outputDrive.TotalFreeSpace / 1000000D:0,0.00000} MB  :  " +
+                                                                                $"{outputDrive.TotalFreeSpace / 1000000000D:0,0.00000} GB" + '\n' +
+                $"                         | Partition Available Free Space | {outputDrive.AvailableFreeSpace / 1000000D:0,0.00000} MB  :  " +
+                                                                                $"{outputDrive.AvailableFreeSpace / 1000000000D:0,0.00000} GB" + '\n' +
+                $"                         |       Estimated Required Space | {(additionalFiles ? "An Additional " : string.Empty)}" +
+                                                                                $"{bytesSize / 1000000D:0,0.00000} MB  :  " +
+                                                                                $"{bytesSize / 1000000000D:0,0.00000} GB" +
+                                                                                $"{(Globals.shouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
+                 "                         |                                | " + '\n' +
+                $"                         |                     File Count | {existenceFilteredExtractionEntries.Count}" +
+                                                                                $"{(additionalFiles ? " Additional Files" : string.Empty)}" +
+                                                                                $"{(Globals.filters[0] != "*.*" ? $" Filtered From {string.Join(",", Globals.filters)}" : string.Empty)}" +
+                                                                                $"{(Globals.shouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
+                $"                         |             Files Incompatible | {isDecompressableCount}" + '\n' +
+                $"                         |                   Files Locked | {isLockedCount}" + '\n' +
+                 "                         |                                | " + '\n' +
+                $"                         | Combine Extract & Smelt Passes | {Globals.combinePasses}" + '\n' +
+                $"                         |     Will Smelt Extracted Files | {Globals.shouldSmelt}" + '\n' +
+                @"                        /";
         // Never allow the extraction to go through if the target storage drive has too little available space.
         if (outputDrive.AvailableFreeSpace < bytesSize)
         {
@@ -92,6 +94,7 @@ internal class Worker
             Logger.ClearBuffer();
             Environment.Exit(0);
         }
+        else Logger.ClearBuffer();
 
         // Give the user a summary of what unp4k/unforge is about to do and some statistics.
         char? goAheadWithExtraction = null;
@@ -103,7 +106,7 @@ internal class Worker
             goAheadWithExtraction = Console.ReadKey().KeyChar;
             if (goAheadWithExtraction is null || goAheadWithExtraction != 'y' && goAheadWithExtraction != 'n')
             {
-                Logger.LogError("Please input y for yes or n for no!");
+                Logger.LogError("Please input y for yes or n for no! You will be asked again in 3 seconds.");
                 await Task.Delay(TimeSpan.FromSeconds(3));
                 Logger.ClearBuffer();
                 goAheadWithExtraction = null;
@@ -148,12 +151,12 @@ internal class Worker
                     if (Globals.detailedLogs)
                     {
                         Logger.LogInfo($"| [{percentage}%] - Extracted{(Globals.combinePasses ? " & Smelted" : string.Empty)}: {entry.Name}" + '\n' +
-                            @"                     |  \" + '\n' +
-                            $"                     |   | Date Last Modified: {entry.DateTime}" + '\n' +
-                            $"                     |   | Compression Method: {entry.CompressionMethod}" + '\n' +
-                            $"                     |   | Compressed Size:   {entry.CompressedSize / 1000000D:0,0.00000} MB  :  {entry.CompressedSize / 1000000000D:0,0.00000} GB" + '\n' +
-                            $"                     |   | Uncompressed Size: {entry.Size / 1000000D:0,0.00000} MB  :  {entry.Size / 1000000000D:0,0.00000} GB" + '\n' +
-                            @"                     |  /");
+                            @"                        \" + '\n' +
+                            $"                         | Date Last Modified: {entry.DateTime}" + '\n' +
+                            $"                         | Compression Method: {entry.CompressionMethod}" + '\n' +
+                            $"                         | Compressed Size:    {entry.CompressedSize / 1000000D:0,0.00000} MB  :  {entry.CompressedSize / 1000000000D:0,0.00000} GB" + '\n' +
+                            $"                         | Uncompressed Size:  {entry.Size / 1000000D:0,0.00000} MB  :  {entry.Size / 1000000000D:0,0.00000} GB" + '\n' +
+                            @"                        /");
                     }
                     else Logger.LogInfo($"| [{percentage}%] - Extracted{(Globals.combinePasses ? " & Smelted" : string.Empty)}: {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
                 }
@@ -249,7 +252,7 @@ internal class Worker
         Logger.LogInfo("- Extraction Completed!");
         Logger.LogInfo(@" \");
         Logger.LogInfo($"  |  Time Taken: {(float)watch.ElapsedMilliseconds / 60000:#,#.###} minutes");
-        Logger.LogWarn("  |  Due to the nature of SSD's/NVMe's, do not excessively run the extraction on an SSD/NVMe. Doing so may reduce the lifetime of the SSD/NVMe.");
+        Logger.LogWarn("  |  Due to the nature of SSD's/NVMe's, do not excessively (10 times a day etc) run the extraction on an SSD/NVMe. Doing so may reduce the lifetime of the SSD/NVMe.");
         Logger.NewLine(2);
         Logger.LogInfo("Would you like to open the output directory? (Application will close on input) y/n: ");
         char openOutput = Console.ReadKey().KeyChar;
