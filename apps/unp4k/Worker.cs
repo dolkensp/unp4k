@@ -120,9 +120,11 @@ internal class Worker
     {
         Logger.ClearBuffer();
 
+        // Time the extraction for those who are interested in it.
         Stopwatch watch = new();
         watch.Start();
 
+        // Do all the extraction things!
         Logger.NewLine(2);
         if (Globals.shouldSmelt && !Globals.combinePasses) Logger.LogInfo("Beginning Extraction Pass...");
         Logger.LogInfo($"Beginning Extraction{(Globals.shouldSmelt && Globals.combinePasses ? " & Smelting" : string.Empty)} Pass...");
@@ -155,6 +157,7 @@ internal class Worker
                     }
                     else Logger.LogInfo($"| [{percentage}%] - Extracted{(Globals.combinePasses ? " & Smelted" : string.Empty)}: {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
                 }
+                // TODO: Get rid of as many of these exceptions as possible
                 catch (DirectoryNotFoundException e)
                 {
                     if (Globals.printErrors) Logger.LogException(e);
@@ -196,6 +199,7 @@ internal class Worker
         }
         else Logger.LogInfo("No smelting work to be done! Skipping...");
 
+        // This is specifically for smelting smeltable files.
         static void Smelt(FileInfo extractedFile, FileInfo smeltedFile)
         {
             if (!smeltedFile.Directory.Exists) smeltedFile.Directory.Create();
@@ -204,6 +208,7 @@ internal class Worker
                 if (extractedFile.Extension is ".dcb") DataForge.Forge(new(extractedFile, smeltedFile)).GetAwaiter().GetResult();
                 else new CryXmlSerializer(extractedFile).Save(smeltedFile);
             }
+            // TODO: Get rid of as many of these exceptions as possible
             catch (ArgumentException e)
             {
                 if (Globals.printErrors) Logger.LogException(e);
@@ -238,8 +243,8 @@ internal class Worker
             }
         }
 
+        // Print out the post summary.
         watch.Stop();
-
         Logger.NewLine(2);
         Logger.LogInfo("- Extraction Completed!");
         Logger.LogInfo(@" \");
