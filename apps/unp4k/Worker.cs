@@ -24,17 +24,16 @@ internal class Worker
     internal static async Task ProcessGameData()
     {
         Console.Title = $"unp4k: Working on {Globals.p4kFile.FullName}";
-        Logger.ClearBuffer();
-        Logger.LogInfo($"[0% Complete] Processing Data.p4k before extraction{(Globals.shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
 
+        // Setup the stream from the Data.p4k and contain it as an ICSC ZipFile with the appropriate keys then enqueue all zip entries.
+        Logger.LogInfo($"[0% Complete] Processing Data.p4k before extraction{(Globals.shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
         using FileStream p4kStream = Globals.p4kFile.Open(FileMode.Open, FileAccess.Read, FileShare.None); // The Data.p4k must be locked while it is being read to avoid corruption.
         pak = new(p4kStream);
         pak.KeysRequired += (object sender, KeysRequiredEventArgs e) => e.Key = new byte[] { 0x5E, 0x7A, 0x20, 0x02, 0x30, 0x2E, 0xEB, 0x1A, 0x3B, 0xB6, 0x17, 0xC3, 0x0F, 0xDE, 0x1E, 0x47 };
-
         foreach (ZipEntry entry in pak) filteredEntries.Enqueue(entry);
-        Logger.ClearBuffer();
-        Logger.LogInfo($"[33% Complete] Processing Data.p4k before extraction{(Globals.shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
-        Logger.LogInfo("Testing Data.p4k Entry Integrity...");
+
+        // Filter out zip entries which cannot be decompressed and/or are locked behind a cypher.
+        Logger.LogInfo($"[33%] Testing Data.p4k Entry Integrity...");
         filteredEntries = new(filteredEntries.Where(x => Globals.filters.Contains("*.*") || Globals.filters.Any(o => x.Name.Contains(o))).Where(x =>
         {
             bool isDecompressable = x.CanDecompress;
@@ -43,9 +42,9 @@ internal class Worker
             if (isLocked) isLockedCount++;
             return isDecompressable && !isLocked;
         }).OrderBy(x => x.Name));
-        Logger.ClearBuffer();
-        Logger.LogInfo($"[66% Complete] Processing Data.p4k before extraction{(Globals.shouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
-        Logger.LogInfo("Optimising Extractable File List...");
+
+        // Speed up the extraction by a large amount by filtering out the files which already exist and dont need updating.
+        Logger.LogInfo($"[66%] Optimising Extractable File List...");
         existenceFilteredExtractionEntries = new(filteredEntries.Where(x =>
         {
             FileInfo f = new(Path.Join(Globals.outDirectory.FullName, x.Name));
@@ -54,6 +53,10 @@ internal class Worker
             return Globals.forceOverwrite || !f.Exists || f.Length != x.Size;
         }));
         existenceFilteredSmeltingEntries = existenceFilteredExtractionEntries;
+
+        // Clear what isnt needed, unp4k/unforge can use large amounts of RAM.
+        Logger.LogInfo($"[100%] Flushing Waste Data From RAM...");
+        filteredEntries.Clear();
     }
 
     internal static async Task ProvideSummary()
