@@ -19,9 +19,10 @@ internal static class Initialiser
             Globals.outDirectory = DefaultExtractionDirectory;
             Globals.filters.Add("*.*");
             Logger.ClearBuffer();
+            // Basically show the user the manual if there are no arguments.
             Logger.LogInfo('\n' +
                 "################################################################################" + '\n' + '\n' +
-                "                             unp4ck <> Star Citizen                             " + '\n' + '\n' +
+                "                              unp4k <> Star Citizen                             " + '\n' + '\n' +
                 "Extracts Star Citizen's Data.p4k into a directory of choice and even convert them into xml files!" + '\n' + '\n' +
                @"\" + '\n' +
                @" | Windows PowerShell: .\unp4ck -d -i " + '"' + "[InFilePath]" + '"' + " -o " + '"' + "[OutDirectoryPath]" + '"' + '\n' +
@@ -61,6 +62,7 @@ internal static class Initialiser
             Logger.ClearBuffer();
         }
 
+        // Parse the arguments and do what they represent
         try
         {
             for (int i = 0; i < args.Length; i++)
