@@ -91,6 +91,7 @@ internal static class Initialiser
     {
         Console.Title = $"unp4k: Initializing...";
 
+        // Default any of the null argument declared variables.
         if (Globals.p4kFile is null) Globals.p4kFile = Defaultp4kFile;
         if (Globals.outDirectory is null) Globals.outDirectory = DefaultExtractionDirectory;
         if (Globals.smelterOutDirectory is null) Globals.smelterOutDirectory = new(Path.Join(Globals.outDirectory.FullName, "Smelted"));
