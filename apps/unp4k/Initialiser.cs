@@ -114,6 +114,7 @@ internal static class Initialiser
     {
         Console.Title = $"unp4k: Post-Initializing...";
 
+        // Show the user any warning if anything worrisome is detected.
         char? proceed = null;
         bool shouldCheckProceed = false;
         while (proceed is null)
