@@ -138,7 +138,6 @@ internal static class Initialiser
             {
                 if (shouldCheckProceed) Logger.NewLine();
                 else shouldCheckProceed = true;
-                Logger.NewLine();
                 Logger.LogWarn("OVERWRITE ENABLED:");
                 Logger.LogWarn("unp4k has been run with the overwrite option!");
                 Logger.LogWarn("Overwriting files could take very long depending on your other options!");
