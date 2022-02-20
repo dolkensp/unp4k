@@ -93,8 +93,8 @@ internal class Worker
         {
             Logger.LogError("| - The output path you have chosen is on a partition which does not have enough available free space!" + '\n' + summary);
             Console.ReadKey();
-            Logger.ClearBuffer();
-            Environment.Exit(0);
+            Globals.ExitTrigger = true;
+            return;
         }
         else Logger.NewLine();
 
@@ -115,8 +115,8 @@ internal class Worker
             }
             else if (goAheadWithExtraction is 'n')
             {
-                Logger.ClearBuffer();
-                Environment.Exit(0);
+                Globals.ExitTrigger = true;
+                return;
             }
         }
     }

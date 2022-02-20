@@ -89,8 +89,8 @@ internal static class Initialiser
             if (Globals.PrintErrors) Logger.LogException(e);
             else Logger.LogError("An error has occured with the argument parser. Please ensure you have provided the relevant arguments!");
             Console.ReadKey();
-            Logger.ClearBuffer();
-            Environment.Exit(0);
+            Globals.ExitTrigger = true;
+            return;
         }
     }
 
@@ -109,8 +109,8 @@ internal static class Initialiser
             Logger.LogError($"Input path '{Globals.P4kFile.FullName}' does not exist!");
             Logger.LogError($"Make sure you have the path pointing to a Star Citizen Data.p4k file!");
             Console.ReadKey();
-            Logger.ClearBuffer();
-            Environment.Exit(0);
+            Globals.ExitTrigger = true;
+            return;
         }
 
         if (!Globals.OutDirectory.Exists) Globals.OutDirectory.Create();
@@ -164,8 +164,8 @@ internal static class Initialiser
                 }
                 else if (proceed is 'n')
                 {
-                    Logger.ClearBuffer();
-                    Environment.Exit(0);
+                    Globals.ExitTrigger = true;
+                    return;
                 }
             }
             else break;

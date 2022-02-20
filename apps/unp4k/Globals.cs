@@ -6,6 +6,7 @@ internal static class Globals
     internal static DirectoryInfo? SmelterOutDirectory = null;
     internal static List<string> Filters = new();
 
+    internal static bool ExitTrigger = false;
     internal static bool PrintErrors = false;
     internal static bool DetailedLogs = false;
     internal static bool ShouldSmelt = false;
