@@ -60,7 +60,7 @@ internal class Worker
             else
             {
                 bytesSize += x.Size;
-                if (isDecompressable) isDecompressableCount++;
+                if (!isDecompressable) isDecompressableCount++;
                 if (isLocked) isLockedCount++;
             }
             return isDecompressable && !isLocked && (Globals.ForceOverwrite || !fileExists || fileLength != x.Size);
