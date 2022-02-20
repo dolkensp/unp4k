@@ -30,6 +30,7 @@ internal class Worker
         // Setup the stream from the Data.p4k and contain it as an ICSC ZipFile with the appropriate keys then enqueue all zip entries.
         Logger.LogInfo($"[0%] Processing Data.p4k before extraction{(Globals.ShouldSmelt ? " and smelting" : string.Empty)}, this may take a moment...");
         pak = new(Globals.P4kFile.Open(FileMode.Open, FileAccess.Read, FileShare.None));// The Data.p4k must be locked while it is being read to avoid corruption.
+        pak.UseZip64 = UseZip64.On;
         pak.KeysRequired += (object sender, KeysRequiredEventArgs e) => e.Key = new byte[] { 0x5E, 0x7A, 0x20, 0x02, 0x30, 0x2E, 0xEB, 0x1A, 0x3B, 0xB6, 0x17, 0xC3, 0x0F, 0xDE, 0x1E, 0x47 };
         foreach (ZipEntry entry in pak) filteredEntries.Enqueue(entry);
 
@@ -37,8 +38,8 @@ internal class Worker
         Logger.LogInfo($"[33%] Testing Data.p4k Entry Integrity...");
         filteredEntries = new(filteredEntries.Where(x => Globals.Filters.Contains("*.*") || Globals.Filters.Any(o => x.Name.Contains(o))).Where(x =>
         {
-            bool isDecompressable = x.CanDecompress;
-            bool isLocked = x.IsCrypted || x.IsAesCrypted;
+            bool isDecompressable = x.CanDecompress && x.IsCompressionMethodSupported() && x.IsFile;
+            bool isLocked = x.IsCrypted;
             if (isDecompressable) isDecompressableCount++;
             if (isLocked) isLockedCount++;
             return isDecompressable && !isLocked;
