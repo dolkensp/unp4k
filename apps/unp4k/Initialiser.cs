@@ -19,7 +19,7 @@ internal static class Initialiser
             Globals.OutDirectory = DefaultExtractionDirectory;
             Globals.Filters.Add("*.*");
             // Basically show the user the manual if there are no arguments.
-            Logger.LogInfo('\n' +
+            Console.Write('\n' +
                 "################################################################################" + '\n' + '\n' +
                 "                              unp4k <> Star Citizen                             " + '\n' + '\n' +
                 "Extracts Star Citizen's Data.p4k into a directory of choice and even convert them into xml files!" + '\n' + '\n' +
@@ -64,7 +64,7 @@ internal static class Initialiser
         }
         else
         {
-            Logger.LogInfo('\n' +
+            Console.Write('\n' +
                 "################################################################################" + '\n' + '\n' +
                 "                              unp4k <> Star Citizen                             " + '\n' + '\n' +
                 "################################################################################" + '\n' + '\n');
