@@ -141,8 +141,23 @@ internal class Worker
 
         if (Globals.DeleteOutput)
         {
-            Logger.LogInfo($"Deleting {Globals.OutDirectory}... - This may take a while...");
-            if (Globals.OutDirectory.Exists) Globals.OutDirectory.Delete(true);
+            Logger.LogInfo($"Deleting {Globals.OutDirectory} - This may take a while...");
+            if (Globals.OutDirectory.Exists)
+            {
+                bool loadingTrigger = true;
+                Task.Run(async () =>
+                {
+                    Console.Write("Processing...");
+                    while (loadingTrigger)
+                    {
+                        Console.Write('.');
+                        await Task.Delay(TimeSpan.FromSeconds(1));
+                    }
+                });
+                Globals.OutDirectory.Delete(true);
+                loadingTrigger = false;
+            }
+
         }
 
         // Time the extraction for those who are interested in it.
