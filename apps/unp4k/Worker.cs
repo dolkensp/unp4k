@@ -142,7 +142,7 @@ internal class Worker
         if (Globals.DeleteOutput)
         {
             Logger.LogInfo($"Deleting {Globals.OutDirectory}... - This may take a while...");
-            if (Globals.OutDirectory.Exists) Globals.OutDirectory.Delete();
+            if (Globals.OutDirectory.Exists) Globals.OutDirectory.Delete(true);
         }
 
         // Time the extraction for those who are interested in it.
