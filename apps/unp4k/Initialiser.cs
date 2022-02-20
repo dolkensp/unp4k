@@ -167,7 +167,7 @@ internal static class Initialiser
                 proceed = Console.ReadKey().KeyChar;
                 if (proceed is null || proceed != 'y' && proceed != 'n')
                 {
-                    Logger.LogError("Please input y for yes or n for no!");
+                    Console.Write("Please input y for yes or n for no!");
                     await Task.Delay(TimeSpan.FromSeconds(3));
                     Logger.ClearBuffer();
                     proceed = null;

@@ -118,7 +118,7 @@ internal class Worker
         {
             Logger.LogInfo("| - Pre-Process Summary" + '\n' + summary);
             Logger.NewLine();
-            Logger.LogInfo("Should the extraction go ahead? y/n: ");
+            Console.Write("Should the extraction go ahead? y/n: ");
             goAheadWithExtraction = Console.ReadKey().KeyChar;
             if (goAheadWithExtraction is null || goAheadWithExtraction != 'y' && goAheadWithExtraction != 'n')
             {
@@ -260,7 +260,7 @@ internal class Worker
         Logger.LogInfo($"  |  Time Taken: {(float)overallTime.ElapsedMilliseconds / 60000:#,#.###} minutes");
         Logger.LogWarn("  |  Due to the nature of SSD's/NVMe's, do not excessively (10 times a day etc) run the extraction on an SSD/NVMe. Doing so may reduce the lifetime of the SSD/NVMe.");
         Logger.NewLine(2);
-        Logger.LogInfo("Would you like to open the output directory? (Application will close on input) y/n: ");
+        Console.Write("Would you like to open the output directory? (Application will close on input) y/n: ");
         char openOutput = Console.ReadKey().KeyChar;
         if (openOutput is 'y') Process.Start(OS.IsWindows ? "explorer" : "nautilus", Globals.OutDirectory.FullName);
     }
