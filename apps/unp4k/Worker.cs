@@ -138,6 +138,12 @@ internal class Worker
     {
         Logger.ClearBuffer();
 
+        if (Globals.DeleteOutput)
+        {
+            Logger.LogInfo($"Deleting {Globals.OutDirectory}... - This may take a while...");
+            if (Globals.OutDirectory.Exists) Globals.OutDirectory.Delete();
+        }
+
         // Time the extraction for those who are interested in it.
         Stopwatch overallTime = new();
         overallTime.Start();

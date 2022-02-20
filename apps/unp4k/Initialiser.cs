@@ -41,9 +41,10 @@ internal static class Initialiser
                 " | - Optional arguments:" + '\n' +
                 " | | -f: Allows you to filter in the files you want." + '\n' +
                 " | | -e: Enables error and exception printing to console." + '\n' +
-                " | | -d: Enabled detailed logging." + '\n' +
+                " | | -l: Enabled detailed logging." + '\n' +
                 " | | -c: Makes extraction and smelting run at the same time (requires a lot of RAM)." + '\n' +
                 " | | -w: Forces all files to be re-extraced and/or re-smelted." + '\n' +
+                " | | -d: Deletes the output directory if it already exists on start." + '\n' +
                 " | | -forge: Enables unforge to forge extracted files." + '\n' +
                 " |/" + '\n' +
                 " | " + '\n' +
@@ -78,9 +79,10 @@ internal static class Initialiser
                 else if (args[i].ToLowerInvariant() is "-o") Globals.OutDirectory = new(args[i + 1]);
                 else if (args[i].ToLowerInvariant() is "-f") Globals.Filters = args[i + 1].Split(',').ToList();
                 else if (args[i].ToLowerInvariant() is "-e") Globals.PrintErrors = true;
-                else if (args[i].ToLowerInvariant() is "-d") Globals.DetailedLogs = true;
+                else if (args[i].ToLowerInvariant() is "-l") Globals.DetailedLogs = true;
                 else if (args[i].ToLowerInvariant() is "-c") Globals.CombinePasses = true;
                 else if (args[i].ToLowerInvariant() is "-w") Globals.ForceOverwrite = true;
+                else if (args[i].ToLowerInvariant() is "-d") Globals.DeleteOutput = true;
                 else if (args[i].ToLowerInvariant() is "-forge") Globals.ShouldSmelt = true;
             }
         }
@@ -149,6 +151,14 @@ internal static class Initialiser
                 Logger.LogWarn("OVERWRITE ENABLED:");
                 Logger.LogWarn("unp4k has been run with the overwrite option!");
                 Logger.LogWarn("Overwriting files could take very long depending on your other options!");
+            }
+            if (Globals.DeleteOutput)
+            {
+                if (shouldCheckProceed) Logger.NewLine();
+                else shouldCheckProceed = true;
+                Logger.LogWarn("DELETE OUTPUT ENABLED:");
+                Logger.LogWarn($"unp4k will delete {Globals.OutDirectory}");
+                Logger.LogWarn("This could take a while depending on your storage drives Random 4K read/write speed and depending on how many files which have already been extracted/smelted!");
             }
             if (shouldCheckProceed)
             {

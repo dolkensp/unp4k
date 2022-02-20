@@ -12,4 +12,5 @@ internal static class Globals
     internal static bool ShouldSmelt = false;
     internal static bool CombinePasses = false;
     internal static bool ForceOverwrite = false;
+    internal static bool DeleteOutput = false;
 }
