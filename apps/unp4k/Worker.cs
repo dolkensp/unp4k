@@ -23,12 +23,12 @@ internal class Worker
     private static int fileErrors = 0;
     private static bool additionalFiles = false;
 
-    internal static async Task ProcessGameData()
+    internal static void ProcessGameData()
     {
         Console.Title = $"unp4k: Working on {Globals.P4kFile.FullName}";
 
         // Setup the stream from the Data.p4k and contain it as an ICSC ZipFile with the appropriate keys then enqueue all zip entries.
-        Logger.LogInfo($"[0%] Processing Data.p4k before extraction{(Globals.ShouldSmelt ? " and smelting" : string.Empty)}, this may take a while...");
+        Logger.LogInfo($"[0%] Processing Data.p4k before extraction{(Globals.ShouldSmelt ? " and smelting" : string.Empty)}, this may take a moment...");
         pak = new(Globals.P4kFile.Open(FileMode.Open, FileAccess.Read, FileShare.None));// The Data.p4k must be locked while it is being read to avoid corruption.
         pak.KeysRequired += (object sender, KeysRequiredEventArgs e) => e.Key = new byte[] { 0x5E, 0x7A, 0x20, 0x02, 0x30, 0x2E, 0xEB, 0x1A, 0x3B, 0xB6, 0x17, 0xC3, 0x0F, 0xDE, 0x1E, 0x47 };
         foreach (ZipEntry entry in pak) filteredEntries.Enqueue(entry);
@@ -49,9 +49,11 @@ internal class Worker
         existenceFilteredExtractionEntries = new(filteredEntries.Where(x =>
         {
             FileInfo f = new(Path.Join(Globals.OutDirectory.FullName, x.Name));
-            if (f.Exists) bytesSize -= f.Length;
+            if (f.Exists && !(bytesSize - f.Length < 0L)) bytesSize -= f.Length;
+            else if (f.Exists && bytesSize - f.Length < 0L) bytesSize = 0L;
             else bytesSize += x.Size;
-            return Globals.ForceOverwrite || !(additionalFiles = f.Exists) || f.Length != x.Size;
+            additionalFiles = f.Exists == true || additionalFiles;
+            return Globals.ForceOverwrite || !f.Exists || f.Length != x.Size;
         }));
         existenceFilteredSmeltingEntries = existenceFilteredExtractionEntries;
 
@@ -67,10 +69,10 @@ internal class Worker
                 @"                     \" + '\n' +
                 $"                      |                    Output Path | {Globals.OutDirectory.FullName}" + '\n' +
                 $"                      |                      Partition | {outputDrive.Name}" + '\n' +
-                $"                      |     Partition Total Free Space | {outputDrive.TotalFreeSpace / 1000000000D:0,0.00000} GB" + '\n' +
-                $"                      | Partition Available Free Space | {outputDrive.AvailableFreeSpace / 1000000000D:0,0.00000} GB" + '\n' +
+                $"                      |     Partition Total Free Space | {outputDrive.TotalFreeSpace / 1000000000D:0,0.00000000} GB" + '\n' +
+                $"                      | Partition Available Free Space | {outputDrive.AvailableFreeSpace / 1000000000D:0,0.00000000} GB" + '\n' +
                 $"                      |       Estimated Required Space | {(!Globals.ForceOverwrite && additionalFiles ? "An Additional " : string.Empty)}" +
-                                                                                $"{bytesSize / 1000000000D:0,0.00000} GB" +
+                                                                                $"{bytesSize / 1000000000D:0,0.00000000} GB" +
                                                                                 $"{(Globals.ShouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
                  "                      |                                | " + '\n' +
                 $"                      |                     File Count | {existenceFilteredExtractionEntries.Count}" +
@@ -123,7 +125,7 @@ internal class Worker
         }
     }
 
-    internal static async Task DoExtraction()
+    internal static void DoExtraction()
     {
         Logger.ClearBuffer();
 

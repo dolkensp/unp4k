@@ -8,7 +8,7 @@ internal static class Initialiser
         new(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Desktop", "unp4k", "Data.p4k"));
     private static DirectoryInfo? DefaultExtractionDirectory { get; } = new(Path.Join(DefaultOutputDirectory.FullName, "output"));
 
-    internal static async Task PreInit(string[] args)
+    internal static void PreInit(string[] args)
     {
         Logger.ClearBuffer();
         Console.Title = $"unp4k: Pre-Initializing...";
@@ -94,7 +94,7 @@ internal static class Initialiser
         }
     }
 
-    internal static async Task Init()
+    internal static void Init()
     {
         Console.Title = $"unp4k: Initializing...";
 
