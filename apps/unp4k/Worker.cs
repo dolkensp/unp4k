@@ -12,8 +12,6 @@ namespace unp4k;
 internal class Worker
 {
     private static ConcurrentQueue<ZipEntry> filteredEntries = new();
-    private static ConcurrentQueue<ZipEntry> existenceFilteredExtractionEntries = new();
-    private static ConcurrentQueue<ZipEntry> existenceFilteredSmeltingEntries = new();
 
     private static ZipFile pak;
     private static readonly byte[] decomBuffer = new byte[4096];
@@ -28,71 +26,81 @@ internal class Worker
         Console.Title = $"unp4k: Working on {Globals.P4kFile.FullName}";
 
         // Setup the stream from the Data.p4k and contain it as an ICSC ZipFile with the appropriate keys then enqueue all zip entries.
-        Logger.LogInfo($"[0%] Processing Data.p4k before extraction{(Globals.ShouldSmelt ? " and smelting" : string.Empty)}, this may take a moment...");
+        Logger.LogInfo($"Processing Data.p4k before extraction{(Globals.ShouldSmelt ? " and smelting" : string.Empty)}, this may take a moment...");
+        bool loadingTrigger = true;
+        Task.Run(async () => 
+        {
+            Console.Write("Processing...");
+            while (loadingTrigger)
+            {
+                Console.Write('.');
+                await Task.Delay(TimeSpan.FromSeconds(0.5));
+            }
+        });
         pak = new(Globals.P4kFile.Open(FileMode.Open, FileAccess.Read, FileShare.None));// The Data.p4k must be locked while it is being read to avoid corruption.
         pak.UseZip64 = UseZip64.On;
         pak.KeysRequired += (object sender, KeysRequiredEventArgs e) => e.Key = new byte[] { 0x5E, 0x7A, 0x20, 0x02, 0x30, 0x2E, 0xEB, 0x1A, 0x3B, 0xB6, 0x17, 0xC3, 0x0F, 0xDE, 0x1E, 0x47 };
         foreach (ZipEntry entry in pak) filteredEntries.Enqueue(entry);
 
         // Filter out zip entries which cannot be decompressed and/or are locked behind a cypher.
-        Logger.LogInfo($"[33%] Testing Data.p4k Entry Integrity...");
+        // Speed up the extraction by a large amount by filtering out the files which already exist and dont need updating.
         filteredEntries = new(filteredEntries.Where(x => Globals.Filters.Contains("*.*") || Globals.Filters.Any(o => x.Name.Contains(o))).Where(x =>
         {
-            bool isDecompressable = x.CanDecompress && x.IsCompressionMethodSupported() && x.IsFile;
+            FileInfo f = new(Path.Join(Globals.OutDirectory.FullName, x.Name));
+            bool isDecompressable = x.CanDecompress;
             bool isLocked = x.IsCrypted;
-            if (isDecompressable) isDecompressableCount++;
-            if (isLocked) isLockedCount++;
-            return isDecompressable && !isLocked;
+            bool fileExists = f.Exists;
+            long fileLength = fileExists ? f.Length : 0L;
+            if (fileExists && !Globals.ForceOverwrite)
+            {
+                additionalFiles = true;
+                if (bytesSize - fileLength > 0L) bytesSize -= fileLength;
+                else bytesSize = 0L;
+            }
+            else
+            {
+                bytesSize += x.Size;
+                if (isDecompressable) isDecompressableCount++;
+                if (isLocked) isLockedCount++;
+            }
+            return isDecompressable && !isLocked && (Globals.ForceOverwrite || !fileExists || fileLength != x.Size);
         }).OrderBy(x => x.Name));
 
-        // Speed up the extraction by a large amount by filtering out the files which already exist and dont need updating.
-        Logger.LogInfo($"[66%] Optimising Extractable File List...");
-        existenceFilteredExtractionEntries = new(filteredEntries.Where(x =>
-        {
-            FileInfo f = new(Path.Join(Globals.OutDirectory.FullName, x.Name));
-            if (f.Exists && !(bytesSize - f.Length < 0L)) bytesSize -= f.Length;
-            else if (f.Exists && bytesSize - f.Length < 0L) bytesSize = 0L;
-            else bytesSize += x.Size;
-            additionalFiles = f.Exists == true || additionalFiles;
-            return Globals.ForceOverwrite || !f.Exists || f.Length != x.Size;
-        }));
-        existenceFilteredSmeltingEntries = existenceFilteredExtractionEntries;
-
         // Clear what isnt needed, unp4k/unforge can use large amounts of RAM.
-        Logger.LogInfo($"[100%] Flushing Waste Data From RAM...");
-        filteredEntries.Clear();
+        loadingTrigger = false;
+        Logger.NewLine();
     }
 
     internal static async Task ProvideSummary()
     {
         DriveInfo outputDrive = DriveInfo.GetDrives().First(x => OS.IsWindows ? x.Name == Globals.OutDirectory.FullName[..3] : new DirectoryInfo(x.Name).Exists);
         string summary =
-                @"                     \" + '\n' +
-                $"                      |                    Output Path | {Globals.OutDirectory.FullName}" + '\n' +
-                $"                      |                      Partition | {outputDrive.Name}" + '\n' +
-                $"                      |     Partition Total Free Space | {outputDrive.TotalFreeSpace / 1000000000D:0,0.00000000} GB" + '\n' +
-                $"                      | Partition Available Free Space | {outputDrive.AvailableFreeSpace / 1000000000D:0,0.00000000} GB" + '\n' +
-                $"                      |       Estimated Required Space | {(!Globals.ForceOverwrite && additionalFiles ? "An Additional " : string.Empty)}" +
+                @"                    \" + '\n' +
+                $"                     |                    Output Path | {Globals.OutDirectory.FullName}" + '\n' +
+                $"                     |                      Partition | {outputDrive.Name}" + '\n' +
+                $"                     |     Partition Total Free Space | {outputDrive.TotalFreeSpace / 1000000000D:0,0.00000000} GB" + '\n' +
+                $"                     | Partition Available Free Space | {outputDrive.AvailableFreeSpace / 1000000000D:0,0.00000000} GB" + '\n' +
+                $"                     |       Estimated Required Space | {(!Globals.ForceOverwrite && additionalFiles ? "An Additional " : string.Empty)}" +
                                                                                 $"{bytesSize / 1000000000D:0,0.00000000} GB" +
                                                                                 $"{(Globals.ShouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
-                 "                      |                                | " + '\n' +
-                $"                      |                     File Count | {existenceFilteredExtractionEntries.Count}" +
+                 "                     |                                | " + '\n' +
+                $"                     |                     File Count | {filteredEntries.Count}" +
                                                                                 $"{(!Globals.ForceOverwrite && additionalFiles ? " Additional Files" : string.Empty)}" +
                                                                                 $"{(Globals.Filters[0] != "*.*" ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" +
                                                                                 $"{(Globals.ShouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
-                $"                      |             Files Incompatible | {isDecompressableCount}" +
+                $"                     |             Files Incompatible | {isDecompressableCount}" +
                                                                                 $"{(!Globals.ForceOverwrite && additionalFiles ? " Additional Files" : string.Empty)}" +
                                                                                 $"{(Globals.Filters[0] != "*.*" ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" +
                                                                                 $"{(Globals.ShouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
-                $"                      |                   Files Locked | {isLockedCount}" +
+                $"                     |                   Files Locked | {isLockedCount}" +
                                                                                 $"{(!Globals.ForceOverwrite && additionalFiles ? " Additional Files" : string.Empty)}" +
                                                                                 $"{(Globals.Filters[0] != "*.*" ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" +
                                                                                 $"{(Globals.ShouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
-                 "                      |                                | " + '\n' +
-                $"                      | Combine Extract & Smelt Passes | {Globals.CombinePasses}" + '\n' +
-                $"                      |  Will Overwrite Existing Files | {Globals.ForceOverwrite}" + '\n' +
-                $"                      |     Will Smelt Extracted Files | {Globals.ShouldSmelt}" + '\n' +
-                @"                     /";
+                 "                     |                                | " + '\n' +
+                $"                     | Combine Extract & Smelt Passes | {Globals.CombinePasses}" + '\n' +
+                $"                     |  Will Overwrite Existing Files | {Globals.ForceOverwrite}" + '\n' +
+                $"                     |     Will Smelt Extracted Files | {Globals.ShouldSmelt}" + '\n' +
+                @"                    /";
         // Never allow the extraction to go through if the target storage drive has too little available space.
         if (outputDrive.AvailableFreeSpace < bytesSize)
         {
@@ -139,13 +147,13 @@ internal class Worker
         if (Globals.ShouldSmelt && !Globals.CombinePasses) Logger.LogInfo("Beginning Extraction Pass...");
         Logger.LogInfo($"Beginning Extraction{(Globals.ShouldSmelt && Globals.CombinePasses ? " & Smelting" : string.Empty)} Pass...");
         Logger.NewLine(2);
-        if (!existenceFilteredExtractionEntries.IsEmpty)
+        int tasksCompleted = 0;
+        if (!filteredEntries.IsEmpty)
         {
-            int tasksCompleted = 0;
-            Parallel.ForEach(existenceFilteredExtractionEntries, entry =>
+            Parallel.ForEach(filteredEntries, entry =>
             {
                 FileInfo extractedFile = new(Path.Join(Globals.OutDirectory.FullName, entry.Name));
-                string percentage = (tasksCompleted is 0 ? 0D : 100D * tasksCompleted / existenceFilteredExtractionEntries.Count).ToString("000.00000");
+                string percentage = (tasksCompleted is 0 ? 0D : 100D * tasksCompleted / filteredEntries.Count).ToString("000.00000");
                 if (!extractedFile.Directory.Exists) extractedFile.Directory.Create();
                 Stopwatch fileTime = new();
                 fileTime.Start();
@@ -160,26 +168,10 @@ internal class Worker
                     if (Globals.ShouldSmelt && Globals.CombinePasses) Smelt(extractedFile, new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name)));
                 }
                 // TODO: Get rid of as many of these exceptions as possible
-                catch (DirectoryNotFoundException e)
-                {
-                    if (Globals.PrintErrors) Logger.LogException(e);
-                    fileErrors++;
-                }
-                catch (FileNotFoundException e)
-                {
-                    if (Globals.PrintErrors) Logger.LogException(e);
-                    fileErrors++;
-                }
-                catch (IOException e)
-                {
-                    if (Globals.PrintErrors) Logger.LogException(e);
-                    fileErrors++;
-                }
-                catch (AggregateException e)
-                {
-                    if (Globals.PrintErrors) Logger.LogException(e);
-                    fileErrors++;
-                }
+                catch (DirectoryNotFoundException e) { FileExtractionError(extractedFile, e); }
+                catch (FileNotFoundException e) { FileExtractionError(extractedFile, e); }
+                catch (IOException e) { FileExtractionError(extractedFile, e); }
+                catch (AggregateException e) { FileExtractionError(extractedFile, e); }
                 finally
                 {
                     fileTime.Stop();
@@ -191,7 +183,7 @@ internal class Worker
                             $"                     | Compression Method: {entry.CompressionMethod}" + '\n' +
                             $"                     | Compressed Size:    {entry.CompressedSize  / 1000000000D:0,0.000000000000} GB" + '\n' +
                             $"                     | Uncompressed Size:  {entry.Size            / 1000000000D:0,0.000000000000} GB" + '\n' +
-                            $"                     | Time Taken:         {(float)fileTime.ElapsedMilliseconds / 1000:#,#.####} seconds" + '\n' +
+                            $"                     | Time Taken:         {fileTime.ElapsedMilliseconds / 1000D:#,#.####} seconds" + '\n' +
                             @"                    /");
                     }
                     else Logger.LogInfo($"| [{percentage}%] - Extracted{(Globals.CombinePasses ? " & Smelted" : string.Empty)}: {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
@@ -199,18 +191,17 @@ internal class Worker
             });
         }
         else Logger.LogInfo("No extraction work to be done! Skipping...");
-        if (!existenceFilteredSmeltingEntries.IsEmpty)
+        if (!filteredEntries.IsEmpty)
         {
             if (Globals.ShouldSmelt && !Globals.CombinePasses)
             {
                 Logger.NewLine(2);
                 Logger.LogInfo("Beginning Smelting Pass...");
                 Logger.NewLine(2);
-                int tasksCompleted = 0;
-                Parallel.ForEach(existenceFilteredSmeltingEntries, entry =>
+                Parallel.ForEach(filteredEntries, entry =>
                 {
                     tasksCompleted++;
-                    Logger.LogInfo($"| [{(tasksCompleted is 0 ? 0D : 100D * tasksCompleted / existenceFilteredExtractionEntries.Count):000.00000}%] - Smelting: {entry.Name}");
+                    Logger.LogInfo($"| [{(tasksCompleted is 0 ? 0D : 100D * tasksCompleted / filteredEntries.Count):000.00000}%] - Smelting: {entry.Name}");
                     Smelt(new(Path.Join(Globals.OutDirectory.FullName, entry.Name)), new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name)));
                 });
             }
@@ -227,46 +218,15 @@ internal class Worker
                 else new CryXmlSerializer(extractedFile).Save(smeltedFile);
             }
             // TODO: Get rid of as many of these exceptions as possible
-            catch (ArgumentException e)
-            {
-                if (Globals.PrintErrors) Logger.LogException(e);
-                fileErrors++;
-            }
-            catch (EndOfStreamException e)
-            {
-                if (Globals.PrintErrors) Logger.LogException(e);
-                fileErrors++;
-            }
-            catch (DirectoryNotFoundException e)
-            {
-                if (Globals.PrintErrors) Logger.LogException(e);
-                fileErrors++;
-            }
-            catch (FileNotFoundException e)
-            {
-                if (Globals.PrintErrors) Logger.LogException(e);
-                fileErrors++;
-            }
-            catch (IOException e)
-            {
-                if (Globals.PrintErrors) Logger.LogException(e);
-                fileErrors++;
-            }
-            catch (AggregateException e)
-            {
-                if (Globals.PrintErrors) Logger.LogException(e);
-                fileErrors++;
-            }
-            catch (TargetInvocationException e)
-            {
-                if (Globals.PrintErrors) Logger.LogException(e);
-                fileErrors++;
-            }
-            catch (KeyNotFoundException e)
-            {
-                if (Globals.PrintErrors) Logger.LogException(e);
-                fileErrors++;
-            }
+            catch (ArgumentException e)             { FileExtractionError(extractedFile, e); }
+            catch (EndOfStreamException e)          { FileExtractionError(extractedFile, e); }
+            catch (DirectoryNotFoundException e)    { FileExtractionError(extractedFile, e); }
+            catch (FileNotFoundException e)         { FileExtractionError(extractedFile, e); }
+            catch (IOException e)                   { FileExtractionError(extractedFile, e); }
+            catch (AggregateException e)            { FileExtractionError(extractedFile, e); }
+            catch (TargetInvocationException e)     { FileExtractionError(extractedFile, e); }
+            catch (KeyNotFoundException e)          { FileExtractionError(extractedFile, e); }
+            catch (IndexOutOfRangeException e)      { FileExtractionError(extractedFile, e); }
         }
 
         // Print out the post summary.
@@ -274,12 +234,19 @@ internal class Worker
         Logger.NewLine(2);
         Logger.LogInfo("- Extraction Completed!");
         Logger.LogInfo(@" \");
-        Logger.LogInfo($"  |  Time Taken: {fileErrors}");
-        Logger.LogInfo($"  |  File Errors: {(float)overallTime.ElapsedMilliseconds / 60000:#,#.###} minutes");
+        Logger.LogInfo($"  |  File Errors: {fileErrors}");
+        Logger.LogInfo($"  |  Time Taken: {(float)overallTime.ElapsedMilliseconds / 60000:#,#.###} minutes");
         Logger.LogWarn("  |  Due to the nature of SSD's/NVMe's, do not excessively (10 times a day etc) run the extraction on an SSD/NVMe. Doing so may reduce the lifetime of the SSD/NVMe.");
         Logger.NewLine(2);
         Logger.LogInfo("Would you like to open the output directory? (Application will close on input) y/n: ");
         char openOutput = Console.ReadKey().KeyChar;
         if (openOutput is 'y') Process.Start(OS.IsWindows ? "explorer" : "nautilus", Globals.OutDirectory.FullName);
+    }
+
+    private static void FileExtractionError<T>(FileInfo file, T e) where T : Exception
+    {
+        if (Globals.PrintErrors) Logger.LogException(e);
+        file.Delete();
+        fileErrors++;
     }
 }
