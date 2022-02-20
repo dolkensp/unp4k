@@ -21,6 +21,7 @@ internal class Worker
     private static int isLockedCount = 0;
     private static long bytesSize = 0L;
     private static int fileErrors = 0;
+    private static bool additionalFiles = false;
 
     internal static async Task ProcessGameData()
     {
@@ -50,7 +51,7 @@ internal class Worker
             FileInfo f = new(Path.Join(Globals.OutDirectory.FullName, x.Name));
             if (f.Exists) bytesSize -= f.Length;
             else bytesSize += x.Size;
-            return Globals.ForceOverwrite || !f.Exists || f.Length != x.Size;
+            return Globals.ForceOverwrite || !(additionalFiles = f.Exists) || f.Length != x.Size;
         }));
         existenceFilteredSmeltingEntries = existenceFilteredExtractionEntries;
 
@@ -61,7 +62,6 @@ internal class Worker
 
     internal static async Task ProvideSummary()
     {
-        bool additionalFiles = false;
         DriveInfo outputDrive = DriveInfo.GetDrives().First(x => OS.IsWindows ? x.Name == Globals.OutDirectory.FullName[..3] : new DirectoryInfo(x.Name).Exists);
         string summary =
                 @"                     \" + '\n' +
@@ -69,20 +69,20 @@ internal class Worker
                 $"                      |                      Partition | {outputDrive.Name}" + '\n' +
                 $"                      |     Partition Total Free Space | {outputDrive.TotalFreeSpace / 1000000000D:0,0.00000} GB" + '\n' +
                 $"                      | Partition Available Free Space | {outputDrive.AvailableFreeSpace / 1000000000D:0,0.00000} GB" + '\n' +
-                $"                      |       Estimated Required Space | {(additionalFiles ? "An Additional " : string.Empty)}" +
+                $"                      |       Estimated Required Space | {(!Globals.ForceOverwrite && additionalFiles ? "An Additional " : string.Empty)}" +
                                                                                 $"{bytesSize / 1000000000D:0,0.00000} GB" +
                                                                                 $"{(Globals.ShouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
                  "                      |                                | " + '\n' +
                 $"                      |                     File Count | {existenceFilteredExtractionEntries.Count}" +
-                                                                                $"{(additionalFiles ? " Additional Files" : string.Empty)}" +
+                                                                                $"{(!Globals.ForceOverwrite && additionalFiles ? " Additional Files" : string.Empty)}" +
                                                                                 $"{(Globals.Filters[0] != "*.*" ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" +
                                                                                 $"{(Globals.ShouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
                 $"                      |             Files Incompatible | {isDecompressableCount}" +
-                                                                                $"{(additionalFiles ? " Additional Files" : string.Empty)}" +
+                                                                                $"{(!Globals.ForceOverwrite && additionalFiles ? " Additional Files" : string.Empty)}" +
                                                                                 $"{(Globals.Filters[0] != "*.*" ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" +
                                                                                 $"{(Globals.ShouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
                 $"                      |                   Files Locked | {isLockedCount}" +
-                                                                                $"{(additionalFiles ? " Additional Files" : string.Empty)}" +
+                                                                                $"{(!Globals.ForceOverwrite && additionalFiles ? " Additional Files" : string.Empty)}" +
                                                                                 $"{(Globals.Filters[0] != "*.*" ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" +
                                                                                 $"{(Globals.ShouldSmelt ? " Excluding Smeltable Files" : string.Empty)}" + '\n' +
                  "                      |                                | " + '\n' +
