@@ -100,6 +100,7 @@ internal class Worker
                 $"                     | Combine Extract & Smelt Passes | {Globals.CombinePasses}" + '\n' +
                 $"                     |  Will Overwrite Existing Files | {Globals.ForceOverwrite}" + '\n' +
                 $"                     |     Will Smelt Extracted Files | {Globals.ShouldSmelt}" + '\n' +
+                $"                     |   Will Delete Output Directory | {Globals.DeleteOutput}" + '\n' +
                 @"                    /";
         // Never allow the extraction to go through if the target storage drive has too little available space.
         if (outputDrive.AvailableFreeSpace < bytesSize)
