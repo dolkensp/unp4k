@@ -20,6 +20,7 @@ internal class Worker
     private static int isDecompressableCount = 0;
     private static int isLockedCount = 0;
     private static long bytesSize = 0L;
+    private static int fileErrors = 0;
 
     internal static async Task ProcessGameData()
     {
@@ -159,18 +160,22 @@ internal class Worker
                 catch (DirectoryNotFoundException e)
                 {
                     if (Globals.PrintErrors) Logger.LogException(e);
+                    fileErrors++;
                 }
                 catch (FileNotFoundException e)
                 {
                     if (Globals.PrintErrors) Logger.LogException(e);
+                    fileErrors++;
                 }
                 catch (IOException e)
                 {
                     if (Globals.PrintErrors) Logger.LogException(e);
+                    fileErrors++;
                 }
                 catch (AggregateException e)
                 {
                     if (Globals.PrintErrors) Logger.LogException(e);
+                    fileErrors++;
                 }
                 finally
                 {
@@ -222,34 +227,42 @@ internal class Worker
             catch (ArgumentException e)
             {
                 if (Globals.PrintErrors) Logger.LogException(e);
+                fileErrors++;
             }
             catch (EndOfStreamException e)
             {
                 if (Globals.PrintErrors) Logger.LogException(e);
+                fileErrors++;
             }
             catch (DirectoryNotFoundException e)
             {
                 if (Globals.PrintErrors) Logger.LogException(e);
+                fileErrors++;
             }
             catch (FileNotFoundException e)
             {
                 if (Globals.PrintErrors) Logger.LogException(e);
+                fileErrors++;
             }
             catch (IOException e)
             {
                 if (Globals.PrintErrors) Logger.LogException(e);
+                fileErrors++;
             }
             catch (AggregateException e)
             {
                 if (Globals.PrintErrors) Logger.LogException(e);
+                fileErrors++;
             }
             catch (TargetInvocationException e)
             {
                 if (Globals.PrintErrors) Logger.LogException(e);
+                fileErrors++;
             }
             catch (KeyNotFoundException e)
             {
                 if (Globals.PrintErrors) Logger.LogException(e);
+                fileErrors++;
             }
         }
 
@@ -258,7 +271,8 @@ internal class Worker
         Logger.NewLine(2);
         Logger.LogInfo("- Extraction Completed!");
         Logger.LogInfo(@" \");
-        Logger.LogInfo($"  |  Time Taken: {(float)overallTime.ElapsedMilliseconds / 60000:#,#.###} minutes");
+        Logger.LogInfo($"  |  Time Taken: {fileErrors}");
+        Logger.LogInfo($"  |  File Errors: {(float)overallTime.ElapsedMilliseconds / 60000:#,#.###} minutes");
         Logger.LogWarn("  |  Due to the nature of SSD's/NVMe's, do not excessively (10 times a day etc) run the extraction on an SSD/NVMe. Doing so may reduce the lifetime of the SSD/NVMe.");
         Logger.NewLine(2);
         Logger.LogInfo("Would you like to open the output directory? (Application will close on input) y/n: ");
