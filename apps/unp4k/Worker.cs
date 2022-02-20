@@ -200,9 +200,9 @@ internal class Worker
                 int tasksCompleted = 0;
                 Parallel.ForEach(existenceFilteredSmeltingEntries, entry =>
                 {
+                    tasksCompleted++;
                     Logger.LogInfo($"| [{(tasksCompleted is 0 ? 0D : 100D * tasksCompleted / existenceFilteredExtractionEntries.Count):000.00000}%] - Smelting: {entry.Name}");
                     Smelt(new(Path.Join(Globals.OutDirectory.FullName, entry.Name)), new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name)));
-                    tasksCompleted++;
                 });
             }
         }
