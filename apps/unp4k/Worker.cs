@@ -157,7 +157,8 @@ internal class Worker
                 Globals.OutDirectory.Delete(true);
                 loadingTrigger = false;
             }
-
+            Globals.OutDirectory.Create();
+            Globals.SmelterOutDirectory.Create();
         }
 
         // Time the extraction for those who are interested in it.
