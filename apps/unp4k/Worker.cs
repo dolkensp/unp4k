@@ -166,7 +166,7 @@ internal class Worker
         int tasksCompleted = 0;
         if (!filteredEntries.IsEmpty)
         {
-            Parallel.ForEach(filteredEntries, entry =>
+            Parallel.ForEach(filteredEntries, async entry =>
             {
                 Logger.LogInfo($"           - Extracting: {entry.Name}");
                 FileInfo extractedFile = new(Path.Join(Globals.OutDirectory.FullName, entry.Name));
@@ -180,7 +180,7 @@ internal class Worker
                 StreamUtils.Copy(decompStream, fs, decomBuffer);
                 decompStream.Close();
                 fs.Close();
-                if (Globals.ShouldSmelt && Globals.CombinePasses) Smelt(extractedFile, new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name)));
+                if (Globals.ShouldSmelt && Globals.CombinePasses) await Smelt(extractedFile, new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name)));
 
                 fileTime.Stop();
                 if (Globals.DetailedLogs)
@@ -202,10 +202,10 @@ internal class Worker
                 Logger.NewLine(2);
                 Logger.LogInfo("Beginning Second Extraction Pass...");
                 Logger.NewLine(2);
-                Parallel.ForEach(filteredEntries, entry =>
+                Parallel.ForEach(filteredEntries, async entry =>
                 {
                     Logger.LogInfo($"[{(tasksCompleted is 0 ? 0D : 100D * tasksCompleted / filteredEntries.Count):000.00000}%] - Smelting: {entry.Name}");
-                    Smelt(new(Path.Join(Globals.OutDirectory.FullName, entry.Name)), new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name)));
+                    await Smelt(new(Path.Join(Globals.OutDirectory.FullName, entry.Name)), new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name)));
                     Interlocked.Increment(ref tasksCompleted);
                 });
             }
@@ -213,13 +213,13 @@ internal class Worker
         else Logger.LogInfo("No extraction work to be done! Skipping...");
 
         // This is specifically for smelting smeltable files.
-        static void Smelt(FileInfo extractedFile, FileInfo smeltedFile)
+        static async Task Smelt(FileInfo extractedFile, FileInfo smeltedFile)
         {
             if (!smeltedFile.Directory.Exists) smeltedFile.Directory.Create();
             try
             {
-                if (extractedFile.Extension is ".dcb") DataForge.Forge(new(extractedFile, smeltedFile)).GetAwaiter().GetResult();
-                else new CryXmlSerializer(extractedFile).Save(smeltedFile);
+                if (extractedFile.Extension is ".dcb") await DataForge.ForgeData(new(extractedFile, smeltedFile));
+                else await DataForge.SerialiseData(extractedFile, smeltedFile);
             }
             // TODO: Get rid of as many of these exceptions as possible
             catch (ArgumentException e) { FileExtractionError(extractedFile, e); }

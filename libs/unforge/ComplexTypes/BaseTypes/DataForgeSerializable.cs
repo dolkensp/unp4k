@@ -1,15 +1,13 @@
 ﻿using System.IO;
 
-namespace unforge
+namespace unforge;
+public abstract class DataForgeSerializable
 {
-    public abstract class DataForgeSerializable
-    {
-        internal DataForgeInstancePackage DocumentRoot { get; private set; }
-        internal BinaryReader Br { get { return DocumentRoot.Br; } }
+    internal DataForgeInstancePackage DocumentRoot { get; private set; }
+    internal BinaryReader Br { get { return DocumentRoot.Br; } }
 
-        public DataForgeSerializable(DataForgeInstancePackage documentRoot)
-        {
-            DocumentRoot = documentRoot;
-        }
+    public DataForgeSerializable(DataForgeInstancePackage documentRoot)
+    {
+        DocumentRoot = documentRoot;
     }
 }

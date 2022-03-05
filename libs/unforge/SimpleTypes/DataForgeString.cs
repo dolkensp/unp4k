@@ -1,13 +1,11 @@
 ﻿using System;
 
-namespace unforge
+namespace unforge;
+internal class DataForgeString : DataForgeSerializable
 {
-    internal class DataForgeString : DataForgeSerializable
-    {
-        public string Value { get; set; }
+    public string Value { get; set; }
 
-        public DataForgeString(DataForgeInstancePackage documentRoot) : base(documentRoot) { Value = Br.ReadCString(); }
+    public DataForgeString(DataForgeInstancePackage documentRoot) : base(documentRoot) { Value = Br.ReadCString(); }
 
-        public override string ToString() => Value;
-    }
+    public override string ToString() => Value;
 }
