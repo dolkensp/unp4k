@@ -241,7 +241,7 @@ internal class Worker
             @"\" + '\n' +
             $" |  File Errors: {fileErrors}" + '\n' +
             $" |  Time Taken: {(float)overallTime.ElapsedMilliseconds / 60000:0,0.0000} minutes" + '\n' +
-             " |  Due to the nature of SSD's/NVMe's, do not excessively (10 times a day etc) run the extraction on an SSD/NVMe. Doing so may reduce the lifetime of the SSD/NVMe.");
+             " |  Due to the nature of SSD's/NVMe's, do not excessively (10 times a day etc) run the extraction on an SSD/NVMe. Doing so may dramatically reduce the lifetime of the SSD/NVMe.");
         Logger.NewLine(2);
         Console.Write("Would you like to open the output directory? (Application will close on input) y/n: ");
         char openOutput = Console.ReadKey().KeyChar;
