@@ -186,13 +186,13 @@ internal class Worker
                 if (Globals.DetailedLogs)
                 {
                     Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name}" + '\n' +
-                        @"                    \" + '\n' +
-                        $"                     | Date Last Modified: {entry.DateTime}" + '\n' +
-                        $"                     | Compression Method: {entry.CompressionMethod}" + '\n' +
-                        $"                     | Compressed Size:    {entry.CompressedSize  / 1000000000D:0,0.000000000000} GB" + '\n' +
-                        $"                     | Uncompressed Size:  {entry.Size            / 1000000000D:0,0.000000000000} GB" + '\n' +
-                        $"                     | Time Taken:         {fileTime.ElapsedMilliseconds / 1000D:0,0.0000} seconds" + '\n' +
-                        @"                    /");
+                        @"                  \" + '\n' +
+                        $"                   | Date Last Modified: {entry.DateTime}" + '\n' +
+                        $"                   | Compression Method: {entry.CompressionMethod}" + '\n' +
+                        $"                   | Compressed Size:    {entry.CompressedSize  / 1000000000D:0,0.000000000000} GB" + '\n' +
+                        $"                   | Uncompressed Size:  {entry.Size            / 1000000000D:0,0.000000000000} GB" + '\n' +
+                        $"                   | Time Taken:         {fileTime.ElapsedMilliseconds / 1000D:0,0.000} seconds" + '\n' +
+                        @"                  /");
                 }
                 else Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
                 Interlocked.Increment(ref tasksCompleted);
@@ -240,7 +240,7 @@ internal class Worker
             "Extraction Complete" + '\n' +
             @"\" + '\n' +
             $" |  File Errors: {fileErrors}" + '\n' +
-            $" |  Time Taken: {(float)overallTime.ElapsedMilliseconds / 60000:0,0.0000} minutes" + '\n' +
+            $" |  Time Taken: {(float)overallTime.ElapsedMilliseconds / 60000:0,0.000} minutes" + '\n' +
              " |  Due to the nature of SSD's/NVMe's, do not excessively (10 times a day etc) run the extraction on an SSD/NVMe. Doing so may dramatically reduce the lifetime of the SSD/NVMe.");
         Logger.NewLine(2);
         Console.Write("Would you like to open the output directory? (Application will close on input) y/n: ");
