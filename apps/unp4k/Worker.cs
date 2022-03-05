@@ -176,7 +176,7 @@ internal class Worker
                 fileTime.Start();
                 try
                 {
-                    tasksCompleted++;
+                    Interlocked.Increment(ref tasksCompleted);
                     FileStream fs = extractedFile.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite); // Dont want people accessing incomplete files.
                     Stream decompStream = pak.GetInputStream(entry);
                     StreamUtils.Copy(decompStream, fs, decomBuffer);
@@ -194,16 +194,16 @@ internal class Worker
                     fileTime.Stop();
                     if (Globals.DetailedLogs)
                     {
-                        Logger.LogInfo($"{percentage}% - Extracted: {entry.Name}" + '\n' +
+                        Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name}" + '\n' +
                             @"                    \" + '\n' +
                             $"                     | Date Last Modified: {entry.DateTime}" + '\n' +
                             $"                     | Compression Method: {entry.CompressionMethod}" + '\n' +
                             $"                     | Compressed Size:    {entry.CompressedSize  / 1000000000D:0,0.000000000000} GB" + '\n' +
                             $"                     | Uncompressed Size:  {entry.Size            / 1000000000D:0,0.000000000000} GB" + '\n' +
-                            $"                     | Time Taken:         {fileTime.ElapsedMilliseconds / 1000D:#,#.####} seconds" + '\n' +
+                            $"                     | Time Taken:         {fileTime.ElapsedMilliseconds / 1000D:0,0.0000} seconds" + '\n' +
                             @"                    /");
                     }
-                    else Logger.LogInfo($"{percentage}% - Extracted: {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
+                    else Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
                 }
             });
             if (Globals.ShouldSmelt && !Globals.CombinePasses)
@@ -213,7 +213,7 @@ internal class Worker
                 Logger.NewLine(2);
                 Parallel.ForEach(filteredEntries, entry =>
                 {
-                    tasksCompleted++;
+                    Interlocked.Increment(ref tasksCompleted);
                     Logger.LogInfo($"[{(tasksCompleted is 0 ? 0D : 100D * tasksCompleted / filteredEntries.Count):000.00000}%] - Smelting: {entry.Name}");
                     Smelt(new(Path.Join(Globals.OutDirectory.FullName, entry.Name)), new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name)));
                 });
@@ -248,7 +248,7 @@ internal class Worker
         Logger.LogInfo("- Extraction Completed!");
         Logger.LogInfo(@" \");
         Logger.LogInfo($"  |  File Errors: {fileErrors}");
-        Logger.LogInfo($"  |  Time Taken: {(float)overallTime.ElapsedMilliseconds / 60000:#,#.###} minutes");
+        Logger.LogInfo($"  |  Time Taken: {(float)overallTime.ElapsedMilliseconds / 60000:0,0.0000} minutes");
         Logger.LogWarn("  |  Due to the nature of SSD's/NVMe's, do not excessively (10 times a day etc) run the extraction on an SSD/NVMe. Doing so may reduce the lifetime of the SSD/NVMe.");
         Logger.NewLine(2);
         Console.Write("Would you like to open the output directory? (Application will close on input) y/n: ");
