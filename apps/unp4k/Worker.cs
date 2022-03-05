@@ -176,11 +176,9 @@ internal class Worker
                 fileTime.Start();
                 try
                 {
-                    FileStream fs = extractedFile.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite); // Dont want people accessing incomplete files.
-                    Stream decompStream = pak.GetInputStream(entry);
+                    using FileStream fs = extractedFile.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite); // Dont want people accessing incomplete files.
+                    using Stream decompStream = pak.GetInputStream(entry);
                     StreamUtils.Copy(decompStream, fs, decomBuffer);
-                    decompStream.Close();
-                    fs.Close();
                     if (Globals.ShouldSmelt && Globals.CombinePasses) Smelt(extractedFile, new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name)));
                     Interlocked.Increment(ref tasksCompleted);
                 }
