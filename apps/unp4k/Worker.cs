@@ -176,13 +176,13 @@ internal class Worker
                 fileTime.Start();
                 try
                 {
-                    Interlocked.Increment(ref tasksCompleted);
                     FileStream fs = extractedFile.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite); // Dont want people accessing incomplete files.
                     Stream decompStream = pak.GetInputStream(entry);
                     StreamUtils.Copy(decompStream, fs, decomBuffer);
                     decompStream.Close();
                     fs.Close();
                     if (Globals.ShouldSmelt && Globals.CombinePasses) Smelt(extractedFile, new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name)));
+                    Interlocked.Increment(ref tasksCompleted);
                 }
                 // TODO: Get rid of as many of these exceptions as possible
                 catch (DirectoryNotFoundException e) { FileExtractionError(extractedFile, e); }
@@ -213,9 +213,9 @@ internal class Worker
                 Logger.NewLine(2);
                 Parallel.ForEach(filteredEntries, entry =>
                 {
-                    Interlocked.Increment(ref tasksCompleted);
                     Logger.LogInfo($"[{(tasksCompleted is 0 ? 0D : 100D * tasksCompleted / filteredEntries.Count):000.00000}%] - Smelting: {entry.Name}");
                     Smelt(new(Path.Join(Globals.OutDirectory.FullName, entry.Name)), new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name)));
+                    Interlocked.Increment(ref tasksCompleted);
                 });
             }
         }
