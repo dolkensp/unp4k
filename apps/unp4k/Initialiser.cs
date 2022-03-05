@@ -42,8 +42,8 @@ internal static class Initialiser
                 " | | -f: Allows you to filter in the files you want." + '\n' +
                 " | | -e: Enables error and exception printing to console." + '\n' +
                 " | | -l: Enabled detailed logging." + '\n' +
-                " | | -c: Makes extraction and smelting run at the same time (requires a lot of RAM)." + '\n' +
-                " | | -w: Forces all files to be re-extraced and/or re-smelted." + '\n' +
+                " | | -c: Combines both extraction passes into one (can require, in some cases 16GB+ of RAM/Pagefile)." + '\n' +
+                " | | -w: Forces all files to be re-extraced." + '\n' +
                 " | | -d: Deletes the output directory if it already exists on start." + '\n' +
                 " | | -forge: Enables unforge to forge extracted files." + '\n' +
                 " |/" + '\n' +
@@ -163,7 +163,7 @@ internal static class Initialiser
             if (shouldCheckProceed)
             {
                 Logger.NewLine();
-                Logger.LogInfo("Are you sure you want to proceed? y/n: ");
+                Console.Write("Are you sure you want to proceed? y/n: ");
                 proceed = Console.ReadKey().KeyChar;
                 if (proceed is null || proceed != 'y' && proceed != 'n')
                 {
