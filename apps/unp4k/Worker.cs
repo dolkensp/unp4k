@@ -174,36 +174,27 @@ internal class Worker
                 if (!extractedFile.Directory.Exists) extractedFile.Directory.Create();
                 Stopwatch fileTime = new();
                 fileTime.Start();
-                try
+
+                FileStream fs = extractedFile.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite); // Dont want people accessing incomplete files.
+                Stream decompStream = pak.GetInputStream(entry);
+                StreamUtils.Copy(decompStream, fs, decomBuffer);
+                decompStream.Close();
+                fs.Close();
+                if (Globals.ShouldSmelt && Globals.CombinePasses) Smelt(extractedFile, new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name)));
+
+                fileTime.Stop();
+                if (Globals.DetailedLogs)
                 {
-                    FileStream fs = extractedFile.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite); // Dont want people accessing incomplete files.
-                    Stream decompStream = pak.GetInputStream(entry);
-                    StreamUtils.Copy(decompStream, fs, decomBuffer);
-                    decompStream.Close();
-                    fs.Close();
-                    if (Globals.ShouldSmelt && Globals.CombinePasses) Smelt(extractedFile, new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name)));
+                    Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name}" + '\n' +
+                        @"                    \" + '\n' +
+                        $"                     | Date Last Modified: {entry.DateTime}" + '\n' +
+                        $"                     | Compression Method: {entry.CompressionMethod}" + '\n' +
+                        $"                     | Compressed Size:    {entry.CompressedSize  / 1000000000D:0,0.000000000000} GB" + '\n' +
+                        $"                     | Uncompressed Size:  {entry.Size            / 1000000000D:0,0.000000000000} GB" + '\n' +
+                        $"                     | Time Taken:         {fileTime.ElapsedMilliseconds / 1000D:0,0.0000} seconds" + '\n' +
+                        @"                    /");
                 }
-                // TODO: Get rid of as many of these exceptions as possible
-                catch (DirectoryNotFoundException e) { FileExtractionError(extractedFile, e); }
-                catch (FileNotFoundException e) { FileExtractionError(extractedFile, e); }
-                catch (IOException e) { FileExtractionError(extractedFile, e); }
-                catch (AggregateException e) { FileExtractionError(extractedFile, e); }
-                finally
-                {
-                    fileTime.Stop();
-                    if (Globals.DetailedLogs)
-                    {
-                        Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name}" + '\n' +
-                            @"                    \" + '\n' +
-                            $"                     | Date Last Modified: {entry.DateTime}" + '\n' +
-                            $"                     | Compression Method: {entry.CompressionMethod}" + '\n' +
-                            $"                     | Compressed Size:    {entry.CompressedSize  / 1000000000D:0,0.000000000000} GB" + '\n' +
-                            $"                     | Uncompressed Size:  {entry.Size            / 1000000000D:0,0.000000000000} GB" + '\n' +
-                            $"                     | Time Taken:         {fileTime.ElapsedMilliseconds / 1000D:0,0.0000} seconds" + '\n' +
-                            @"                    /");
-                    }
-                    else Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
-                }
+                else Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
                 Interlocked.Increment(ref tasksCompleted);
             });
             if (Globals.ShouldSmelt && !Globals.CombinePasses)
