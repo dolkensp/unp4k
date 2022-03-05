@@ -176,9 +176,11 @@ internal class Worker
                 fileTime.Start();
                 try
                 {
-                    using FileStream fs = extractedFile.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite); // Dont want people accessing incomplete files.
-                    using Stream decompStream = pak.GetInputStream(entry);
+                    FileStream fs = extractedFile.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite); // Dont want people accessing incomplete files.
+                    Stream decompStream = pak.GetInputStream(entry);
                     StreamUtils.Copy(decompStream, fs, decomBuffer);
+                    decompStream.Close();
+                    fs.Close();
                     if (Globals.ShouldSmelt && Globals.CombinePasses) Smelt(extractedFile, new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name)));
                 }
                 // TODO: Get rid of as many of these exceptions as possible
