@@ -51,7 +51,7 @@ internal class Worker
             bool isLocked = x.IsCrypted;
             bool fileExists = f.Exists;
             long fileLength = fileExists ? f.Length : 0L;
-            if (fileExists && !Globals.ForceOverwrite)
+            if (fileExists && !Globals.ForceOverwrite && !Globals.DeleteOutput)
             {
                 additionalFiles = true;
                 if (bytesSize - fileLength > 0L) bytesSize -= fileLength;
@@ -63,7 +63,7 @@ internal class Worker
                 if (!isDecompressable) isDecompressableCount++;
                 if (isLocked) isLockedCount++;
             }
-            return isDecompressable && !isLocked && (Globals.ForceOverwrite || !fileExists || fileLength != x.Size);
+            return isDecompressable && !isLocked && (Globals.ForceOverwrite || Globals.DeleteOutput || !fileExists || fileLength != x.Size);
         }).OrderBy(x => x.Name));
 
         // Clear what isnt needed, unp4k/unforge can use large amounts of RAM.
