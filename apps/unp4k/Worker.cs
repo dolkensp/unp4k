@@ -180,7 +180,6 @@ internal class Worker
                     using Stream decompStream = pak.GetInputStream(entry);
                     StreamUtils.Copy(decompStream, fs, decomBuffer);
                     if (Globals.ShouldSmelt && Globals.CombinePasses) Smelt(extractedFile, new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name)));
-                    Interlocked.Increment(ref tasksCompleted);
                 }
                 // TODO: Get rid of as many of these exceptions as possible
                 catch (DirectoryNotFoundException e) { FileExtractionError(extractedFile, e); }
@@ -202,6 +201,7 @@ internal class Worker
                             @"                    /");
                     }
                     else Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
+                    Interlocked.Increment(ref tasksCompleted);
                 }
             });
             if (Globals.ShouldSmelt && !Globals.CombinePasses)
