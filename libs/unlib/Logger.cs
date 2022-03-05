@@ -1,6 +1,7 @@
 ﻿using System.Text;
 
 using Serilog;
+using Serilog.Sinks.SystemConsole.Themes;
 
 using unlib;
 
@@ -12,7 +13,7 @@ public static class Logger
     {
         try
         {
-            InternalConsoleLogger = new LoggerConfiguration().WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {Message}{NewLine}{Exception}").CreateLogger();
+            InternalConsoleLogger = new LoggerConfiguration().WriteTo.Console(theme: AnsiConsoleTheme.Code, outputTemplate: "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {Message}{NewLine}{Exception}").CreateLogger();
             if (OS.IsWindows) Console.BufferWidth = Console.WindowWidth;
             ClearBuffer();
         }
