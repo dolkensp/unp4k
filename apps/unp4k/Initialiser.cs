@@ -133,7 +133,7 @@ internal static class Initialiser
                 Logger.NewLine();
                 Logger.LogWarn("LINUX ROOT WARNING:");
                 Logger.LogWarn("unp4k has been run as root via the sudo command!");
-                Logger.LogWarn("This may cause issues because it will make the app target the /root/ path!");
+                Logger.LogWarn("This may cause issues due it making the apps target path '/root/' !");
             }
             if (Globals.Filters.Contains("*.*") || Globals.Filters.Any(x => x.Contains(".dcb")))
             {
@@ -141,7 +141,7 @@ internal static class Initialiser
                 else shouldCheckProceed = true;
                 Logger.LogWarn("ENORMOUS JOB WARNING:");
                 Logger.LogWarn("unp4k has been run with filters which include Star Citizen's Game.dcb file!");
-                Logger.LogWarn("Due to what the Game.dcb contains, unp4k will need to run for far longer and will requires possibly hundreds of gigabytes of free space!");
+                Logger.LogWarn("Due to Game.dcb's nature, unp4k will need to run for far longer and require possibly hundreds of gigabytes of free partition space!");
             }
             if (Globals.ForceOverwrite)
             {
@@ -149,7 +149,7 @@ internal static class Initialiser
                 else shouldCheckProceed = true;
                 Logger.LogWarn("OVERWRITE ENABLED:");
                 Logger.LogWarn("unp4k has been run with the overwrite option!");
-                Logger.LogWarn("Overwriting files could take very long depending on your other options!");
+                Logger.LogWarn("Overwriting files could take very long depending on your drives Random 4k write speed!");
             }
             if (Globals.DeleteOutput)
             {
@@ -157,7 +157,7 @@ internal static class Initialiser
                 else shouldCheckProceed = true;
                 Logger.LogWarn("DELETE OUTPUT ENABLED:");
                 Logger.LogWarn($"unp4k will delete {Globals.OutDirectory}");
-                Logger.LogWarn("This could take a while depending on your storage drives Random 4K read/write speed and depending on how many files which have already been extracted!");
+                Logger.LogWarn("This could take a while depending on your storage drives Random 4k write speed and depending on how many files which have already been extracted!");
             }
             if (shouldCheckProceed)
             {
