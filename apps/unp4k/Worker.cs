@@ -231,25 +231,26 @@ internal class Worker
                 else new CryXmlSerializer(extractedFile).Save(smeltedFile);
             }
             // TODO: Get rid of as many of these exceptions as possible
-            catch (ArgumentException e)             { FileExtractionError(extractedFile, e); }
-            catch (EndOfStreamException e)          { FileExtractionError(extractedFile, e); }
-            catch (DirectoryNotFoundException e)    { FileExtractionError(extractedFile, e); }
-            catch (FileNotFoundException e)         { FileExtractionError(extractedFile, e); }
-            catch (IOException e)                   { FileExtractionError(extractedFile, e); }
-            catch (AggregateException e)            { FileExtractionError(extractedFile, e); }
-            catch (TargetInvocationException e)     { FileExtractionError(extractedFile, e); }
-            catch (KeyNotFoundException e)          { FileExtractionError(extractedFile, e); }
-            catch (IndexOutOfRangeException e)      { FileExtractionError(extractedFile, e); }
+            catch (ArgumentException e) { FileExtractionError(extractedFile, e); }
+            catch (EndOfStreamException e) { FileExtractionError(extractedFile, e); }
+            catch (DirectoryNotFoundException e) { FileExtractionError(extractedFile, e); }
+            catch (FileNotFoundException e) { FileExtractionError(extractedFile, e); }
+            catch (IOException e) { FileExtractionError(extractedFile, e); }
+            catch (AggregateException e) { FileExtractionError(extractedFile, e); }
+            catch (TargetInvocationException e) { FileExtractionError(extractedFile, e); }
+            catch (KeyNotFoundException e) { FileExtractionError(extractedFile, e); }
+            catch (IndexOutOfRangeException e) { FileExtractionError(extractedFile, e); }
         }
 
         // Print out the post summary.
         overallTime.Stop();
         Logger.NewLine(2);
-        Logger.LogInfo("- Extraction Completed!");
-        Logger.LogInfo(@" \");
-        Logger.LogInfo($"  |  File Errors: {fileErrors}");
-        Logger.LogInfo($"  |  Time Taken: {(float)overallTime.ElapsedMilliseconds / 60000:0,0.0000} minutes");
-        Logger.LogWarn("  |  Due to the nature of SSD's/NVMe's, do not excessively (10 times a day etc) run the extraction on an SSD/NVMe. Doing so may reduce the lifetime of the SSD/NVMe.");
+        Logger.LogInfo(
+            "Extraction Complete" + '\n' +
+            @"\" + '\n' +
+            $" |  File Errors: {fileErrors}" + '\n' +
+            $" |  Time Taken: {(float)overallTime.ElapsedMilliseconds / 60000:0,0.0000} minutes" + '\n' +
+             " |  Due to the nature of SSD's/NVMe's, do not excessively (10 times a day etc) run the extraction on an SSD/NVMe. Doing so may reduce the lifetime of the SSD/NVMe.");
         Logger.NewLine(2);
         Console.Write("Would you like to open the output directory? (Application will close on input) y/n: ");
         char openOutput = Console.ReadKey().KeyChar;
