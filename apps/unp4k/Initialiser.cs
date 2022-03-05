@@ -158,7 +158,7 @@ internal static class Initialiser
                 else shouldCheckProceed = true;
                 Logger.LogWarn("DELETE OUTPUT ENABLED:");
                 Logger.LogWarn($"unp4k will delete {Globals.OutDirectory}");
-                Logger.LogWarn("This could take a while depending on your storage drives Random 4K read/write speed and depending on how many files which have already been extracted/smelted!");
+                Logger.LogWarn("This could take a while depending on your storage drives Random 4K read/write speed and depending on how many files which have already been extracted!");
             }
             if (shouldCheckProceed)
             {
