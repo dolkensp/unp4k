@@ -99,7 +99,7 @@ internal class Worker
                 $"                   |    Will Delete Output Directory | {Globals.DeleteOutput}" + '\n' +
                 @"                  /";
         // Never allow the extraction to go through if the target storage drive has too little available space.
-        if (outputDrive.AvailableFreeSpace < bytesSize)
+        if (outputDrive.AvailableFreeSpace + (Globals.ForceOverwrite || Globals.DeleteOutput ? Globals.OutDirectory.GetFiles("*.*", SearchOption.AllDirectories).Sum(x => x.Length) : 0) < bytesSize)
         {
             Logger.LogError("The output path you have chosen is on a partition which does not have enough available free space!" + '\n' + summary);
             Console.ReadKey();
