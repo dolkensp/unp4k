@@ -1,6 +1,8 @@
 ﻿namespace unp4k;
 internal static class Globals
 {
+    internal static List<string> Arguments = null;
+
     internal static FileInfo? P4kFile = null;
     internal static DirectoryInfo? OutDirectory = null;
     internal static DirectoryInfo? SmelterOutDirectory = null;

@@ -1,4 +1,6 @@
-﻿unp4k.Initialiser.PreInit(args);
+﻿unp4k.Globals.Arguments = args.ToList();
+
+unp4k.Initialiser.PreInit();
 unp4k.Initialiser.Init();
 await unp4k.Initialiser.PostInit();
 

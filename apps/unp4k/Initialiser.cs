@@ -7,13 +7,17 @@ internal static class Initialiser
     private static FileInfo? Defaultp4kFile { get; } = OS.IsWindows ? new(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Roberts Space Industries", "StarCitizen", "LIVE", "Data.p4k")) :
         new(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Desktop", "unp4k", "Data.p4k"));
     private static DirectoryInfo? DefaultExtractionDirectory { get; } = new(Path.Join(DefaultOutputDirectory.FullName, "output"));
+    private static string Banner = '\n' +
+                "################################################################################" + '\n' + '\n' +
+                "                              unp4k <> Star Citizen                             " + '\n' + '\n' +
+                "################################################################################" + '\n' + '\n';
 
-    internal static void PreInit(string[] args)
+    internal static void PreInit()
     {
         Logger.ClearBuffer();
         Console.Title = $"unp4k: Pre-Initializing...";
 
-        if (args.Length is 0)
+        if (Globals.Arguments.Count is 0)
         {
             Globals.P4kFile = Defaultp4kFile;
             Globals.OutDirectory = DefaultExtractionDirectory;
@@ -61,29 +65,23 @@ internal static class Initialiser
                 "NO OUTPUT DIRECTORY PATH HAS BEEN DECLARED. ALL EXTRACTS WILL GO INTO " + '"' + $"{DefaultExtractionDirectory.FullName}" + '"'
                 + '\n' + '\n' + "Press any key to continue!" + '\n');
             Console.ReadKey();
-        }
-        else
-        {
-            Console.Write('\n' +
-                "################################################################################" + '\n' + '\n' +
-                "                              unp4k <> Star Citizen                             " + '\n' + '\n' +
-                "################################################################################" + '\n' + '\n');
+            Logger.ClearBuffer();
         }
 
         // Parse the arguments and do what they represent
         try
         {
-            for (int i = 0; i < args.Length; i++)
+            for (int i = 0; i < Globals.Arguments.Count; i++)
             {
-                if (args[i].ToLowerInvariant() is "-i") Globals.P4kFile = new(args[i + 1]);
-                else if (args[i].ToLowerInvariant() is "-o") Globals.OutDirectory = new(args[i + 1]);
-                else if (args[i].ToLowerInvariant() is "-f") Globals.Filters = args[i + 1].Split(',').ToList();
-                else if (args[i].ToLowerInvariant() is "-e") Globals.PrintErrors = true;
-                else if (args[i].ToLowerInvariant() is "-l") Globals.DetailedLogs = true;
-                else if (args[i].ToLowerInvariant() is "-c") Globals.CombinePasses = true;
-                else if (args[i].ToLowerInvariant() is "-w") Globals.ForceOverwrite = true;
-                else if (args[i].ToLowerInvariant() is "-d") Globals.DeleteOutput = true;
-                else if (args[i].ToLowerInvariant() is "-forge") Globals.ShouldSmelt = true;
+                if      (Globals.Arguments[i].ToLowerInvariant() is "-i")       Globals.P4kFile =       new(Globals.Arguments[i + 1]);
+                else if (Globals.Arguments[i].ToLowerInvariant() is "-o")       Globals.OutDirectory =  new(Globals.Arguments[i + 1]);
+                else if (Globals.Arguments[i].ToLowerInvariant() is "-f")       Globals.Filters =       Globals.Arguments[i + 1].Split(',').ToList();
+                else if (Globals.Arguments[i].ToLowerInvariant() is "-e")       Globals.PrintErrors     = true;
+                else if (Globals.Arguments[i].ToLowerInvariant() is "-l")       Globals.DetailedLogs    = true;
+                else if (Globals.Arguments[i].ToLowerInvariant() is "-c")       Globals.CombinePasses   = true;
+                else if (Globals.Arguments[i].ToLowerInvariant() is "-w")       Globals.ForceOverwrite  = true;
+                else if (Globals.Arguments[i].ToLowerInvariant() is "-d")       Globals.DeleteOutput    = true;
+                else if (Globals.Arguments[i].ToLowerInvariant() is "-forge")   Globals.ShouldSmelt     = true;
             }
         }
         catch (IndexOutOfRangeException e)
@@ -128,6 +126,7 @@ internal static class Initialiser
         bool shouldCheckProceed = false;
         while (proceed is null)
         {
+            Console.Write(Banner);
             if (OS.IsLinux && Environment.GetFolderPath(Environment.SpecialFolder.UserProfile).Contains("/root/"))
             {
                 shouldCheckProceed = true;
@@ -167,7 +166,7 @@ internal static class Initialiser
                 proceed = Console.ReadKey().KeyChar;
                 if (proceed is null || proceed != 'y' && proceed != 'n')
                 {
-                    Console.Write("Please input y for yes or n for no!");
+                    Console.Error.WriteLine("Please input y for yes or n for no!");
                     await Task.Delay(TimeSpan.FromSeconds(3));
                     Logger.ClearBuffer();
                     proceed = null;

@@ -118,7 +118,7 @@ internal class Worker
             goAheadWithExtraction = Console.ReadKey().KeyChar.ToString().ToLower()[0];
             if (goAheadWithExtraction is null || goAheadWithExtraction != 'y' && goAheadWithExtraction != 'n')
             {
-                Logger.LogError("Please input y for yes or n for no! You will be asked again in 3 seconds.");
+                Console.Error.WriteLine("Please input y for yes or n for no! You will be asked again in 3 seconds.");
                 await Task.Delay(TimeSpan.FromSeconds(3));
                 Logger.ClearBuffer();
                 goAheadWithExtraction = null;
@@ -201,8 +201,8 @@ internal class Worker
                             @"                    /");
                     }
                     else Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
-                    Interlocked.Increment(ref tasksCompleted);
                 }
+                Interlocked.Increment(ref tasksCompleted);
             });
             if (Globals.ShouldSmelt && !Globals.CombinePasses)
             {
