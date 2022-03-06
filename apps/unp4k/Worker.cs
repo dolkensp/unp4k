@@ -164,14 +164,9 @@ internal class Worker
 
         // Do all the extraction things!
         Logger.NewLine(2);
-        if (filteredEntries.Count is not 0)
-        {
-            ParallelQuery<Task> parallel = filteredEntries.AsParallel().AsOrdered().WithDegreeOfParallelism(Process.GetCurrentProcess().Threads.Count).WithMergeOptions(ParallelMergeOptions.NotBuffered).Select(ProcessEntry);
-            Task.Run(async () => 
-            {
-                foreach (Task item in parallel) await item;
+        if (filteredEntries.Count is not 0) Task.Run(async () => { 
+                foreach (Task item in filteredEntries.AsParallel().AsOrdered().WithDegreeOfParallelism(Process.GetCurrentProcess().Threads.Count).WithMergeOptions(ParallelMergeOptions.NotBuffered).Select(ProcessEntry)) await item; 
             }).Wait();
-        }
         else Logger.LogInfo("No extraction work to be done!");
 
         // This is specifically for smelting smeltable files.
