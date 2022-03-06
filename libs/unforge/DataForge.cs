@@ -144,10 +144,10 @@ public static class DataForge
             if (detailedLogs)
             {
                 Logger.LogInfo($"           - Extracted:  {f}" + '\n' +
-                    @"                  \" + '\n' +
-                    $"                   | Uncompressed Size:  {f.Length                     / 1000000000D:0,0.000000000000} GB" + '\n' +
-                    $"                   | Time Taken:         {fileTime.ElapsedMilliseconds / 1000D:0,0.000} seconds" + '\n' +
-                    @"                  /");
+                    @"                               \" + '\n' +
+                    $"                                | Uncompressed Size:  {f.Length                     / 1000000000D:0,0.000000000} GB" + '\n' +
+                    $"                                | Time Taken:         {fileTime.ElapsedMilliseconds / 1000D:0,0.000} seconds" + '\n' +
+                    @"                               /");
             }
             else Logger.LogInfo($"           - Extracted:  {f}");
         }

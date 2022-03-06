@@ -87,10 +87,10 @@ internal class Worker
                 @"                  \" + '\n' +
                 $"                   |                     Output Path | {Globals.OutDirectory.FullName}" + '\n' +
                 $"                   |                       Partition | {outputDrive.Name}" + '\n' +
-                $"                   |      Partition Total Free Space | {outputDrive.TotalFreeSpace / 1000000000D:0,0.00000000} GB" + '\n' +
-                $"                   |  Partition Available Free Space | {outputDrive.AvailableFreeSpace / 1000000000D:0,0.00000000} GB" + '\n' +
+                $"                   |      Partition Total Free Space | {outputDrive.TotalFreeSpace / 1000000000D:0,0.000000000} GB" + '\n' +
+                $"                   |  Partition Available Free Space | {outputDrive.AvailableFreeSpace / 1000000000D:0,0.000000000} GB" + '\n' +
                 $"                   |        Estimated Required Space | {(!Globals.ForceOverwrite && additionalFiles ? "An Additional " : string.Empty)}" +
-                                                                                $"{bytesSize / 1000000000D:0,0.00000000} GB" + '\n' +
+                                                                                $"{bytesSize / 1000000000D:0,0.000000000} GB" + '\n' +
                  "                   |                                 | " + '\n' +
                 $"                   |                      File Count | {filteredEntries.Count}" +
                                                                                 $"{(!Globals.ForceOverwrite && additionalFiles ? " Additional Files" : string.Empty)}" +
@@ -195,13 +195,13 @@ internal class Worker
                 if (Globals.DetailedLogs)
                 {
                     Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name}" + '\n' +
-                        @"                  \" + '\n' +
-                        $"                   | Date Last Modified: {entry.DateTime}" + '\n' +
-                        $"                   | Compression Method: {entry.CompressionMethod}" + '\n' +
-                        $"                   | Compressed Size:    {entry.CompressedSize  / 1000000000D:0,0.000000000000} GB" + '\n' +
-                        $"                   | Uncompressed Size:  {entry.Size            / 1000000000D:0,0.000000000000} GB" + '\n' +
-                        $"                   | Time Taken:         {fileTime.ElapsedMilliseconds / 1000D:0,0.000} seconds" + '\n' +
-                        @"                  /");
+                        @"                              \" + '\n' +
+                        $"                               | Date Last Modified: {entry.DateTime}" + '\n' +
+                        $"                               | Compression Method: {entry.CompressionMethod}" + '\n' +
+                        $"                               | Compressed Size:    {entry.CompressedSize  / 1000000000D:0,0.000000000} GB" + '\n' +
+                        $"                               | Uncompressed Size:  {entry.Size            / 1000000000D:0,0.000000000} GB" + '\n' +
+                        $"                               | Time Taken:         {fileTime.ElapsedMilliseconds / 1000D:0,0.000} seconds" + '\n' +
+                        @"                              /");
                 }
                 else Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
                 Interlocked.Increment(ref tasksCompleted);
