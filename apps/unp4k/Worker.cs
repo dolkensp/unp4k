@@ -1,6 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Reflection;
+﻿using System.Diagnostics;
 
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
@@ -117,22 +115,18 @@ internal class Worker
 
         // Time the extraction for those who are interested in it.
         Stopwatch overallTime = new();
+        Stopwatch fileTime = new();
         overallTime.Start();
 
-        // Do all the extraction things!
+        // Extract each entry, then serialising it or the Forging it.
         Logger.NewLine(2);
-        if (filteredEntries.Count is not 0) await Task.Run(() => Parallel.ForEach(filteredEntries.AsParallel().AsOrdered(), ProcessEntry));
-        else Logger.LogInfo("No extraction work to be done!");
-
-        // This is specifically for smelting smeltable files.
-        static async void ProcessEntry(ZipEntry entry, ParallelLoopState state, long id)
+        if (filteredEntries.Count is not 0) await Task.Run(() => Parallel.ForEach(filteredEntries.AsParallel().AsOrdered(), async (ZipEntry entry, ParallelLoopState state, long id) =>
         {
             Logger.LogInfo($"           - Extracting: {entry.Name}");
+            if (Globals.DetailedLogs) fileTime.Restart();
             FileInfo extractedFile = new(Path.Join(Globals.OutDirectory.FullName, entry.Name));
             string percentage = (tasksCompleted is 0 ? 0D : 100D * tasksCompleted / filteredEntries.Count).ToString("000.00000");
             if (!extractedFile.Directory.Exists) extractedFile.Directory.Create();
-            Stopwatch fileTime = new();
-            fileTime.Start();
 
             FileStream fs = extractedFile.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite); // Dont want people accessing incomplete files.
             Stream decompStream = pak.GetInputStream(entry);
@@ -145,7 +139,7 @@ internal class Worker
                 try
                 {
                     if (extractedFile.Extension is ".dcb") await DataForge.ForgeData(new(extractedFile, smeltedFile), Globals.DetailedLogs);
-                    else await DataForge.SerialiseData(extractedFile, smeltedFile);
+                    else DataForge.SerialiseData(extractedFile, smeltedFile);
                 }
                 catch (Exception e)
                 {
@@ -155,7 +149,6 @@ internal class Worker
                 }
             }
 
-            fileTime.Stop();
             Interlocked.Increment(ref tasksCompleted);
             if (Globals.DetailedLogs)
             {
@@ -169,7 +162,8 @@ internal class Worker
                     @"                              /");
             }
             else Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
-        }
+        }));
+        else Logger.LogInfo("No extraction work to be done!");
 
         // Print out the post summary.
         overallTime.Stop();

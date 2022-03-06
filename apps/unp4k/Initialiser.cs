@@ -115,7 +115,7 @@ internal static class Initialiser
         if (!Globals.SmelterOutDirectory.Exists) Globals.SmelterOutDirectory.Create();
     }
 
-    internal static async Task PostInit()
+    internal static void PostInit()
     {
         Console.Title = $"unp4k: Post-Initializing...";
 

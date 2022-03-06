@@ -9,7 +9,7 @@ using System.Diagnostics;
 namespace unforge;
 public static class DataForge
 {
-    public static async Task SerialiseData(FileInfo inFile, FileInfo outFile, ByteOrderEnum byteOrder = ByteOrderEnum.AutoDetect)
+    public static void SerialiseData(FileInfo inFile, FileInfo outFile, ByteOrderEnum byteOrder = ByteOrderEnum.AutoDetect)
     {
         using BinaryReader br = new(inFile.Open(FileMode.Open, FileAccess.Read, FileShare.None));
         char peek = br.ReadChar();

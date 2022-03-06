@@ -1,6 +1,4 @@
-﻿
-
-namespace unp4k;
+﻿namespace unp4k;
 internal static class Utils
 {
     internal static void RunProgressBarAction(string keystring, Action action)
