@@ -11,16 +11,9 @@ public static class Logger
 
     static Logger()
     {
-        try
-        {
-            InternalConsoleLogger = new LoggerConfiguration().WriteTo.Console(theme: AnsiConsoleTheme.Code, outputTemplate: "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {Message}{NewLine}{Exception}").CreateLogger();
-            if (OS.IsWindows) Console.BufferWidth = Console.WindowWidth;
-            ClearBuffer();
-        }
-        catch
-        {
-            Console.WriteLine("[CRITICAL]: Logger is unable to initialise!");
-        }
+        InternalConsoleLogger = new LoggerConfiguration().WriteTo.Console(theme: AnsiConsoleTheme.Code, outputTemplate: "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {Message}{NewLine}{Exception}").CreateLogger();
+        if (OS.IsWindows) Console.BufferWidth = Console.WindowWidth;
+        ClearBuffer();
     }
 
     private static void PushLog(LogPackage pckg)
