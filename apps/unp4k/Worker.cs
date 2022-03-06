@@ -66,6 +66,15 @@ internal class Worker
             return isDecompressable && !isLocked && (Globals.ForceOverwrite || Globals.DeleteOutput || !fileExists || fileLength != x.Size);
         }).OrderBy(x => x.Name));
 
+        // Move Game.dcb to the back of the list
+        if (Globals.Filters.Contains("*.*") || Globals.Filters.Contains("Game.dcb"))
+        {
+            ZipEntry e = filteredEntries.First(x => x.Name == "Game.dcb");
+            List<ZipEntry> list = filteredEntries.ToList();
+            list.Remove(e);
+            filteredEntries = new(list);
+        }
+
         // Clear what isnt needed, unp4k/unforge can use large amounts of RAM.
         loadingTrigger = false;
         Logger.NewLine();
