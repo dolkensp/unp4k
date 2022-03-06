@@ -196,9 +196,6 @@ internal class Worker
                 // TODO: Get rid of as many of these exceptions as possible
                 catch (ArgumentException e) { FileExtractionError(extractedFile, e); }
                 catch (EndOfStreamException e) { FileExtractionError(extractedFile, e); }
-                catch (DirectoryNotFoundException e) { FileExtractionError(extractedFile, e); }
-                catch (FileNotFoundException e) { FileExtractionError(extractedFile, e); }
-                catch (IOException e) { FileExtractionError(extractedFile, e); }
                 catch (AggregateException e) { FileExtractionError(extractedFile, e); }
                 catch (TargetInvocationException e) { FileExtractionError(extractedFile, e); }
                 catch (KeyNotFoundException e) { FileExtractionError(extractedFile, e); }
