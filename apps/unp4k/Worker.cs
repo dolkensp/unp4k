@@ -167,11 +167,9 @@ internal class Worker
         if (filteredEntries.Count is not 0)
         {
             ParallelQuery<Task> parallel = filteredEntries.AsParallel().AsOrdered().WithDegreeOfParallelism(Process.GetCurrentProcess().Threads.Count).WithMergeOptions(ParallelMergeOptions.NotBuffered).Select(ProcessEntry);
-            BlockingCollection<Task> outputQueue = new(Process.GetCurrentProcess().Threads.Count);
-            Task.Run(() => 
+            Task.Run(async () => 
             {
-                foreach (Task item in parallel) outputQueue.Add(item);
-                outputQueue.CompleteAdding();
+                foreach (Task item in parallel) await item;
             }).Wait();
         }
         else Logger.LogInfo("No extraction work to be done! Skipping...");
