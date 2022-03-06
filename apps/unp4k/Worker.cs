@@ -172,7 +172,7 @@ internal class Worker
                 foreach (Task item in parallel) await item;
             }).Wait();
         }
-        else Logger.LogInfo("No extraction work to be done! Skipping...");
+        else Logger.LogInfo("No extraction work to be done!");
 
         // This is specifically for smelting smeltable files.
         static async Task ProcessEntry(ZipEntry entry)
