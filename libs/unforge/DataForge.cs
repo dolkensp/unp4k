@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace unforge;
 public static class DataForge
@@ -116,27 +117,39 @@ public static class DataForge
         if (xmlDoc is not null) xmlDoc.Save(outFile.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.None));
     }
 
-    public static async Task ForgeData(DataForgeInstancePackage pckg)
+    public static async Task ForgeData(DataForgeInstancePackage pckg, bool detailedLogs)
     {
         XmlWriter writer = null;
         string currentSection = null;
         foreach (DataForgeDataMapping dm in pckg.DataMappingTable)
         {
+            Stopwatch fileTime = new();
+            fileTime.Start();
+            FileInfo f = new(Path.Join(pckg.OutFile.FullName[..pckg.OutFile.FullName.LastIndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar })],
+                $"{pckg.OutFile.Name.Replace(pckg.OutFile.Extension, string.Empty)}_{dm.Name}.xml"));
             if (writer is null || currentSection != dm.Name)
             {
                 currentSection = dm.Name;
                 writer?.Close();
                 writer?.Dispose();
-                string path = Path.Join(pckg.OutFile.FullName[..pckg.OutFile.FullName.LastIndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar })],
-                        $"{pckg.OutFile.Name.Replace(pckg.OutFile.Extension, string.Empty)}_{dm.Name}.xml");
-                Logger.LogInfo($"           - Extracting: {path}");
-                writer = XmlWriter.Create(new FileInfo(path).Open(FileMode.Create, FileAccess.Write, FileShare.None), new XmlWriterSettings
+                Logger.LogInfo($"           - Extracting: {f}");
+                writer = XmlWriter.Create(f.Open(FileMode.Create, FileAccess.Write, FileShare.None), new XmlWriterSettings
                 {
                     Indent = true,
                     Async = true
                 });
             }
             await pckg.StructDefinitionTable[dm.StructIndex].Read(writer);
+            fileTime.Stop();
+            if (detailedLogs)
+            {
+                Logger.LogInfo($"           - Extracted:  {f}" + '\n' +
+                    @"                  \" + '\n' +
+                    $"                   | Uncompressed Size:  {f.Length                     / 1000000000D:0,0.000000000000} GB" + '\n' +
+                    $"                   | Time Taken:         {fileTime.ElapsedMilliseconds / 1000D:0,0.000} seconds" + '\n' +
+                    @"                  /");
+            }
+            else Logger.LogInfo($"           - Extracted:  {f}");
         }
         writer?.Close();
         writer?.Dispose();

@@ -227,7 +227,7 @@ internal class Worker
             if (!smeltedFile.Directory.Exists) smeltedFile.Directory.Create();
             try
             {
-                if (extractedFile.Extension is ".dcb") await DataForge.ForgeData(new(extractedFile, smeltedFile));
+                if (extractedFile.Extension is ".dcb") await DataForge.ForgeData(new(extractedFile, smeltedFile), Globals.DetailedLogs);
                 else await DataForge.SerialiseData(extractedFile, smeltedFile);
             }
             // TODO: Get rid of as many of these exceptions as possible
