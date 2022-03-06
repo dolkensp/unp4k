@@ -14,4 +14,6 @@ internal static class Globals
     internal static bool ShouldSmelt = false;
     internal static bool ForceOverwrite = false;
     internal static bool DeleteOutput = false;
+
+    internal static int FileErrors = 0;
 }

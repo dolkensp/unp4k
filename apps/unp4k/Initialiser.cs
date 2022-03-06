@@ -157,26 +157,12 @@ internal static class Initialiser
                 Logger.LogWarn($"unp4k will delete {Globals.OutDirectory}");
                 Logger.LogWarn("This could take a while depending on your storage drives Random 4k write speed and depending on how many files which have already been extracted!");
             }
-            if (shouldCheckProceed)
+            if (shouldCheckProceed && !Utils.AskUserInput("Proceed?"))
             {
-                Logger.NewLine();
-                Console.Write("Are you sure you want to proceed? y/n: ");
-                proceed = Console.ReadKey().KeyChar;
-                if (proceed is null || proceed != 'y' && proceed != 'n')
-                {
-                    Console.Error.WriteLine("Please input y for yes or n for no!");
-                    await Task.Delay(TimeSpan.FromSeconds(3));
-                    Logger.ClearBuffer();
-                    proceed = null;
-                }
-                else if (proceed is 'n')
-                {
-                    Globals.ExitTrigger = true;
-                    return;
-                }
+                Globals.ExitTrigger = true;
+                return;
             }
             else break;
         }
-        Logger.NewLine(2);
     }
 }

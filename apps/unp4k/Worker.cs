@@ -18,7 +18,6 @@ internal class Worker
     private static int isDecompressableCount = 0;
     private static int isLockedCount = 0;
     private static long bytesSize = 0L;
-    private static int fileErrors = 0;
     private static bool additionalFiles = false;
 
     private static int tasksCompleted = 0;
@@ -28,7 +27,7 @@ internal class Worker
         Console.Title = $"unp4k: Working on {Globals.P4kFile.FullName}";
 
         // Setup the stream from the Data.p4k and contain it as an ICSC ZipFile with the appropriate keys then enqueue all zip entries.
-        RunProgressBarAction("Processing Data.p4k, this may take a moment", () => 
+        Utils.RunProgressBarAction("Processing Data.p4k, this may take a moment", () => 
         {
             pak = new(Globals.P4kFile.Open(FileMode.Open, FileAccess.Read, FileShare.None)); // The Data.p4k must be locked while it is being read to avoid corruption.
             pak.UseZip64 = UseZip64.On;
@@ -59,9 +58,6 @@ internal class Worker
                 return isDecompressable && !isLocked && (Globals.ForceOverwrite || Globals.DeleteOutput || !fileExists || fileLength != x.Size);
             }).OrderBy(x => x.Name));
         });
-
-        // Clear what isnt needed, unp4k/unforge can use large amounts of RAM.
-        Logger.NewLine();
     }
 
     internal static async Task ProvideSummary()
@@ -101,34 +97,19 @@ internal class Worker
         else Logger.NewLine();
 
         // Give the user a summary of what unp4k/unforge is about to do and some statistics.
-        char? goAheadWithExtraction = null;
-        while (goAheadWithExtraction is null)
+        Logger.LogInfo("Pre-Process Summary" + '\n' + summary);
+        if (!Utils.AskUserInput("Proceed?"))
         {
-            Logger.LogInfo("Pre-Process Summary" + '\n' + summary);
-            Logger.NewLine();
-            Console.Write("Should the extraction go ahead? y/n: ");
-            goAheadWithExtraction = Console.ReadKey().KeyChar.ToString().ToLower()[0];
-            if (goAheadWithExtraction is null || goAheadWithExtraction != 'y' && goAheadWithExtraction != 'n')
-            {
-                Console.Error.WriteLine("Please input y for yes or n for no! You will be asked again in 3 seconds.");
-                await Task.Delay(TimeSpan.FromSeconds(3));
-                Logger.ClearBuffer();
-                goAheadWithExtraction = null;
-            }
-            else if (goAheadWithExtraction is 'n')
-            {
-                Globals.ExitTrigger = true;
-                return;
-            }
+            Globals.ExitTrigger = true;
+            return;
         }
-        Logger.NewLine(2);
     }
 
     internal static async Task DoExtraction()
     {
         if (Globals.DeleteOutput && Globals.OutDirectory.Exists)
         {
-            RunProgressBarAction($"Deleting {Globals.OutDirectory} - This may take a while", () => Globals.OutDirectory.Delete(true));
+            Utils.RunProgressBarAction($"Deleting {Globals.OutDirectory} - This may take a while", () => Globals.OutDirectory.Delete(true));
             Globals.OutDirectory.Create();
             Globals.SmelterOutDirectory.Create();
         }
@@ -161,8 +142,17 @@ internal class Worker
             if (Globals.ShouldSmelt)
             {
                 FileInfo smeltedFile = new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name));
-                if (extractedFile.Extension is ".dcb") await DataForge.ForgeData(new(extractedFile, smeltedFile), Globals.DetailedLogs);
-                else await DataForge.SerialiseData(extractedFile, smeltedFile);
+                try
+                {
+                    if (extractedFile.Extension is ".dcb") await DataForge.ForgeData(new(extractedFile, smeltedFile), Globals.DetailedLogs);
+                    else await DataForge.SerialiseData(extractedFile, smeltedFile);
+                }
+                catch (Exception e)
+                {
+                    if (Globals.PrintErrors) Logger.LogException(e);
+                    if (smeltedFile.Exists) smeltedFile.Delete();
+                    Globals.FileErrors++;
+                }
             }
 
             fileTime.Stop();
@@ -183,39 +173,13 @@ internal class Worker
 
         // Print out the post summary.
         overallTime.Stop();
-        Logger.NewLine(2);
+        Logger.NewLine();
         Logger.LogInfo(
             "Extraction Complete" + '\n' +
             @"\" + '\n' +
-            $" |  File Errors: {fileErrors}" + '\n' +
+            $" |  File Errors: {Globals.FileErrors}" + '\n' +
             $" |  Time Taken: {(float)overallTime.ElapsedMilliseconds / 60000:0,0.000} minutes" + '\n' +
              " |  Due to the nature of SSD's/NVMe's, do not excessively (10 times a day etc) run the extraction on an SSD/NVMe. Doing so may dramatically reduce the lifetime of the SSD/NVMe.");
-        Logger.NewLine(2);
-        Console.Write("Would you like to open the output directory? (Application will close on input) y/n: ");
-        char openOutput = Console.ReadKey().KeyChar;
-        if (openOutput is 'y') Process.Start(OS.IsWindows ? "explorer" : "nautilus", Globals.OutDirectory.FullName);
-    }
-
-    private static void FileExtractionError<T>(FileInfo file, T e) where T : Exception
-    {
-        if (Globals.PrintErrors) Logger.LogException(e);
-        file.Delete();
-        fileErrors++;
-    }
-
-    private static void RunProgressBarAction(string keystring, Action action)
-    {
-        bool loadingTrigger = true;
-        new Task(async () =>
-        {
-            Console.Write($"{keystring}...");
-            while (loadingTrigger)
-            {
-                Console.Write('.');
-                await Task.Delay(TimeSpan.FromSeconds(1));
-            }
-        }).RunSynchronously();
-        action();
-        loadingTrigger = false;
+        if (Utils.AskUserInput("Would you like to open the output directory? (Application will close on input)")) Process.Start(OS.IsWindows ? "explorer" : "nautilus", Globals.OutDirectory.FullName);
     }
 }
