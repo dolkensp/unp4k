@@ -161,16 +161,8 @@ internal class Worker
             if (Globals.ShouldSmelt)
             {
                 FileInfo smeltedFile = new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name));
-                if (!smeltedFile.Directory.Exists) smeltedFile.Directory.Create();
-                try
-                {
-                    if (extractedFile.Extension is ".dcb") await DataForge.ForgeData(new(extractedFile, smeltedFile), Globals.DetailedLogs);
-                    else await DataForge.SerialiseData(extractedFile, smeltedFile);
-                }
-                // TODO: Get rid of as many of these exceptions as possible
-                catch (EndOfStreamException e) { FileExtractionError(extractedFile, e); }
-                catch (KeyNotFoundException e) { FileExtractionError(extractedFile, e); }
-                catch (IndexOutOfRangeException e) { FileExtractionError(extractedFile, e); }
+                if (extractedFile.Extension is ".dcb") await DataForge.ForgeData(new(extractedFile, smeltedFile), Globals.DetailedLogs);
+                else await DataForge.SerialiseData(extractedFile, smeltedFile);
             }
 
             fileTime.Stop();
