@@ -133,8 +133,9 @@ public class DataForgeStructDefinition : DataForgeSerializable
                             await DocumentRoot.Array_UInt8Values[firstIndex + i].Read(writer);
                             break;
                         case EDataType.varClass:
-                            await writer.WriteStartElementAsync(null, node.DataType.ToString(), null);
-                            await writer.WriteEndElementAsync();
+                            // Disabling this for now because of the sheer amount of tash data it generates
+                            //await writer.WriteStartElementAsync(null, node.DataType.ToString(), null);
+                            //await writer.WriteEndElementAsync();
                             break;
                         case EDataType.varStrongPointer:
                             await writer.WriteStartElementAsync(null, node.DataType.ToString(), null);
