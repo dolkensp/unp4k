@@ -11,7 +11,7 @@ using unlib;
 namespace unp4k;
 internal class Worker
 {
-    private static ConcurrentQueue<ZipEntry> filteredEntries = new();
+    private static List<ZipEntry> filteredEntries = new();
 
     private static ZipFile pak;
     private static readonly byte[] decomBuffer = new byte[4096];
@@ -20,6 +20,8 @@ internal class Worker
     private static long bytesSize = 0L;
     private static int fileErrors = 0;
     private static bool additionalFiles = false;
+
+    private static int tasksCompleted = 0;
 
     internal static void ProcessGameData()
     {
@@ -37,10 +39,10 @@ internal class Worker
                 await Task.Delay(TimeSpan.FromSeconds(0.5));
             }
         });
-        pak = new(Globals.P4kFile.Open(FileMode.Open, FileAccess.Read, FileShare.None));// The Data.p4k must be locked while it is being read to avoid corruption.
+        pak = new(Globals.P4kFile.Open(FileMode.Open, FileAccess.Read, FileShare.None)); // The Data.p4k must be locked while it is being read to avoid corruption.
         pak.UseZip64 = UseZip64.On;
         pak.KeysRequired += (object sender, KeysRequiredEventArgs e) => e.Key = new byte[] { 0x5E, 0x7A, 0x20, 0x02, 0x30, 0x2E, 0xEB, 0x1A, 0x3B, 0xB6, 0x17, 0xC3, 0x0F, 0xDE, 0x1E, 0x47 };
-        foreach (ZipEntry entry in pak) filteredEntries.Enqueue(entry);
+        foreach (ZipEntry entry in pak) filteredEntries.Add(entry);
 
         // Filter out zip entries which cannot be decompressed and/or are locked behind a cypher.
         // Speed up the extraction by a large amount by filtering out the files which already exist and dont need updating.
@@ -65,15 +67,6 @@ internal class Worker
             }
             return isDecompressable && !isLocked && (Globals.ForceOverwrite || Globals.DeleteOutput || !fileExists || fileLength != x.Size);
         }).OrderBy(x => x.Name));
-
-        // Move Game.dcb to the back of the list
-        if (Globals.Filters.Contains("*.*") || Globals.Filters.Contains("Game.dcb"))
-        {
-            ZipEntry e = filteredEntries.First(x => x.Name == "Game.dcb");
-            List<ZipEntry> list = filteredEntries.ToList();
-            list.Remove(e);
-            filteredEntries = new(list);
-        }
 
         // Clear what isnt needed, unp4k/unforge can use large amounts of RAM.
         loadingTrigger = false;
@@ -102,10 +95,9 @@ internal class Worker
                                                                                 $"{(!Globals.ForceOverwrite && additionalFiles ? " Additional Files" : string.Empty)}" +
                                                                                 $"{(Globals.Filters[0] != "*.*" ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" + '\n' +
                  "                   |                                 | " + '\n' +
-                $"                   |       Combine Extraction Passes | {Globals.CombinePasses}" + '\n' +
                 $"                   |   Will Overwrite Existing Files | {Globals.ForceOverwrite}" + '\n' +
-                $"                   | Will Perform Special Extraction | {Globals.ShouldSmelt}" + '\n' +
                 $"                   |    Will Delete Output Directory | {Globals.DeleteOutput}" + '\n' +
+                $"                   | Will Perform Special Extraction | {Globals.ShouldSmelt}" + '\n' +
                 @"                  /";
         // Never allow the extraction to go through if the target storage drive has too little available space.
         if (outputDrive.AvailableFreeSpace + (Globals.ForceOverwrite || Globals.DeleteOutput ? Globals.OutDirectory.GetFiles("*.*", SearchOption.AllDirectories).Sum(x => x.Length) : 0) < bytesSize)
@@ -172,74 +164,66 @@ internal class Worker
 
         // Do all the extraction things!
         Logger.NewLine(2);
-        int tasksCompleted = 0;
-        if (!filteredEntries.IsEmpty)
+        if (filteredEntries.Count is not 0)
         {
-            Parallel.ForEach(filteredEntries, async entry =>
-            {
-                Logger.LogInfo($"           - Extracting: {entry.Name}");
-                FileInfo extractedFile = new(Path.Join(Globals.OutDirectory.FullName, entry.Name));
-                string percentage = (tasksCompleted is 0 ? 0D : 100D * tasksCompleted / filteredEntries.Count).ToString("000.00000");
-                if (!extractedFile.Directory.Exists) extractedFile.Directory.Create();
-                Stopwatch fileTime = new();
-                fileTime.Start();
-
-                FileStream fs = extractedFile.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite); // Dont want people accessing incomplete files.
-                Stream decompStream = pak.GetInputStream(entry);
-                StreamUtils.Copy(decompStream, fs, decomBuffer);
-                decompStream.Close();
-                fs.Close();
-                if (Globals.ShouldSmelt && Globals.CombinePasses) await Smelt(extractedFile, new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name)));
-
-                fileTime.Stop();
-                if (Globals.DetailedLogs)
-                {
-                    Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name}" + '\n' +
-                        @"                              \" + '\n' +
-                        $"                               | Date Last Modified: {entry.DateTime}" + '\n' +
-                        $"                               | Compression Method: {entry.CompressionMethod}" + '\n' +
-                        $"                               | Compressed Size:    {entry.CompressedSize  / 1000000000D:0,0.000000000} GB" + '\n' +
-                        $"                               | Uncompressed Size:  {entry.Size            / 1000000000D:0,0.000000000} GB" + '\n' +
-                        $"                               | Time Taken:         {fileTime.ElapsedMilliseconds / 1000D:0,0.000} seconds" + '\n' +
-                        @"                              /");
-                }
-                else Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
-                Interlocked.Increment(ref tasksCompleted);
-            });
-            if (Globals.ShouldSmelt && !Globals.CombinePasses)
-            {
-                Logger.NewLine(2);
-                Logger.LogInfo("Beginning Second Extraction Pass...");
-                Logger.NewLine(2);
-                Parallel.ForEach(filteredEntries, async entry =>
-                {
-                    Logger.LogInfo($"[{(tasksCompleted is 0 ? 0D : 100D * tasksCompleted / filteredEntries.Count):000.00000}%] - Smelting: {entry.Name}");
-                    await Smelt(new(Path.Join(Globals.OutDirectory.FullName, entry.Name)), new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name)));
-                    Interlocked.Increment(ref tasksCompleted);
-                });
-            }
+            ParallelQuery<Task> parallel = filteredEntries.AsParallel().AsOrdered().WithDegreeOfParallelism(Process.GetCurrentProcess().Threads.Count).WithMergeOptions(ParallelMergeOptions.NotBuffered).Select(ProcessEntry);
+            BlockingCollection<Task> outputQueue = new(parallel.Count());
+            foreach (Task item in parallel) outputQueue.Add(item);
+            outputQueue.CompleteAdding();
+            Task.Run(() => { foreach (Task item in outputQueue.GetConsumingEnumerable()) item.Start(); }).Wait();
         }
         else Logger.LogInfo("No extraction work to be done! Skipping...");
 
         // This is specifically for smelting smeltable files.
-        static async Task Smelt(FileInfo extractedFile, FileInfo smeltedFile)
+        static async Task ProcessEntry(ZipEntry entry)
         {
-            if (!smeltedFile.Directory.Exists) smeltedFile.Directory.Create();
-            try
+            Logger.LogInfo($"           - Extracting: {entry.Name}");
+            FileInfo extractedFile = new(Path.Join(Globals.OutDirectory.FullName, entry.Name));
+            string percentage = (tasksCompleted is 0 ? 0D : 100D * tasksCompleted / filteredEntries.Count).ToString("000.00000");
+            if (!extractedFile.Directory.Exists) extractedFile.Directory.Create();
+            Stopwatch fileTime = new();
+            fileTime.Start();
+
+            FileStream fs = extractedFile.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite); // Dont want people accessing incomplete files.
+            Stream decompStream = pak.GetInputStream(entry);
+            StreamUtils.Copy(decompStream, fs, decomBuffer);
+            decompStream.Close();
+            fs.Close();
+            if (Globals.ShouldSmelt)
             {
-                if (extractedFile.Extension is ".dcb") await DataForge.ForgeData(new(extractedFile, smeltedFile), Globals.DetailedLogs);
-                else await DataForge.SerialiseData(extractedFile, smeltedFile);
+                FileInfo smeltedFile = new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name));
+                if (!smeltedFile.Directory.Exists) smeltedFile.Directory.Create();
+                try
+                {
+                    if (extractedFile.Extension is ".dcb") await DataForge.ForgeData(new(extractedFile, smeltedFile), Globals.DetailedLogs);
+                    else await DataForge.SerialiseData(extractedFile, smeltedFile);
+                }
+                // TODO: Get rid of as many of these exceptions as possible
+                catch (ArgumentException e) { FileExtractionError(extractedFile, e); }
+                catch (EndOfStreamException e) { FileExtractionError(extractedFile, e); }
+                catch (DirectoryNotFoundException e) { FileExtractionError(extractedFile, e); }
+                catch (FileNotFoundException e) { FileExtractionError(extractedFile, e); }
+                catch (IOException e) { FileExtractionError(extractedFile, e); }
+                catch (AggregateException e) { FileExtractionError(extractedFile, e); }
+                catch (TargetInvocationException e) { FileExtractionError(extractedFile, e); }
+                catch (KeyNotFoundException e) { FileExtractionError(extractedFile, e); }
+                catch (IndexOutOfRangeException e) { FileExtractionError(extractedFile, e); }
             }
-            // TODO: Get rid of as many of these exceptions as possible
-            catch (ArgumentException e) { FileExtractionError(extractedFile, e); }
-            catch (EndOfStreamException e) { FileExtractionError(extractedFile, e); }
-            catch (DirectoryNotFoundException e) { FileExtractionError(extractedFile, e); }
-            catch (FileNotFoundException e) { FileExtractionError(extractedFile, e); }
-            catch (IOException e) { FileExtractionError(extractedFile, e); }
-            catch (AggregateException e) { FileExtractionError(extractedFile, e); }
-            catch (TargetInvocationException e) { FileExtractionError(extractedFile, e); }
-            catch (KeyNotFoundException e) { FileExtractionError(extractedFile, e); }
-            catch (IndexOutOfRangeException e) { FileExtractionError(extractedFile, e); }
+
+            fileTime.Stop();
+            if (Globals.DetailedLogs)
+            {
+                Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name}" + '\n' +
+                    @"                              \" + '\n' +
+                    $"                               | Date Last Modified: {entry.DateTime}" + '\n' +
+                    $"                               | Compression Method: {entry.CompressionMethod}" + '\n' +
+                    $"                               | Compressed Size:    {entry.CompressedSize  / 1000000000D:0,0.000000000} GB" + '\n' +
+                    $"                               | Uncompressed Size:  {entry.Size            / 1000000000D:0,0.000000000} GB" + '\n' +
+                    $"                               | Time Taken:         {fileTime.ElapsedMilliseconds / 1000D:0,0.000} seconds" + '\n' +
+                    @"                              /");
+            }
+            else Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
+            Interlocked.Increment(ref tasksCompleted);
         }
 
         // Print out the post summary.

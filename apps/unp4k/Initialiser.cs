@@ -46,7 +46,6 @@ internal static class Initialiser
                 " | | -f: Allows you to filter in the files you want." + '\n' +
                 " | | -e: Enables error and exception printing to console." + '\n' +
                 " | | -l: Enabled detailed logging." + '\n' +
-                " | | -c: Combines both extraction passes into one (can require, in some cases 16GB+ of RAM/Pagefile)." + '\n' +
                 " | | -w: Forces all files to be re-extraced." + '\n' +
                 " | | -d: Deletes the output directory if it already exists on start." + '\n' +
                 " | | -forge: Enables unforge to forge extracted files." + '\n' +
@@ -78,7 +77,6 @@ internal static class Initialiser
                 else if (Globals.Arguments[i].ToLowerInvariant() is "-f")       Globals.Filters =       Globals.Arguments[i + 1].Split(',').ToList();
                 else if (Globals.Arguments[i].ToLowerInvariant() is "-e")       Globals.PrintErrors     = true;
                 else if (Globals.Arguments[i].ToLowerInvariant() is "-l")       Globals.DetailedLogs    = true;
-                else if (Globals.Arguments[i].ToLowerInvariant() is "-c")       Globals.CombinePasses   = true;
                 else if (Globals.Arguments[i].ToLowerInvariant() is "-w")       Globals.ForceOverwrite  = true;
                 else if (Globals.Arguments[i].ToLowerInvariant() is "-d")       Globals.DeleteOutput    = true;
                 else if (Globals.Arguments[i].ToLowerInvariant() is "-forge")   Globals.ShouldSmelt     = true;
