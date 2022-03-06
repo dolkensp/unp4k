@@ -28,48 +28,39 @@ internal class Worker
         Console.Title = $"unp4k: Working on {Globals.P4kFile.FullName}";
 
         // Setup the stream from the Data.p4k and contain it as an ICSC ZipFile with the appropriate keys then enqueue all zip entries.
-        Logger.LogInfo($"Processing Data.p4k before extraction, this may take a moment...");
-        bool loadingTrigger = true;
-        Task.Run(async () => 
+        RunProgressBarAction("Processing Data.p4k, this may take a moment", () => 
         {
-            Console.Write("Processing...");
-            while (loadingTrigger)
-            {
-                Console.Write('.');
-                await Task.Delay(TimeSpan.FromSeconds(0.5));
-            }
-        });
-        pak = new(Globals.P4kFile.Open(FileMode.Open, FileAccess.Read, FileShare.None)); // The Data.p4k must be locked while it is being read to avoid corruption.
-        pak.UseZip64 = UseZip64.On;
-        pak.KeysRequired += (object sender, KeysRequiredEventArgs e) => e.Key = new byte[] { 0x5E, 0x7A, 0x20, 0x02, 0x30, 0x2E, 0xEB, 0x1A, 0x3B, 0xB6, 0x17, 0xC3, 0x0F, 0xDE, 0x1E, 0x47 };
-        foreach (ZipEntry entry in pak) filteredEntries.Add(entry);
+            pak = new(Globals.P4kFile.Open(FileMode.Open, FileAccess.Read, FileShare.None)); // The Data.p4k must be locked while it is being read to avoid corruption.
+            pak.UseZip64 = UseZip64.On;
+            pak.KeysRequired += (object sender, KeysRequiredEventArgs e) => e.Key = new byte[] { 0x5E, 0x7A, 0x20, 0x02, 0x30, 0x2E, 0xEB, 0x1A, 0x3B, 0xB6, 0x17, 0xC3, 0x0F, 0xDE, 0x1E, 0x47 };
+            foreach (ZipEntry entry in pak) filteredEntries.Add(entry);
 
-        // Filter out zip entries which cannot be decompressed and/or are locked behind a cypher.
-        // Speed up the extraction by a large amount by filtering out the files which already exist and dont need updating.
-        filteredEntries = new(filteredEntries.Where(x => Globals.Filters.Contains("*.*") || Globals.Filters.Any(o => x.Name.Contains(o))).Where(x =>
-        {
-            FileInfo f = new(Path.Join(Globals.OutDirectory.FullName, x.Name));
-            bool isDecompressable = x.CanDecompress;
-            bool isLocked = x.IsCrypted;
-            bool fileExists = f.Exists;
-            long fileLength = fileExists ? f.Length : 0L;
-            if (fileExists && !Globals.ForceOverwrite && !Globals.DeleteOutput)
+            // Filter out zip entries which cannot be decompressed and/or are locked behind a cypher.
+            // Speed up the extraction by a large amount by filtering out the files which already exist and dont need updating.
+            filteredEntries = new(filteredEntries.Where(x => Globals.Filters.Contains("*.*") || Globals.Filters.Any(o => x.Name.Contains(o))).Where(x =>
             {
-                additionalFiles = true;
-                if (bytesSize - fileLength > 0L) bytesSize -= fileLength;
-                else bytesSize = 0L;
-            }
-            else
-            {
-                bytesSize += x.Size;
-                if (!isDecompressable) isDecompressableCount++;
-                if (isLocked) isLockedCount++;
-            }
-            return isDecompressable && !isLocked && (Globals.ForceOverwrite || Globals.DeleteOutput || !fileExists || fileLength != x.Size);
-        }).OrderBy(x => x.Name));
+                FileInfo f = new(Path.Join(Globals.OutDirectory.FullName, x.Name));
+                bool isDecompressable = x.CanDecompress;
+                bool isLocked = x.IsCrypted;
+                bool fileExists = f.Exists;
+                long fileLength = fileExists ? f.Length : 0L;
+                if (fileExists && !Globals.ForceOverwrite && !Globals.DeleteOutput)
+                {
+                    additionalFiles = true;
+                    if (bytesSize - fileLength > 0L) bytesSize -= fileLength;
+                    else bytesSize = 0L;
+                }
+                else
+                {
+                    bytesSize += x.Size;
+                    if (!isDecompressable) isDecompressableCount++;
+                    if (isLocked) isLockedCount++;
+                }
+                return isDecompressable && !isLocked && (Globals.ForceOverwrite || Globals.DeleteOutput || !fileExists || fileLength != x.Size);
+            }).OrderBy(x => x.Name));
+        });
 
         // Clear what isnt needed, unp4k/unforge can use large amounts of RAM.
-        loadingTrigger = false;
         Logger.NewLine();
     }
 
@@ -130,33 +121,18 @@ internal class Worker
                 return;
             }
         }
+        Logger.NewLine(2);
     }
 
-    internal static void DoExtraction()
+    internal static async Task DoExtraction()
     {
-        Logger.ClearBuffer();
-
-        if (Globals.DeleteOutput)
+        if (Globals.DeleteOutput && Globals.OutDirectory.Exists)
         {
-            Logger.LogInfo($"Deleting {Globals.OutDirectory} - This may take a while...");
-            if (Globals.OutDirectory.Exists)
-            {
-                bool loadingTrigger = true;
-                Task.Run(async () =>
-                {
-                    Console.Write("Processing...");
-                    while (loadingTrigger)
-                    {
-                        Console.Write('.');
-                        await Task.Delay(TimeSpan.FromSeconds(1));
-                    }
-                });
-                Globals.OutDirectory.Delete(true);
-                loadingTrigger = false;
-            }
+            RunProgressBarAction($"Deleting {Globals.OutDirectory} - This may take a while", () => Globals.OutDirectory.Delete(true));
             Globals.OutDirectory.Create();
             Globals.SmelterOutDirectory.Create();
         }
+        Logger.ClearBuffer();
 
         // Time the extraction for those who are interested in it.
         Stopwatch overallTime = new();
@@ -164,13 +140,11 @@ internal class Worker
 
         // Do all the extraction things!
         Logger.NewLine(2);
-        if (filteredEntries.Count is not 0) Task.Run(async () => { 
-                foreach (Task item in filteredEntries.AsParallel().AsOrdered().WithDegreeOfParallelism(Process.GetCurrentProcess().Threads.Count).WithMergeOptions(ParallelMergeOptions.NotBuffered).Select(ProcessEntry)) await item; 
-            }).Wait();
+        if (filteredEntries.Count is not 0) await Task.Run(() => Parallel.ForEach(filteredEntries.AsParallel().AsOrdered(), ProcessEntry));
         else Logger.LogInfo("No extraction work to be done!");
 
         // This is specifically for smelting smeltable files.
-        static async Task ProcessEntry(ZipEntry entry)
+        static async void ProcessEntry(ZipEntry entry, ParallelLoopState state, long id)
         {
             Logger.LogInfo($"           - Extracting: {entry.Name}");
             FileInfo extractedFile = new(Path.Join(Globals.OutDirectory.FullName, entry.Name));
@@ -194,15 +168,13 @@ internal class Worker
                     else await DataForge.SerialiseData(extractedFile, smeltedFile);
                 }
                 // TODO: Get rid of as many of these exceptions as possible
-                catch (ArgumentException e) { FileExtractionError(extractedFile, e); }
                 catch (EndOfStreamException e) { FileExtractionError(extractedFile, e); }
-                catch (AggregateException e) { FileExtractionError(extractedFile, e); }
-                catch (TargetInvocationException e) { FileExtractionError(extractedFile, e); }
                 catch (KeyNotFoundException e) { FileExtractionError(extractedFile, e); }
                 catch (IndexOutOfRangeException e) { FileExtractionError(extractedFile, e); }
             }
 
             fileTime.Stop();
+            Interlocked.Increment(ref tasksCompleted);
             if (Globals.DetailedLogs)
             {
                 Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name}" + '\n' +
@@ -215,7 +187,6 @@ internal class Worker
                     @"                              /");
             }
             else Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
-            Interlocked.Increment(ref tasksCompleted);
         }
 
         // Print out the post summary.
@@ -238,5 +209,21 @@ internal class Worker
         if (Globals.PrintErrors) Logger.LogException(e);
         file.Delete();
         fileErrors++;
+    }
+
+    private static void RunProgressBarAction(string keystring, Action action)
+    {
+        bool loadingTrigger = true;
+        new Task(async () =>
+        {
+            Console.Write($"{keystring}...");
+            while (loadingTrigger)
+            {
+                Console.Write('.');
+                await Task.Delay(TimeSpan.FromSeconds(1));
+            }
+        }).RunSynchronously();
+        action();
+        loadingTrigger = false;
     }
 }
