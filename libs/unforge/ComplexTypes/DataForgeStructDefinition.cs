@@ -60,19 +60,20 @@ public class DataForgeStructDefinition : DataForgeSerializable
             node.ConversionType = (EConversionType)((int)node.ConversionType & 0xFF);
             if (node.ConversionType is EConversionType.varAttribute)
             {
+                // TODO: Disabling this for now because of the sheer amount of tash data it generates
                 if (node.DataType is EDataType.varClass)
                 {
                     DataForgeStructDefinition dataStruct = DocumentRoot.StructDefinitionTable[node.StructIndex];
-                    await writer.WriteStartElementAsync(null, node.Name, null);
+                    //await writer.WriteStartElementAsync(null, node.Name, null);
                     await dataStruct.Read(writer);
-                    await writer.WriteEndElementAsync();
+                    //await writer.WriteEndElementAsync();
                 }
                 else if (node.DataType is EDataType.varStrongPointer)
                 {
-                    await writer.WriteStartElementAsync(null, node.Name, null);
-                    await writer.WriteStartElementAsync(null, node.DataType.ToString(), null);
-                    await writer.WriteEndElementAsync();
-                    await writer.WriteEndElementAsync();
+                    //await writer.WriteStartElementAsync(null, node.Name, null);
+                    //await writer.WriteStartElementAsync(null, node.DataType.ToString(), null);
+                    //await writer.WriteEndElementAsync();
+                    //await writer.WriteEndElementAsync();
                 }
             }
             else
@@ -133,18 +134,20 @@ public class DataForgeStructDefinition : DataForgeSerializable
                             await DocumentRoot.Array_UInt8Values[firstIndex + i].Read(writer);
                             break;
                         case EDataType.varClass:
-                            // Disabling this for now because of the sheer amount of tash data it generates
+                            // TODO: Disabling this for now because of the sheer amount of tash data it generates
                             //await writer.WriteStartElementAsync(null, node.DataType.ToString(), null);
                             //await writer.WriteEndElementAsync();
                             break;
                         case EDataType.varStrongPointer:
-                            await writer.WriteStartElementAsync(null, node.DataType.ToString(), null);
-                            await writer.WriteEndElementAsync();
+                            // TODO: Disabling this for now because of the sheer amount of tash data it generates
+                            //await writer.WriteStartElementAsync(null, node.DataType.ToString(), null);
+                            //await writer.WriteEndElementAsync();
                             break;
                         case EDataType.varWeakPointer:
-                            await writer.WriteStartElementAsync(null, "WeakPointer", null);
-                            await writer.WriteAttributeStringAsync(null, node.Name, null, null);
-                            await writer.WriteEndElementAsync();
+                            // TODO: Disabling this for now because of the sheer amount of tash data it generates
+                            //await writer.WriteStartElementAsync(null, "WeakPointer", null);
+                            //await writer.WriteAttributeStringAsync(null, node.Name, null, null);
+                            //await writer.WriteEndElementAsync();
                             break;
                         default:
                             throw new NotImplementedException();
