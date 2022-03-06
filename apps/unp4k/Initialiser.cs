@@ -68,27 +68,16 @@ internal static class Initialiser
         }
 
         // Parse the arguments and do what they represent
-        try
+        for (int i = 0; i < Globals.Arguments.Count; i++)
         {
-            for (int i = 0; i < Globals.Arguments.Count; i++)
-            {
-                if      (Globals.Arguments[i].ToLowerInvariant() is "-i")       Globals.P4kFile =       new(Globals.Arguments[i + 1]);
-                else if (Globals.Arguments[i].ToLowerInvariant() is "-o")       Globals.OutDirectory =  new(Globals.Arguments[i + 1]);
-                else if (Globals.Arguments[i].ToLowerInvariant() is "-f")       Globals.Filters =       Globals.Arguments[i + 1].Split(',').ToList();
-                else if (Globals.Arguments[i].ToLowerInvariant() is "-e")       Globals.PrintErrors     = true;
-                else if (Globals.Arguments[i].ToLowerInvariant() is "-l")       Globals.DetailedLogs    = true;
-                else if (Globals.Arguments[i].ToLowerInvariant() is "-w")       Globals.ForceOverwrite  = true;
-                else if (Globals.Arguments[i].ToLowerInvariant() is "-d")       Globals.DeleteOutput    = true;
-                else if (Globals.Arguments[i].ToLowerInvariant() is "-forge")   Globals.ShouldSmelt     = true;
-            }
-        }
-        catch (IndexOutOfRangeException e)
-        {
-            if (Globals.PrintErrors) Logger.LogException(e);
-            else Logger.LogError("An error has occured with the argument parser. Please ensure you have provided the relevant arguments!");
-            Console.ReadKey();
-            Globals.ExitTrigger = true;
-            return;
+            if (Globals.Arguments[i].ToLowerInvariant() is "-i") Globals.P4kFile                = new(Globals.Arguments[i + 1]);
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-o") Globals.OutDirectory      = new(Globals.Arguments[i + 1]);
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-f") Globals.Filters           = Globals.Arguments[i + 1].Split(',').ToList();
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-e") Globals.PrintErrors       = true;
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-l") Globals.DetailedLogs      = true;
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-w") Globals.ForceOverwrite    = true;
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-d") Globals.DeleteOutput      = true;
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-forge") Globals.ShouldSmelt   = true;
         }
     }
 
