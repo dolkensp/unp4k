@@ -114,7 +114,7 @@ public static class DataForge
             if (xmlMap.ContainsKey(node.ParentNodeID)) xmlMap[node.ParentNodeID].AppendChild(element);
             else xmlDoc.AppendChild(element);
         }
-        if (xmlDoc is not null) xmlDoc.Save(outFile.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.None));
+        xmlDoc.Save(outFile.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.None));
     }
 
     public static async Task ForgeData(DataForgeInstancePackage pckg, bool detailedLogs)
