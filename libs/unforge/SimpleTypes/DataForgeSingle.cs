@@ -6,7 +6,7 @@ public class DataForgeSingle : DataForgeSerializable
 {
     public float Value { get; set; }
 
-    public DataForgeSingle(DataForgeInstancePackage documentRoot) : base(documentRoot) { Value = Br.ReadSingle(); }
+    public DataForgeSingle(DataForgeIndex documentRoot) : base(documentRoot) { Value = Br.ReadSingle(); }
 
     public override string ToString() => string.Format("{0}", Value);
 

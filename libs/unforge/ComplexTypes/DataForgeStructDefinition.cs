@@ -22,7 +22,7 @@ public class DataForgeStructDefinition : DataForgeSerializable
     internal string __nodeType { get { return string.Format("{0:X4}", NodeType); } }
     internal uint NodeType { get; set; }
 
-    public DataForgeStructDefinition(DataForgeInstancePackage documentRoot) : base(documentRoot)
+    public DataForgeStructDefinition(DataForgeIndex documentRoot) : base(documentRoot)
     {
         NameOffset = Br.ReadUInt32();
         ParentTypeIndex = Br.ReadUInt32();

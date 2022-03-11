@@ -6,7 +6,7 @@ public class DataForgeUInt64 : DataForgeSerializable
 {
     public ulong Value { get; set; }
 
-    public DataForgeUInt64(DataForgeInstancePackage documentRoot) : base(documentRoot) { Value = Br.ReadUInt64(); }
+    public DataForgeUInt64(DataForgeIndex documentRoot) : base(documentRoot) { Value = Br.ReadUInt64(); }
 
     public override string ToString() => string.Format("{0}", Value);
 

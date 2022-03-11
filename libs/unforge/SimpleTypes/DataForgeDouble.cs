@@ -6,7 +6,7 @@ public class DataForgeDouble : DataForgeSerializable
 {
     public double Value { get; set; }
 
-    public DataForgeDouble(DataForgeInstancePackage documentRoot) : base(documentRoot) { Value = Br.ReadDouble(); }
+    public DataForgeDouble(DataForgeIndex documentRoot) : base(documentRoot) { Value = Br.ReadDouble(); }
 
     public override string ToString() => string.Format("{0}", Value);
 

@@ -6,7 +6,7 @@ public class DataForgeDataMapping : DataForgeSerializable
     public uint NameOffset { get; set; }
     public string Name { get { return DocumentRoot.ValueMap[NameOffset]; } }
 
-    public DataForgeDataMapping(DataForgeInstancePackage documentRoot) : base(documentRoot)
+    public DataForgeDataMapping(DataForgeIndex documentRoot) : base(documentRoot)
     {
         if (DocumentRoot.FileVersion >= 5)
         {

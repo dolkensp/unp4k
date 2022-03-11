@@ -6,7 +6,7 @@ public class DataForgeBoolean : DataForgeSerializable
 {
     public bool Value { get; set; }
 
-    public DataForgeBoolean(DataForgeInstancePackage documentRoot) : base(documentRoot) { Value = Br.ReadBoolean(); }
+    public DataForgeBoolean(DataForgeIndex documentRoot) : base(documentRoot) { Value = Br.ReadBoolean(); }
 
     public override string ToString() => string.Format("{0}", Value ? "1" : "0");
 

@@ -7,7 +7,7 @@ public class DataForgeStringLookup : DataForgeSerializable
     private uint _value;
     public string Value { get { return DocumentRoot.ValueMap[_value]; } }
 
-    public DataForgeStringLookup(DataForgeInstancePackage documentRoot) : base(documentRoot) { _value = Br.ReadUInt32(); }
+    public DataForgeStringLookup(DataForgeIndex documentRoot) : base(documentRoot) { _value = Br.ReadUInt32(); }
 
     public override string ToString() => Value;
 

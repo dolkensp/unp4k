@@ -6,7 +6,7 @@ public class DataForgeInt32 : DataForgeSerializable
 {
     public int Value { get; set; }
 
-    public DataForgeInt32(DataForgeInstancePackage documentRoot) : base(documentRoot) { Value = Br.ReadInt32(); }
+    public DataForgeInt32(DataForgeIndex documentRoot) : base(documentRoot) { Value = Br.ReadInt32(); }
 
     public override string ToString() => string.Format("{0}", Value);
 

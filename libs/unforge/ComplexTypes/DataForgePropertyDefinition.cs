@@ -13,7 +13,7 @@ public class DataForgePropertyDefinition : DataForgeSerializable
     public EConversionType ConversionType { get; set; }
     public ushort Padding { get; set; }
 
-    public DataForgePropertyDefinition(DataForgeInstancePackage documentRoot) : base(documentRoot)
+    public DataForgePropertyDefinition(DataForgeIndex documentRoot) : base(documentRoot)
     {
         NameOffset = Br.ReadUInt32();
         StructIndex = Br.ReadUInt16();

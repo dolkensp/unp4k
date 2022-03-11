@@ -6,7 +6,7 @@ public class DataForgeEnumDefinition : DataForgeSerializable
     public ushort ValueCount { get; set; }
     public ushort FirstValueIndex { get; set; }
 
-    public DataForgeEnumDefinition(DataForgeInstancePackage documentRoot) : base(documentRoot)
+    public DataForgeEnumDefinition(DataForgeIndex documentRoot) : base(documentRoot)
     {
         NameOffset = Br.ReadUInt32();
         ValueCount = Br.ReadUInt16();

@@ -9,7 +9,7 @@ public class DataForgeReference : DataForgeSerializable
     public uint Item1 { get; set; }
     public Guid Value { get; set; }
 
-    public DataForgeReference(DataForgeInstancePackage documentRoot) : base(documentRoot)
+    public DataForgeReference(DataForgeIndex documentRoot) : base(documentRoot)
     {
         Item1 = Br.ReadUInt32();
         Value = Br.ReadGuid(false).Value;

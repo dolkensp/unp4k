@@ -21,7 +21,7 @@ public class DataForgeRecord : DataForgeSerializable
     public string __otherIndex { get { return string.Format("{0:X4}", OtherIndex); } }
     public ushort OtherIndex { get; set; }
 
-    public DataForgeRecord(DataForgeInstancePackage documentRoot) : base(documentRoot)
+    public DataForgeRecord(DataForgeIndex documentRoot) : base(documentRoot)
     {
         NameOffset = Br.ReadUInt32();
         FileNameOffset = Br.ReadUInt32();

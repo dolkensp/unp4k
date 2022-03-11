@@ -7,7 +7,7 @@ public class DataForgeLocale : DataForgeSerializable
     private uint _value;
     public string Value { get { return DocumentRoot.ValueMap[_value]; } }
 
-    public DataForgeLocale(DataForgeInstancePackage documentRoot) : base(documentRoot) { _value = Br.ReadUInt32(); }
+    public DataForgeLocale(DataForgeIndex documentRoot) : base(documentRoot) { _value = Br.ReadUInt32(); }
 
     public override string ToString() => Value;
 

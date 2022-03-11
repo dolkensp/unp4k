@@ -117,16 +117,16 @@ public static class DataForge
         xmlDoc.Save(outFile.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.None));
     }
 
-    public static async Task ForgeData(DataForgeInstancePackage pckg, bool detailedLogs)
+    public static async Task ForgeData(FileInfo fileIn, FileInfo fileOut, bool detailedLogs)
     {
         XmlWriter writer = null;
         string currentSection = null;
-        foreach (DataForgeDataMapping dm in pckg.DataMappingTable)
+        foreach (DataForgeDataMapping dm in new DataForgeIndex(fileIn).DataMappingTable)
         {
             Stopwatch fileTime = new();
             fileTime.Start();
-            FileInfo f = new(Path.Join(pckg.OutFile.FullName[..pckg.OutFile.FullName.LastIndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar })],
-                $"{pckg.OutFile.Name.Replace(pckg.OutFile.Extension, string.Empty)}_{dm.Name}.xml"));
+            FileInfo f = new(Path.Join(fileOut.FullName[..fileOut.FullName.LastIndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar })],
+                $"{fileOut.Name.Replace(fileOut.Extension, string.Empty)}_{dm.Name}.xml"));
             if (writer is null || currentSection != dm.Name)
             {
                 currentSection = dm.Name;

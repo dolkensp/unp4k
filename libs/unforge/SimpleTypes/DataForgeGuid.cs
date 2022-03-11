@@ -8,7 +8,7 @@ public class DataForgeGuid : DataForgeSerializable
 {
     public Guid Value { get; set; }
 
-    public DataForgeGuid(DataForgeInstancePackage documentRoot) : base(documentRoot) { Value = Br.ReadGuid(false).Value; }
+    public DataForgeGuid(DataForgeIndex documentRoot) : base(documentRoot) { Value = Br.ReadGuid(false).Value; }
 
     public override string ToString() => Value.ToString();
 

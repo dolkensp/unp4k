@@ -6,7 +6,7 @@ public class DataForgeInt8 : DataForgeSerializable
 {
     public sbyte Value { get; set; }
 
-    public DataForgeInt8(DataForgeInstancePackage documentRoot) : base(documentRoot) { Value = Br.ReadSByte(); }
+    public DataForgeInt8(DataForgeIndex documentRoot) : base(documentRoot) { Value = Br.ReadSByte(); }
 
     public override string ToString() => string.Format("{0}", Value);
 

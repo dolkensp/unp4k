@@ -4,11 +4,8 @@ using System.IO;
 using System.Xml;
 
 namespace unforge;
-public class DataForgeInstancePackage
+internal class DataForgeIndex
 {
-    internal FileInfo InFile { get; set; }
-    internal FileInfo OutFile { get; set; }
-
     internal BinaryReader Br { get; set; }
     internal int FileVersion { get; set; }
 
@@ -43,7 +40,7 @@ public class DataForgeInstancePackage
     internal Dictionary<uint, List<XmlElement>> DataMap { get; set; }
     internal List<XmlElement> DataTable { get; set; }
 
-    public DataForgeInstancePackage(FileInfo inFile, FileInfo outFile)
+    internal DataForgeIndex(FileInfo inFile)
     {
         U[] ReadArray<U>(int arraySize) where U : DataForgeSerializable
         {
@@ -55,9 +52,6 @@ public class DataForgeInstancePackage
                 return o;
             }
         }
-
-        InFile = inFile;
-        OutFile = outFile;
 
         Br = new(inFile.Open(FileMode.Open, FileAccess.Read, FileShare.None));
         Br.ReadInt32(); // Offset - TODO: Figure out what this is

@@ -6,7 +6,7 @@ public class DataForgeInt64 : DataForgeSerializable
 {
     public long Value { get; set; }
 
-    public DataForgeInt64(DataForgeInstancePackage documentRoot) : base(documentRoot) { Value = Br.ReadInt64(); }
+    public DataForgeInt64(DataForgeIndex documentRoot) : base(documentRoot) { Value = Br.ReadInt64(); }
 
     public override string ToString() => string.Format("{0}", Value);
 

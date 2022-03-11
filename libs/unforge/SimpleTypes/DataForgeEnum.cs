@@ -7,7 +7,7 @@ public class DataForgeEnum : DataForgeSerializable
     private uint _value;
     public string Value { get { return DocumentRoot.ValueMap[_value]; } }
 
-    public DataForgeEnum(DataForgeInstancePackage documentRoot) : base(documentRoot) { _value = Br.ReadUInt32(); }
+    public DataForgeEnum(DataForgeIndex documentRoot) : base(documentRoot) { _value = Br.ReadUInt32(); }
 
     public override string ToString() => Value;
 

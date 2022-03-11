@@ -7,7 +7,7 @@ public class DataForgePointer : DataForgeSerializable
     public uint StructType { get; set; }
     public uint Index { get; set; }
 
-    public DataForgePointer(DataForgeInstancePackage documentRoot) : base(documentRoot)
+    public DataForgePointer(DataForgeIndex documentRoot) : base(documentRoot)
     {
         StructType = Br.ReadUInt32();
         Index = Br.ReadUInt32();

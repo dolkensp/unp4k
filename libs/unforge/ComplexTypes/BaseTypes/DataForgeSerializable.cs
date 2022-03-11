@@ -3,10 +3,10 @@
 namespace unforge;
 public abstract class DataForgeSerializable
 {
-    internal DataForgeInstancePackage DocumentRoot { get; private set; }
+    internal DataForgeIndex DocumentRoot { get; private set; }
     internal BinaryReader Br { get { return DocumentRoot.Br; } }
 
-    public DataForgeSerializable(DataForgeInstancePackage documentRoot)
+    public DataForgeSerializable(DataForgeIndex documentRoot)
     {
         DocumentRoot = documentRoot;
     }

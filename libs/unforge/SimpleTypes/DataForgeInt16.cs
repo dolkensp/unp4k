@@ -6,7 +6,7 @@ public class DataForgeInt16 : DataForgeSerializable
 {
     public short Value { get; set; }
 
-    public DataForgeInt16(DataForgeInstancePackage documentRoot) : base(documentRoot) { Value = Br.ReadInt16(); }
+    public DataForgeInt16(DataForgeIndex documentRoot) : base(documentRoot) { Value = Br.ReadInt16(); }
 
     public override string ToString() => string.Format("{0}", Value);
 
