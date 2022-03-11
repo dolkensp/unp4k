@@ -60,14 +60,14 @@ public class DataForgeInstancePackage
         OutFile = outFile;
 
         Br = new(inFile.Open(FileMode.Open, FileAccess.Read, FileShare.None));
-        Br.ReadInt32(); // Offset
+        Br.ReadInt32(); // Offset - TODO: Figure out what this is
         FileVersion = Br.ReadInt32();
 
         ValueMap = new();
         DataTable = new();
         DataMap = new();
 
-        for (int i = 0; i < 4; i++) Br.ReadUInt16(); // Offset
+        for (int i = 0; i < 4; i++) Br.ReadUInt16(); // Offset - TODO: Figure out what this is
 
         int structDefinitionCount = Br.ReadInt32();
         int propertyDefinitionCount = Br.ReadInt32();
@@ -97,7 +97,7 @@ public class DataForgeInstancePackage
         int referenceValueCount = Br.ReadInt32();
         int enumOptionCount = Br.ReadInt32();
         uint textLength = Br.ReadUInt32();
-        Br.ReadUInt32(); // Offset
+        Br.ReadUInt32(); // Offset - TODO: Figure out what this is
 
         StructDefinitionTable = ReadArray<DataForgeStructDefinition>(structDefinitionCount);
         PropertyDefinitionTable = ReadArray<DataForgePropertyDefinition>(propertyDefinitionCount);
