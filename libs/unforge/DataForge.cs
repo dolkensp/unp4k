@@ -156,13 +156,6 @@ public static class DataForge
     }
 }
 
-public enum ByteOrderEnum
-{
-    AutoDetect,
-    BigEndian,
-    LittleEndian,
-}
-
 public class CryXmlValue
 {
     public int Offset { get; set; }

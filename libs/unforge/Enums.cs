@@ -36,3 +36,10 @@ public enum StringSizeEnum
     Int16 = 2,
     Int32 = 4,
 }
+
+public enum ByteOrderEnum
+{
+    AutoDetect,
+    BigEndian,
+    LittleEndian,
+}
