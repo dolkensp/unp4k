@@ -70,13 +70,13 @@ internal class Worker
                 $"                   |        Estimated Required Space | {(!Globals.ForceOverwrite && additionalFiles ? "An Additional " : string.Empty)}" +
                                                                                 $"{bytesSize / 1000000000D:0,0.000000000} GB" + '\n' +
                  "                   |                                 | " + '\n' +
-                $"                   |                      File Count | {filteredEntries.Count}" +
+                $"                   |                      File Count | {filteredEntries.Count:0,0}" +
                                                                                 $"{(!Globals.ForceOverwrite && additionalFiles ? " Additional Files" : string.Empty)}" +
                                                                                 $"{(Globals.Filters[0] != "*.*" ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" + '\n' +
-                $"                   |              Files Incompatible | {isDecompressableCount}" +
+                $"                   |              Files Incompatible | {isDecompressableCount:0,0}" +
                                                                                 $"{(!Globals.ForceOverwrite && additionalFiles ? " Additional Files" : string.Empty)}" +
                                                                                 $"{(Globals.Filters[0] != "*.*" ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" + '\n' +
-                $"                   |                    Files Locked | {isLockedCount}" +
+                $"                   |                    Files Locked | {isLockedCount:0,0}" +
                                                                                 $"{(!Globals.ForceOverwrite && additionalFiles ? " Additional Files" : string.Empty)}" +
                                                                                 $"{(Globals.Filters[0] != "*.*" ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" + '\n' +
                  "                   |                                 | " + '\n' +
