@@ -32,7 +32,6 @@ internal class DataForgeStructDefinition : DataForgeSerializable
     internal override async Task PreSerialise()
     {
         BaseStruct = this;
-        Logger.LogWarn(BaseStruct.Name);
         Properties.InsertRange(0, from index in Enumerable.Range(FirstAttributeIndex, AttributeCount) let property = Index.PropertyDefinitionTable[index] select property);
         while (BaseStruct.ParentTypeIndex != 0xFFFFFFFF)
         {
