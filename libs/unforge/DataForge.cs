@@ -134,6 +134,7 @@ public static class DataForge
                 writer?.Close();
                 writer?.Dispose();
                 Logger.LogInfo($"           - Extracting: {f}");
+                f.Directory.Create();
                 writer = XmlWriter.Create(f.Open(FileMode.Create, FileAccess.Write, FileShare.None), new XmlWriterSettings { Indent = true, Async = true });
             }
             await index.StructDefinitionTable[(int)dm.StructIndex].Serialise();
