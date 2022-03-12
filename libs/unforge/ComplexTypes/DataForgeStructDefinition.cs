@@ -69,9 +69,8 @@ internal class DataForgeStructDefinition : DataForgeSerializable
             {
                 if (node.DataType is EDataType.varClass)
                 {
-                    DataForgeStructDefinition dataStruct = Index.StructDefinitionTable[node.StructIndex];
                     await Index.Writer.WriteStartElementAsync(null, node.Name, null);
-                    await dataStruct.Serialise();
+                    await Index.StructDefinitionTable[node.StructIndex].Serialise();
                     await Index.Writer.WriteEndElementAsync();
                 }
                 else if (node.DataType is EDataType.varStrongPointer)
