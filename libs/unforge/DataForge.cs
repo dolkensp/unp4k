@@ -3,30 +3,32 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
-using System.Threading.Tasks;
 
 namespace unforge;
+
 public static class DataForge
 {
-    public static void SerialiseData(FileInfo inFile, FileInfo outFile, ByteOrderEnum byteOrder = ByteOrderEnum.AutoDetect)
+    public static void DeserialiseCryXml(FileInfo inFile, FileInfo outFile, ByteOrderEnum byteOrder = ByteOrderEnum.AutoDetect, bool detailedLogs = false)
     {
         using BinaryReader br = new(inFile.Open(FileMode.Open, FileAccess.Read, FileShare.None));
-        char peek = br.ReadChar();
-        if (peek is '<') return; // File is already XML
+        int peek = br.PeekChar();
+
+        if (peek == '<') return; // File is already XML
         else if (peek != 'C') return; // Unknown file format
 
         string header = br.ReadFString(7);
-        if (header is "CryXml" || header is "CryXmlB") br.ReadCString();
+        if (header == "CryXml" || header == "CryXmlB") br.ReadCString();
+        else if (header == "CRY3SDK") br.ReadBytes(2);
         else return; // Unknown file format
 
         long headerLength = br.BaseStream.Position;
-        int fileLength = br.ReadInt32(byteOrder = ByteOrderEnum.BigEndian);
-
+        byteOrder = ByteOrderEnum.BigEndian;
+        int fileLength = br.ReadInt32(byteOrder);
         if (fileLength != br.BaseStream.Length)
         {
             br.BaseStream.Seek(headerLength, SeekOrigin.Begin);
             byteOrder = ByteOrderEnum.LittleEndian;
-            br.ReadInt32(byteOrder); // Offset - Apparently reads fileLength
+            fileLength = br.ReadInt32(byteOrder);
         }
 
         int nodeTableOffset = br.ReadInt32(byteOrder);
@@ -42,13 +44,27 @@ public static class DataForge
         int length3 = 4;
 
         int stringTableOffset = br.ReadInt32(byteOrder);
-        br.ReadInt32(byteOrder); // Offset - Apparently reads stringTableCount
+        int stringTableCount = br.ReadInt32(byteOrder);
+
+        if (detailedLogs) Logger.LogInfo("Header" + '\n' +
+                $"0x{0x00:X6}: {header}" + '\n' +
+                $"0x{headerLength + 0x00:X6}: {fileLength:X8} (Dec: {fileLength:D8})" + '\n' +
+                $"0x{headerLength + 0x04:X6}: {nodeTableOffset:X8} (Dec: {nodeTableOffset:D8}) node offset" + '\n' +
+                $"0x{headerLength + 0x08:X6}: {nodeTableCount:X8} (Dec: {nodeTableCount:D8}) nodes" + '\n' +
+                $"0x{headerLength + 0x12:X6}: {attributeTableOffset:X8} (Dec: {attributeTableOffset:D8}) reference offset" + '\n' +
+                $"0x{headerLength + 0x16:X6}: {attributeTableCount:X8} (Dec: {attributeTableCount:D8}) references" + '\n' +
+                $"0x{headerLength + 0x20:X6}: {childTableOffset:X8} (Dec: {childTableOffset:D8}) child offset" + '\n' +
+                $"0x{headerLength + 0x24:X6}: {childTableCount:X8} (Dec: {childTableCount:D8}) child" + '\n' +
+                $"0x{headerLength + 0x28:X6}: {stringTableOffset:X8} (Dec: {stringTableOffset:D8}) content offset" + '\n' +
+                $"0x{headerLength + 0x32:X6}: {stringTableCount:X8} (Dec: {stringTableCount:D8}) content" + '\n' +
+                "Node Table");
 
         List<CryXmlNode> nodeTable = new();
         br.BaseStream.Seek(nodeTableOffset, SeekOrigin.Begin);
         int nodeID = 0;
         while (br.BaseStream.Position < nodeTableOffset + nodeTableCount * nodeTableSize)
         {
+            long position = br.BaseStream.Position;
             CryXmlNode value = new()
             {
                 NodeID = nodeID++,
@@ -61,24 +77,43 @@ public static class DataForge
                 FirstChildIndex = br.ReadInt32(byteOrder),
                 Reserved = br.ReadInt32(byteOrder),
             };
+
             nodeTable.Add(value);
+            if (detailedLogs) Logger.LogInfo($"0x{position:X6}: {value.NodeNameOffset:X8} {value.ContentOffset:X8} attr:{value.AttributeCount:X4} {value.ChildCount:X4} {value.ParentNodeID:X8} " +
+                $"{value.FirstAttributeIndex:X8} {value.FirstChildIndex:X8} {value.Reserved:X8}");
         }
+
+        if (detailedLogs) Logger.LogInfo('\n' + "Reference Table");
 
         List<CryXmlReference> attributeTable = new();
         br.BaseStream.Seek(attributeTableOffset, SeekOrigin.Begin);
         while (br.BaseStream.Position < attributeTableOffset + attributeTableCount * referenceTableSize)
         {
+            long position = br.BaseStream.Position;
             CryXmlReference value = new()
             {
                 NameOffset = br.ReadInt32(byteOrder),
                 ValueOffset = br.ReadInt32(byteOrder)
             };
+
             attributeTable.Add(value);
+            if (detailedLogs) Logger.LogInfo($"0x{position:X6}: {value.NameOffset:X8} {value.ValueOffset:X8}");
         }
 
-        br.BaseStream.Seek(childTableOffset, SeekOrigin.Begin);
-        while (br.BaseStream.Position < childTableOffset + childTableCount * length3) br.ReadInt32(byteOrder); // Offset - Apparently reads value
+        if (detailedLogs) Logger.LogInfo('\n' + "Order Table");
 
+        List<int> parentTable = new();
+        br.BaseStream.Seek(childTableOffset, SeekOrigin.Begin);
+        while (br.BaseStream.Position < childTableOffset + childTableCount * length3)
+        {
+            long position = br.BaseStream.Position;
+            int value = br.ReadInt32(byteOrder);
+            parentTable.Add(value);
+            if (detailedLogs) Logger.LogInfo($"0x{position:X6}: {value:X8}");
+        }
+
+        if (detailedLogs) Logger.LogInfo('\n' + "Dynamic Dictionary");
+        
         List<CryXmlValue> dataTable = new();
         br.BaseStream.Seek(stringTableOffset, SeekOrigin.Begin);
         while (br.BaseStream.Position < br.BaseStream.Length)
@@ -90,11 +125,13 @@ public static class DataForge
                 Value = br.ReadCString(),
             };
             dataTable.Add(value);
+            if (detailedLogs) Logger.LogInfo($"0x{position:X6}: {value.Offset:X8} {value.Value}");
         }
 
         Dictionary<int, string> dataMap = dataTable.ToDictionary(k => k.Offset, v => v.Value);
         int attributeIndex = 0;
         XmlDocument xmlDoc = new();
+
         Dictionary<int, XmlElement> xmlMap = new();
         foreach (CryXmlNode node in nodeTable)
         {
@@ -109,123 +146,13 @@ public static class DataForge
             xmlMap[node.NodeID] = element;
             if (dataMap.ContainsKey(node.ContentOffset) && !string.IsNullOrWhiteSpace(dataMap[node.ContentOffset])) element.AppendChild(xmlDoc.CreateCDataSection(dataMap[node.ContentOffset]));
             else element.AppendChild(xmlDoc.CreateCDataSection("BUGGED"));
-
             if (xmlMap.ContainsKey(node.ParentNodeID)) xmlMap[node.ParentNodeID].AppendChild(element);
             else xmlDoc.AppendChild(element);
         }
-        xmlDoc.Save(outFile.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.None));
+        if (xmlDoc != null) xmlDoc.Save(Path.ChangeExtension(outFile.FullName, "xml"));
+        else Logger.LogInfo($"{outFile.FullName} already in XML format");
     }
 
     // Just a simplicity abstraction
-    public static async Task ForgeData(FileInfo fileIn, FileInfo fileOut, bool detailedLogs) => await new DataForgeIndex(fileIn).Serialise(fileOut, detailedLogs);
-}
-
-public class CryXmlValue
-{
-    public int Offset { get; set; }
-    public string Value { get; set; }
-}
-
-public class CryXmlReference
-{
-    public int NameOffset { get; set; }
-    public int ValueOffset { get; set; }
-}
-
-public class CryXmlNode
-{
-    public int NodeID { get; set; }
-    public int NodeNameOffset { get; set; }
-    public int ContentOffset { get; set; }
-    public short AttributeCount { get; set; }
-    public short ChildCount { get; set; }
-    public int ParentNodeID { get; set; }
-    public int FirstAttributeIndex { get; set; }
-    public int FirstChildIndex { get; set; }
-    public int Reserved { get; set; }
-}
-
-public static class CryXmlBinaryReaderExtensions
-{
-    public static long ReadInt64(this BinaryReader br, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian)
-    {
-        byte[] bytes = new[]
-        {
-                br.ReadByte(),
-                br.ReadByte(),
-                br.ReadByte(),
-                br.ReadByte(),
-                br.ReadByte(),
-                br.ReadByte(),
-                br.ReadByte(),
-                br.ReadByte(),
-            };
-        if (byteOrder is ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
-        return BitConverter.ToInt64(bytes, 0);
-    }
-
-    public static int ReadInt32(this BinaryReader br, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian)
-    {
-        byte[] bytes = new[]
-        {
-                br.ReadByte(),
-                br.ReadByte(),
-                br.ReadByte(),
-                br.ReadByte(),
-            };
-        if (byteOrder is ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
-        return BitConverter.ToInt32(bytes, 0);
-    }
-
-    public static short ReadInt16(this BinaryReader br, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian)
-    {
-        byte[] bytes = new[]
-        {
-                br.ReadByte(),
-                br.ReadByte(),
-            };
-        if (byteOrder is ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
-        return BitConverter.ToInt16(bytes, 0);
-    }
-
-    public static ulong ReadUInt64(this BinaryReader br, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian)
-    {
-        byte[] bytes = new[]
-        {
-                br.ReadByte(),
-                br.ReadByte(),
-                br.ReadByte(),
-                br.ReadByte(),
-                br.ReadByte(),
-                br.ReadByte(),
-                br.ReadByte(),
-                br.ReadByte(),
-            };
-        if (byteOrder is ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
-        return BitConverter.ToUInt64(bytes, 0);
-    }
-
-    public static uint ReadUInt32(this BinaryReader br, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian)
-    {
-        byte[] bytes = new[]
-        {
-                br.ReadByte(),
-                br.ReadByte(),
-                br.ReadByte(),
-                br.ReadByte(),
-            };
-        if (byteOrder is ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
-        return BitConverter.ToUInt32(bytes, 0);
-    }
-
-    public static ushort ReadUInt16(this BinaryReader br, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian)
-    {
-        byte[] bytes = new[]
-        {
-                br.ReadByte(),
-                br.ReadByte(),
-            };
-        if (byteOrder is ByteOrderEnum.LittleEndian) bytes = bytes.Reverse().ToArray();
-        return BitConverter.ToUInt16(bytes, 0);
-    }
+    public static void Forge(FileInfo fileIn, FileInfo fileOut, bool detailedLogs) => new DataForgeIndex(fileIn).Serialise(fileOut, detailedLogs);
 }

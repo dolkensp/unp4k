@@ -1,6 +1,8 @@
 ﻿using System.Threading.Tasks;
+using System.Xml;
 
 namespace unforge;
+
 internal class DataForgeEnumDefinition : DataForgeSerializable
 {
     internal string Name => Index.ValueMap[NameOffset];
@@ -8,7 +10,7 @@ internal class DataForgeEnumDefinition : DataForgeSerializable
     internal ushort ValueCount { get; set; }
     internal ushort FirstValueIndex { get; set; }
 
-    internal DataForgeEnumDefinition(DataForgeIndex documentRoot) : base(documentRoot)
+    internal DataForgeEnumDefinition(DataForgeIndex index) : base(index)
     {
         NameOffset = Index.Reader.ReadUInt32();
         ValueCount = Index.Reader.ReadUInt16();
@@ -16,5 +18,5 @@ internal class DataForgeEnumDefinition : DataForgeSerializable
     }
 
     internal override Task PreSerialise() => Task.CompletedTask;
-    internal override Task Serialise(string name = null) => Task.CompletedTask;
+    internal override XmlElement Serialise(string name = null) => default;
 }

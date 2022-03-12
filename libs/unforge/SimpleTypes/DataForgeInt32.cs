@@ -1,14 +1,17 @@
-﻿using System.Threading.Tasks;
+﻿using System.Xml;
 
 namespace unforge;
+
 internal class DataForgeInt32 : DataForgeSerializable<int>
 {
     internal DataForgeInt32(DataForgeIndex index) : base(index, index.Reader.ReadInt32()) { }
 
-    internal override async Task Serialise()
+    internal override XmlElement Serialise()
     {
-        await Index.Writer.WriteStartElementAsync(null, "Int32", null);
-        await Index.Writer.WriteAttributeStringAsync(null, "Value", null, Value.ToString());
-        await Index.Writer.WriteEndElementAsync();
+        XmlElement element = Index.Writer.CreateElement("Int32");
+        XmlAttribute attribute = Index.Writer.CreateAttribute("value");
+        attribute.Value = Value.ToString();
+        element.Attributes.Append(attribute);
+        return element;
     }
 }

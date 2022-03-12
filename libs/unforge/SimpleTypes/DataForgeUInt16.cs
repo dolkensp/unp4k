@@ -1,14 +1,17 @@
-﻿using System.Threading.Tasks;
+﻿using System.Xml;
 
 namespace unforge;
+
 internal class DataForgeUInt16 : DataForgeSerializable<ushort>
 {
     internal DataForgeUInt16(DataForgeIndex index) : base(index, index.Reader.ReadUInt16()) { }
 
-    internal override async Task Serialise()
+    internal override XmlElement Serialise()
     {
-        await Index.Writer.WriteStartElementAsync(null, "UInt16", null);
-        await Index.Writer.WriteAttributeStringAsync(null, "Value", null, Value.ToString());
-        await Index.Writer.WriteEndElementAsync();
+        XmlElement element = Index.Writer.CreateElement("UInt16");
+        XmlAttribute attribute = Index.Writer.CreateAttribute("value");
+        attribute.Value = Value.ToString();
+        element.Attributes.Append(attribute);
+        return element;
     }
 }

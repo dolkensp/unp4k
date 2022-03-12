@@ -1,5 +1,6 @@
 ﻿namespace unforge;
-public enum EDataType : ushort
+
+internal enum EDataType : ushort
 {
     varReference = 0x0310,
     varWeakPointer = 0x0210,
@@ -22,7 +23,7 @@ public enum EDataType : ushort
     varBoolean = 0x0001,
 }
 
-public enum EConversionType : ushort
+internal enum EConversionType : ushort
 {
     varAttribute = 0x00,
     varComplexArray = 0x01,
@@ -30,16 +31,9 @@ public enum EConversionType : ushort
     varClassArray = 0x03,
 }
 
-public enum StringSizeEnum
+internal enum StringSizeEnum
 {
     Int8 = 1,
     Int16 = 2,
     Int32 = 4,
-}
-
-public enum ByteOrderEnum
-{
-    AutoDetect,
-    BigEndian,
-    LittleEndian,
 }

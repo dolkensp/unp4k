@@ -1,17 +1,26 @@
-﻿using System.Threading.Tasks;
+﻿using System.Xml;
 
 namespace unforge;
+
 internal class DataForgePointer : DataForgeSerializable<uint>
 {
     internal uint StructType { get; set; }
 
-    internal DataForgePointer(DataForgeIndex index) : base(index, index.Reader.ReadUInt32()) { StructType = index.Reader.ReadUInt32(); }
+    internal DataForgePointer(DataForgeIndex index) : base(index, 0) 
+    { 
+        StructType = index.Reader.ReadUInt32();
+        Value = index.Reader.ReadUInt32();
+    }
 
-    internal override async Task Serialise()
+    internal override XmlElement Serialise()
     {
-        await Index.Writer.WriteStartElementAsync(null, "UInt64", null);
-        await Index.Writer.WriteAttributeStringAsync(null, "typeIndex", null, $"{StructType:X4}");
-        await Index.Writer.WriteAttributeStringAsync(null, "firstIndex", null, $"{Index:X4}");
-        await Index.Writer.WriteEndElementAsync();
+        XmlElement element = Index.Writer.CreateElement("Pointer");
+        XmlAttribute attribute = Index.Writer.CreateAttribute("typeIndex");
+        attribute.Value = $"{StructType:X4}";
+        element.Attributes.Append(attribute);
+        attribute = Index.Writer.CreateAttribute("firstIndex");
+        attribute.Value = $"{Value:X4}";
+        element.Attributes.Append(attribute);
+        return element;
     }
 }

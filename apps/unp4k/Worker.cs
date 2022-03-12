@@ -58,7 +58,7 @@ internal class Worker
         });
     }
 
-    internal static async Task ProvideSummary()
+    internal static void ProvideSummary()
     {
         DriveInfo outputDrive = DriveInfo.GetDrives().First(x => OS.IsWindows ? x.Name == Globals.OutDirectory.FullName[..3] : new DirectoryInfo(x.Name).Exists);
         string summary =
@@ -103,7 +103,7 @@ internal class Worker
         }
     }
 
-    internal static async Task DoExtraction()
+    internal static void DoExtraction()
     {
         if (Globals.DeleteOutput && Globals.OutDirectory.Exists)
         {
@@ -120,7 +120,7 @@ internal class Worker
 
         // Extract each entry, then serialising it or the Forging it.
         Logger.NewLine(2);
-        if (filteredEntries.Count is not 0) Parallel.ForEach(filteredEntries.AsParallel().AsOrdered(), async (ZipEntry entry, ParallelLoopState state, long id) =>
+        if (filteredEntries.Count is not 0) Parallel.ForEach(filteredEntries.AsParallel().AsOrdered(), (ZipEntry entry, ParallelLoopState state, long id) =>
         {
             Logger.LogInfo($"           - Extracting: {entry.Name}");
             if (Globals.DetailedLogs) fileTime.Restart();
@@ -138,8 +138,8 @@ internal class Worker
                 FileInfo smeltedFile = new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name));
                 try
                 {
-                    if (extractedFile.Extension is ".dcb") await DataForge.ForgeData(extractedFile, smeltedFile, Globals.DetailedLogs);
-                    else DataForge.SerialiseData(extractedFile, smeltedFile);
+                    if (extractedFile.Extension is ".dcb") DataForge.Forge(extractedFile, smeltedFile, Globals.DetailedLogs);
+                    else DataForge.DeserialiseCryXml(extractedFile, smeltedFile);
                 }
                 catch (Exception e)
                 {

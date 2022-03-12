@@ -2,23 +2,26 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace unforge;
+
 internal class DataForgeStructDefinition : DataForgeSerializable
 {
     internal string Name => Index.ValueMap[NameOffset];
     internal uint NameOffset { get; set; }
+
+    internal string __parentTypeIndex => $"{ParentTypeIndex:X4}";
     internal uint ParentTypeIndex { get; set; }
+
+    internal string __attributeCount => $"{AttributeCount:X4}";
     internal ushort AttributeCount { get; set; }
+
+    internal string __firstAttributeIndex => $"{FirstAttributeIndex:X4}";
     internal ushort FirstAttributeIndex { get; set; }
+
+    internal string __nodeType => $"{NodeType:X4}";
     internal uint NodeType { get; set; }
-
-    internal DataForgeStructDefinition BaseStruct { get; set; }
-    internal List<DataForgePropertyDefinition> Properties { get; set; } = new();
-    internal string Attribute { get; set; }
-
-    internal List<int> ArrayCounts { get; set; } = new();
-    internal List<int> FirstIndexs { get; set; } = new();
 
     internal DataForgeStructDefinition(DataForgeIndex index) : base(index)
     {
@@ -29,135 +32,142 @@ internal class DataForgeStructDefinition : DataForgeSerializable
         NodeType = Index.Reader.ReadUInt32();
     }
 
-    internal override async Task PreSerialise()
+    internal override Task PreSerialise() => Task.CompletedTask;
+
+    internal override XmlElement Serialise(string name = null)
     {
-        BaseStruct = this;
-        Properties.InsertRange(0, from index in Enumerable.Range(FirstAttributeIndex, AttributeCount) let property = Index.PropertyDefinitionTable[index] select property);
-        while (BaseStruct.ParentTypeIndex != 0xFFFFFFFF)
+        XmlAttribute attribute;
+        DataForgeStructDefinition baseStruct = this;
+        List<DataForgePropertyDefinition> properties = new();
+        properties.InsertRange(0,
+            from index in Enumerable.Range(FirstAttributeIndex, AttributeCount)
+            let property = Index.PropertyDefinitionTable[index]
+            select property);
+        while (baseStruct.ParentTypeIndex != 0xFFFFFFFF)
         {
-            BaseStruct = Index.StructDefinitionTable[(int)BaseStruct.ParentTypeIndex];
-            Properties.InsertRange(0, from index in Enumerable.Range(BaseStruct.FirstAttributeIndex, BaseStruct.AttributeCount) let property = Index.PropertyDefinitionTable[index] select property);
+            baseStruct = Index.StructDefinitionTable[baseStruct.ParentTypeIndex];
+            properties.InsertRange(0,
+                from index in Enumerable.Range(baseStruct.FirstAttributeIndex, baseStruct.AttributeCount)
+                let property = Index.PropertyDefinitionTable[index]
+                select property);
         }
-        foreach (DataForgePropertyDefinition node in Properties.Where(x => (EConversionType)((int)x.ConversionType & 0xFF) is EConversionType.varAttribute &&
-            x.DataType is not EDataType.varClass &&
-            x.DataType is not EDataType.varStrongPointer)) Attribute = node.ReadAttribute();
-        foreach (DataForgePropertyDefinition node in Properties)
+
+        XmlElement element = Index.Writer.CreateElement(name ?? baseStruct.Name);
+        properties.ForEach(node => 
         {
             node.ConversionType = (EConversionType)((int)node.ConversionType & 0xFF);
-            if (node.ConversionType is EConversionType.varAttribute)
+            if (node.ConversionType == EConversionType.varAttribute)
             {
-                if (node.DataType is EDataType.varClass) await Index.StructDefinitionTable[node.StructIndex].PreSerialise();
-            }
-            else
-            {
-                ArrayCounts.Add((int)Index.Reader.ReadUInt32());
-                FirstIndexs.Add((int)Index.Reader.ReadUInt32());
-            }
-        }
-    }
-
-    internal override async Task Serialise(string name = null)
-    {
-        await Index.Writer.WriteStartElementAsync(null, name ?? BaseStruct.Name, null); // Master Element
-        await Index.Writer.WriteAttributeStringAsync(null, Name, null, Attribute);
-        await Index.Writer.WriteAttributeStringAsync(null, "__type", null, BaseStruct.Name);
-        if (ParentTypeIndex != 0xFFFFFFFF) await Index.Writer.WriteAttributeStringAsync(null, "__polymorphicType", null, Name);
-
-        foreach (DataForgePropertyDefinition node in Properties)
-        {
-            if (node.ConversionType is EConversionType.varAttribute)
-            {
-                if (node.DataType is EDataType.varClass)
+                if (node.DataType == EDataType.varClass)
                 {
-                    await Index.Writer.WriteStartElementAsync(null, node.Name, null);
-                    await Index.StructDefinitionTable[node.StructIndex].Serialise();
-                    await Index.Writer.WriteEndElementAsync();
+                    DataForgeStructDefinition dataStruct = Index.StructDefinitionTable[node.StructIndex];
+                    XmlElement child = dataStruct.Serialise(node.Name);
+                    element.AppendChild(child);
                 }
-                else if (node.DataType is EDataType.varStrongPointer)
+                else if (node.DataType == EDataType.varStrongPointer)
                 {
-                    await Index.Writer.WriteStartElementAsync(null, node.Name, null);
-                    await Index.Writer.WriteStartElementAsync(null, node.DataType.ToString(), null);
-                    await Index.Writer.WriteEndElementAsync();
-                    await Index.Writer.WriteEndElementAsync();
+                    XmlElement parentSP = Index.Writer.CreateElement(node.Name);
+                    XmlElement emptySP = Index.Writer.CreateElement(node.DataType.ToString());
+                    parentSP.AppendChild(emptySP);
+                    element.AppendChild(parentSP);
+                    Index.Require_ClassMapping.Add(new ClassMapping { Node = emptySP, StructIndex = (ushort)Index.Reader.ReadUInt32(), RecordIndex = (int)Index.Reader.ReadUInt32() });
+                }
+                else
+                {
+                    XmlAttribute childAttribute = node.Serialise();
+                    element.Attributes.Append(childAttribute);
                 }
             }
             else
             {
-                await Index.Writer.WriteStartElementAsync(null, node.Name, null);
-                for (int n = 0; n < ArrayCounts.Count; n++)
+                int arrayCount = (int)Index.Reader.ReadUInt32();
+                int firstIndex = (int)Index.Reader.ReadUInt32();
+                XmlElement child = Index.Writer.CreateElement(node.Name);
+                for (int i = 0; i < arrayCount; i++)
                 {
-                    int x = FirstIndexs[n];
-                    int y = ArrayCounts[n];
                     switch (node.DataType)
-                        {
-                            case EDataType.varBoolean:
-                                await Index.BooleanValues[x + y].Serialise();
-                                break;
-                            case EDataType.varDouble:
-                                await Index.DoubleValues[x + y].Serialise();
-                                break;
-                            case EDataType.varEnum:
-                                await Index.EnumValues[x + y].Serialise();
-                                break;
-                            case EDataType.varGuid:
-                                await Index.GuidValues[x + y].Serialise();
-                                break;
-                            case EDataType.varInt16:
-                                await Index.Int16Values[x + y].Serialise();
-                                break;
-                            case EDataType.varInt32:
-                                await Index.Int32Values[x + y].Serialise();
-                                break;
-                            case EDataType.varInt64:
-                                await Index.Int64Values[x + y].Serialise();
-                                break;
-                            case EDataType.varSByte:
-                                await Index.Int8Values[x + y].Serialise();
-                                break;
-                            case EDataType.varLocale:
-                                await Index.LocaleValues[x + y].Serialise();
-                                break;
-                            case EDataType.varReference:
-                                await Index.ReferenceValues[x + y].Serialise();
-                                break;
-                            case EDataType.varSingle:
-                                await Index.SingleValues[x + y].Serialise();
-                                break;
-                            case EDataType.varString:
-                                await Index.StringValues[x + y].Serialise();
-                                break;
-                            case EDataType.varUInt16:
-                                await Index.UInt16Values[x + y].Serialise();
-                                break;
-                            case EDataType.varUInt32:
-                                await Index.UInt32Values[x + y].Serialise();
-                                break;
-                            case EDataType.varUInt64:
-                                await Index.UInt64Values[x + y].Serialise();
-                                break;
-                            case EDataType.varByte:
-                                await Index.UInt8Values[x + y].Serialise();
-                                break;
-                            case EDataType.varClass:
-                                await Index.Writer.WriteStartElementAsync(null, node.DataType.ToString(), null);
-                                await Index.Writer.WriteEndElementAsync();
-                                break;
-                            case EDataType.varStrongPointer:
-                                await Index.Writer.WriteStartElementAsync(null, node.DataType.ToString(), null);
-                                await Index.Writer.WriteEndElementAsync();
-                                break;
-                            case EDataType.varWeakPointer:
-                                await Index.Writer.WriteStartElementAsync(null, "WeakPointer", null);
-                                await Index.Writer.WriteAttributeStringAsync(null, node.Name, null, null);
-                                await Index.Writer.WriteEndElementAsync();
-                                break;
-                            default:
-                                throw new NotImplementedException();
-                        }
+                    {
+                        case EDataType.varBoolean:
+                            child.AppendChild(Index.BooleanValues[firstIndex + i].Serialise());
+                            break;
+                        case EDataType.varDouble:
+                            child.AppendChild(Index.DoubleValues[firstIndex + i].Serialise());
+                            break;
+                        case EDataType.varEnum:
+                            child.AppendChild(Index.EnumValues[firstIndex + i].Serialise());
+                            break;
+                        case EDataType.varGuid:
+                            child.AppendChild(Index.GuidValues[firstIndex + i].Serialise());
+                            break;
+                        case EDataType.varInt16:
+                            child.AppendChild(Index.Int16Values[firstIndex + i].Serialise());
+                            break;
+                        case EDataType.varInt32:
+                            child.AppendChild(Index.Int32Values[firstIndex + i].Serialise());
+                            break;
+                        case EDataType.varInt64:
+                            child.AppendChild(Index.Int64Values[firstIndex + i].Serialise());
+                            break;
+                        case EDataType.varSByte:
+                            child.AppendChild(Index.Int8Values[firstIndex + i].Serialise());
+                            break;
+                        case EDataType.varLocale:
+                            child.AppendChild(Index.LocaleValues[firstIndex + i].Serialise());
+                            break;
+                        case EDataType.varReference:
+                            child.AppendChild(Index.ReferenceValues[firstIndex + i].Serialise());
+                            break;
+                        case EDataType.varSingle:
+                            child.AppendChild(Index.SingleValues[firstIndex + i].Serialise());
+                            break;
+                        case EDataType.varString:
+                            child.AppendChild(Index.StringValues[firstIndex + i].Serialise());
+                            break;
+                        case EDataType.varUInt16:
+                            child.AppendChild(Index.UInt16Values[firstIndex + i].Serialise());
+                            break;
+                        case EDataType.varUInt32:
+                            child.AppendChild(Index.UInt32Values[firstIndex + i].Serialise());
+                            break;
+                        case EDataType.varUInt64:
+                            child.AppendChild(Index.UInt64Values[firstIndex + i].Serialise());
+                            break;
+                        case EDataType.varByte:
+                            child.AppendChild(Index.UInt8Values[firstIndex + i].Serialise());
+                            break;
+                        case EDataType.varClass:
+                            XmlElement emptyC = Index.Writer.CreateElement(node.DataType.ToString());
+                            child.AppendChild(emptyC);
+                            Index.Require_ClassMapping.Add(new ClassMapping { Node = emptyC, StructIndex = node.StructIndex, RecordIndex = firstIndex + i });
+                            break;
+                        case EDataType.varStrongPointer:
+                            XmlElement emptySP = Index.Writer.CreateElement(node.DataType.ToString());
+                            child.AppendChild(emptySP);
+                            Index.Require_StrongMapping.Add(new ClassMapping { Node = emptySP, StructIndex = node.StructIndex, RecordIndex = firstIndex + i });
+                            break;
+                        case EDataType.varWeakPointer:
+                            XmlElement weakPointerElement = Index.Writer.CreateElement("WeakPointer");
+                            XmlAttribute weakPointerAttribute = Index.Writer.CreateAttribute(node.Name);
+                            weakPointerElement.Attributes.Append(weakPointerAttribute);
+                            child.AppendChild(weakPointerElement);
+                            Index.Require_WeakMapping1.Add(new ClassMapping { Node = weakPointerAttribute, StructIndex = node.StructIndex, RecordIndex = firstIndex + i });
+                            break;
+                        default:
+                            throw new NotImplementedException();
+                    }
                 }
-                await Index.Writer.WriteEndElementAsync();
+                element.AppendChild(child);
             }
+        });
+        attribute = Index.Writer.CreateAttribute("__type");
+        attribute.Value = baseStruct.Name;
+        element.Attributes.Append(attribute);
+        if (ParentTypeIndex != 0xFFFFFFFF)
+        {
+            attribute = Index.Writer.CreateAttribute("__polymorphicType");
+            attribute.Value = Name;
+            element.Attributes.Append(attribute);
         }
-        await Index.Writer.WriteEndElementAsync(); // MasterElement
+        return element;
     }
 }
