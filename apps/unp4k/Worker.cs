@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
@@ -120,49 +121,66 @@ internal class Worker
 
         // Extract each entry, then serialising it or the Forging it.
         Logger.NewLine(2);
-        if (filteredEntries.Count is not 0) Parallel.ForEach(filteredEntries.AsParallel().AsOrdered(), (ZipEntry entry, ParallelLoopState state, long id) =>
+        if (filteredEntries.Count is not 0)
         {
-            Logger.LogInfo($"           - Extracting: {entry.Name}");
-            if (Globals.DetailedLogs) fileTime.Restart();
-            FileInfo extractedFile = new(Path.Join(Globals.OutDirectory.FullName, entry.Name));
-            string percentage = (tasksCompleted is 0 ? 0D : 100D * tasksCompleted / filteredEntries.Count).ToString("000.00000");
-            if (!extractedFile.Directory.Exists) extractedFile.Directory.Create();
+            BlockingCollection<ZipEntry> outputQueue = new(Environment.ProcessorCount);
+            Task worker = Task.Run(() => print(outputQueue, fileTime));
 
-            FileStream fs = extractedFile.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite); // Dont want people accessing incomplete files.
-            Stream decompStream = pak.GetInputStream(entry);
-            StreamUtils.Copy(decompStream, fs, decomBuffer);
-            decompStream.Close();
-            fs.Close();
-            if (Globals.ShouldSmelt)
+            ParallelQuery<ZipEntry> parallelWorkItems = filteredEntries.AsParallel().AsOrdered().WithDegreeOfParallelism(Environment.ProcessorCount).WithMergeOptions(ParallelMergeOptions.NotBuffered).Select((ZipEntry entry) => 
             {
-                FileInfo smeltedFile = new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name));
-                try
+                Logger.LogInfo($"           - Extracting: {entry.Name}");
+                if (Globals.DetailedLogs) fileTime.Restart();
+                FileInfo extractedFile = new(Path.Join(Globals.OutDirectory.FullName, entry.Name));
+                if (!extractedFile.Directory.Exists) extractedFile.Directory.Create();
+
+                FileStream fs = extractedFile.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite); // Dont want people accessing incomplete files.
+                Stream decompStream = pak.GetInputStream(entry);
+                StreamUtils.Copy(decompStream, fs, decomBuffer);
+                decompStream.Close();
+                fs.Close();
+                if (Globals.ShouldSmelt)
                 {
-                    if (extractedFile.Extension is ".dcb") DataForge.Forge(extractedFile, smeltedFile);
-                    else DataForge.DeserialiseCryXml(extractedFile, smeltedFile);
+                    FileInfo smeltedFile = new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name));
+                    try
+                    {
+                        if (extractedFile.Extension is ".dcb") DataForge.Forge(extractedFile, smeltedFile);
+                        else DataForge.DeserialiseCryXml(extractedFile, smeltedFile);
+                    }
+                    catch (Exception e)
+                    {
+                        if (Globals.PrintErrors) Logger.LogException(e);
+                        if (smeltedFile.Exists) smeltedFile.Delete();
+                        Globals.FileErrors++;
+                    }
                 }
-                catch (Exception e)
+                Interlocked.Increment(ref tasksCompleted);
+                return entry;
+            });
+
+            foreach (ZipEntry item in parallelWorkItems) outputQueue.Add(item);
+            outputQueue.CompleteAdding();
+            worker.Wait();
+
+            static void print(BlockingCollection<ZipEntry> queue, Stopwatch fileTime)
+            {
+                foreach (ZipEntry entry in queue.GetConsumingEnumerable())
                 {
-                    if (Globals.PrintErrors) Logger.LogException(e);
-                    if (smeltedFile.Exists) smeltedFile.Delete();
-                    Globals.FileErrors++;
+                    string percentage = (tasksCompleted is 0 ? 0D : 100D * tasksCompleted / filteredEntries.Count).ToString("000.00000");
+                    if (Globals.DetailedLogs)
+                    {
+                        Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name}" + '\n' +
+                            @"                              \" + '\n' +
+                            $"                               | Date Last Modified: {entry.DateTime}" + '\n' +
+                            $"                               | Compression Method: {entry.CompressionMethod}" + '\n' +
+                            $"                               | Compressed Size:    {entry.CompressedSize  / 1000000000D:0,0.000000000} GB" + '\n' +
+                            $"                               | Uncompressed Size:  {entry.Size            / 1000000000D:0,0.000000000} GB" + '\n' +
+                            $"                               | Time Taken:         {fileTime.ElapsedMilliseconds / 1000D:0,0.000} seconds" + '\n' +
+                            @"                              /");
+                    }
+                    else Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
                 }
             }
-
-            Interlocked.Increment(ref tasksCompleted);
-            if (Globals.DetailedLogs)
-            {
-                Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name}" + '\n' +
-                    @"                              \" + '\n' +
-                    $"                               | Date Last Modified: {entry.DateTime}" + '\n' +
-                    $"                               | Compression Method: {entry.CompressionMethod}" + '\n' +
-                    $"                               | Compressed Size:    {entry.CompressedSize  / 1000000000D:0,0.000000000} GB" + '\n' +
-                    $"                               | Uncompressed Size:  {entry.Size            / 1000000000D:0,0.000000000} GB" + '\n' +
-                    $"                               | Time Taken:         {fileTime.ElapsedMilliseconds / 1000D:0,0.000} seconds" + '\n' +
-                    @"                              /");
-            }
-            else Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
-        });
+        }
         else Logger.LogInfo("No extraction work to be done!");
 
         // Print out the post summary.
