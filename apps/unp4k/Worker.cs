@@ -123,7 +123,7 @@ internal class Worker
         Logger.NewLine(2);
         if (filteredEntries.Count is not 0)
         {
-            BlockingCollection<ZipEntry> outputQueue = new(Environment.ProcessorCount);
+            BlockingCollection<ZipEntry> outputQueue = new(filteredEntries.Count);
             Task worker = Task.Run(() => print(outputQueue, fileTime));
 
             ParallelQuery<ZipEntry> parallelWorkItems = filteredEntries.AsParallel().AsOrdered().WithDegreeOfParallelism(Environment.ProcessorCount).WithMergeOptions(ParallelMergeOptions.NotBuffered).Select((ZipEntry entry) => 
