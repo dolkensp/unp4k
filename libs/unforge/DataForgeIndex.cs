@@ -177,7 +177,7 @@ internal class DataForgeIndex
         });
     }
 
-    internal void Serialise(FileInfo outFile, bool detailedLogs)
+    internal void Serialise(FileInfo outFile)
     {
         int i = 0;
         outFile = new(Path.ChangeExtension(outFile.FullName, "xml"));

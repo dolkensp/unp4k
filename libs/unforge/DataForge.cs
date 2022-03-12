@@ -154,5 +154,5 @@ public static class DataForge
     }
 
     // Just a simplicity abstraction
-    public static void Forge(FileInfo fileIn, FileInfo fileOut, bool detailedLogs) => new DataForgeIndex(fileIn).Serialise(fileOut, detailedLogs);
+    public static void Forge(FileInfo fileIn, FileInfo fileOut) => new DataForgeIndex(fileIn).Serialise(fileOut);
 }
