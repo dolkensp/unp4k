@@ -28,7 +28,8 @@ internal class DataForgePropertyDefinition : DataForgeSerializable
             case EDataType.varReference:
                 return Index.Reader.ReadGuid(false).ToString();
             case EDataType.varLocale:
-                return Index.ValueMap[Index.Reader.ReadUInt32()];
+                uint localeKey = Index.Reader.ReadUInt32();
+                return Index.ValueMap.ContainsKey(localeKey) ? Index.ValueMap[localeKey] : DataType.ToString();
             case EDataType.varStrongPointer:
                 return $"{DataType}:{Index.Reader.ReadUInt32():X8} {Index.Reader.ReadUInt32():X8}";
             case EDataType.varWeakPointer:
