@@ -120,7 +120,7 @@ internal class Worker
 
         // Extract each entry, then serialising it or the Forging it.
         Logger.NewLine(2);
-        if (filteredEntries.Count is not 0) await Task.Run(() => Parallel.ForEach(filteredEntries.AsParallel().AsOrdered(), async (ZipEntry entry, ParallelLoopState state, long id) =>
+        if (filteredEntries.Count is not 0) Parallel.ForEach(filteredEntries.AsParallel().AsOrdered(), async (ZipEntry entry, ParallelLoopState state, long id) =>
         {
             Logger.LogInfo($"           - Extracting: {entry.Name}");
             if (Globals.DetailedLogs) fileTime.Restart();
@@ -162,7 +162,7 @@ internal class Worker
                     @"                              /");
             }
             else Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
-        }));
+        });
         else Logger.LogInfo("No extraction work to be done!");
 
         // Print out the post summary.
