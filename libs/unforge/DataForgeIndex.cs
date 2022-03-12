@@ -1,8 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Xml;
 
 namespace unforge;
@@ -43,7 +44,9 @@ internal class DataForgeIndex
     internal Dictionary<uint, List<XmlElement>> DataMap { get; set; } = new();
     internal List<XmlElement> DataTable { get; set; } = new();
 
-    internal DataForgeIndex(FileInfo inFile, XmlWriter writer)
+    internal FileInfo InputFile { get; private set; }
+
+    internal DataForgeIndex(FileInfo inFile)
     {
         List<U> ReadArray<U>(int size)
         {
@@ -56,7 +59,7 @@ internal class DataForgeIndex
             }
         }
 
-        Writer = writer;
+        InputFile = inFile;
         Reader = new(inFile.Open(FileMode.Open, FileAccess.Read, FileShare.None));
         Reader.ReadInt32(); // Offset - TODO: Figure out what this is
         FileVersion = Reader.ReadInt32();
@@ -133,5 +136,39 @@ internal class DataForgeIndex
             ValueMap[(uint)offset] = dfString.Value;
         }
         ValueTable = buffer;
+    }
+
+    internal async Task Serialise(FileInfo fileOut, bool detailedLogs)
+    {
+        string currentSection = null;
+        foreach (DataForgeDataMapping dm in DataMappingTable)
+        {
+            Stopwatch fileTime = new();
+            fileTime.Start();
+            FileInfo f = new(Path.Join(fileOut.FullName[..fileOut.FullName.LastIndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar })],
+                $"{fileOut.Name.Replace(fileOut.Extension, string.Empty)}_{dm.Name}.xml"));
+            if (Writer is null || currentSection != dm.Name)
+            {
+                currentSection = dm.Name;
+                Writer?.Close();
+                Writer?.Dispose();
+                Logger.LogInfo($"           - Extracting: {f}");
+                f.Directory.Create();
+                Writer = XmlWriter.Create(f.Open(FileMode.Create, FileAccess.Write, FileShare.None), new XmlWriterSettings { Indent = true, Async = true });
+            }
+            await StructDefinitionTable[(int)dm.StructIndex].Serialise();
+            fileTime.Stop();
+            if (detailedLogs)
+            {
+                Logger.LogInfo($"           - Extracted:  {f}" + '\n' +
+                    @"                               \" + '\n' +
+                    $"                                | Uncompressed Size:  {f.Length                     / 1000000000D:0,0.000000000} GB" + '\n' +
+                    $"                                | Time Taken:         {fileTime.ElapsedMilliseconds / 1000D:0,0.000} seconds" + '\n' +
+                    @"                               /");
+            }
+            else Logger.LogInfo($"           - Extracted:  {f}");
+        }
+        Writer?.Close();
+        Writer?.Dispose();
     }
 }

@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using System.Threading.Tasks;
-using System.Diagnostics;
 
 namespace unforge;
 public static class DataForge
@@ -117,41 +116,8 @@ public static class DataForge
         xmlDoc.Save(outFile.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.None));
     }
 
-    public static async Task ForgeData(FileInfo fileIn, FileInfo fileOut, bool detailedLogs)
-    {
-        XmlWriter writer = null;
-        string currentSection = null;
-        DataForgeIndex index = new(fileIn, writer);
-        foreach (DataForgeDataMapping dm in index.DataMappingTable)
-        {
-            Stopwatch fileTime = new();
-            fileTime.Start();
-            FileInfo f = new(Path.Join(fileOut.FullName[..fileOut.FullName.LastIndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar })],
-                $"{fileOut.Name.Replace(fileOut.Extension, string.Empty)}_{dm.Name}.xml"));
-            if (writer is null || currentSection != dm.Name)
-            {
-                currentSection = dm.Name;
-                writer?.Close();
-                writer?.Dispose();
-                Logger.LogInfo($"           - Extracting: {f}");
-                f.Directory.Create();
-                writer = XmlWriter.Create(f.Open(FileMode.Create, FileAccess.Write, FileShare.None), new XmlWriterSettings { Indent = true, Async = true });
-            }
-            await index.StructDefinitionTable[(int)dm.StructIndex].Serialise();
-            fileTime.Stop();
-            if (detailedLogs)
-            {
-                Logger.LogInfo($"           - Extracted:  {f}" + '\n' +
-                    @"                               \" + '\n' +
-                    $"                                | Uncompressed Size:  {f.Length                     / 1000000000D:0,0.000000000} GB" + '\n' +
-                    $"                                | Time Taken:         {fileTime.ElapsedMilliseconds / 1000D:0,0.000} seconds" + '\n' +
-                    @"                               /");
-            }
-            else Logger.LogInfo($"           - Extracted:  {f}");
-        }
-        writer?.Close();
-        writer?.Dispose();
-    }
+    // Just a simplicity abstraction
+    public static async Task ForgeData(FileInfo fileIn, FileInfo fileOut, bool detailedLogs) => await new DataForgeIndex(fileIn).Serialise(fileOut, detailedLogs);
 }
 
 public class CryXmlValue
