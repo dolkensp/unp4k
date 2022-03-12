@@ -151,19 +151,26 @@ public static class DataForge
         Dictionary<int, XmlElement> xmlMap = new();
         foreach (CryXmlNode node in nodeTable)
         {
-            XmlElement element = xmlDoc.CreateElement(dataMap[node.NodeNameOffset]);
-            for (int i = 0, j = node.AttributeCount; i < j; i++)
+            if (dataMap.ContainsKey(node.NodeNameOffset) && !string.IsNullOrEmpty(dataMap[node.NodeNameOffset]))
             {
-                if (dataMap.ContainsKey(attributeTable[attributeIndex].ValueOffset)) element.SetAttribute(dataMap[attributeTable[attributeIndex].NameOffset], dataMap[attributeTable[attributeIndex].ValueOffset]);
-                else element.SetAttribute(dataMap[attributeTable[attributeIndex].NameOffset], "BUGGED");
-                attributeIndex++;
-            }
+                XmlElement element = xmlDoc.CreateElement(dataMap[node.NodeNameOffset]);
+                for (int i = 0, j = node.AttributeCount; i < j; i++)
+                {
+                    if (dataMap.ContainsKey(attributeTable[attributeIndex].NameOffset) && !string.IsNullOrEmpty(dataMap[attributeTable[attributeIndex].NameOffset]))
+                    {
+                        if (dataMap.ContainsKey(attributeTable[attributeIndex].ValueOffset) && !string.IsNullOrEmpty(dataMap[attributeTable[attributeIndex].ValueOffset]))
+                            element.SetAttribute(dataMap[attributeTable[attributeIndex].NameOffset], dataMap[attributeTable[attributeIndex].ValueOffset]);
+                        else element.SetAttribute(dataMap[attributeTable[attributeIndex].NameOffset], "BUGGED");
+                    }
+                    attributeIndex++;
+                }
 
-            xmlMap[node.NodeID] = element;
-            if (dataMap.ContainsKey(node.ContentOffset) && !string.IsNullOrWhiteSpace(dataMap[node.ContentOffset])) element.AppendChild(xmlDoc.CreateCDataSection(dataMap[node.ContentOffset]));
-            else element.AppendChild(xmlDoc.CreateCDataSection("BUGGED"));
-            if (xmlMap.ContainsKey(node.ParentNodeID)) xmlMap[node.ParentNodeID].AppendChild(element);
-            else xmlDoc.AppendChild(element);
+                xmlMap[node.NodeID] = element;
+                if (dataMap.ContainsKey(node.ContentOffset) && !string.IsNullOrWhiteSpace(dataMap[node.ContentOffset])) element.AppendChild(xmlDoc.CreateCDataSection(dataMap[node.ContentOffset]));
+                else element.AppendChild(xmlDoc.CreateCDataSection("BUGGED"));
+                if (xmlMap.ContainsKey(node.ParentNodeID)) xmlMap[node.ParentNodeID].AppendChild(element);
+                else xmlDoc.AppendChild(element);
+            }
         }
         if (xmlDoc != null) xmlDoc.Save(Path.ChangeExtension(outFile.FullName, "xml"));
     }
