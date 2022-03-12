@@ -1,19 +1,14 @@
-﻿using System.Xml;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace unforge;
-public class DataForgeDouble : DataForgeSerializable
+internal class DataForgeDouble : DataForgeSerializable<double>
 {
-    public double Value { get; set; }
+    internal DataForgeDouble(DataForgeIndex index) : base(index, index.Reader.ReadDouble()) { }
 
-    public DataForgeDouble(DataForgeIndex documentRoot) : base(documentRoot) { Value = Br.ReadDouble(); }
-
-    public override string ToString() => string.Format("{0}", Value);
-
-    public async Task Read(XmlWriter writer)
+    internal override async Task Serialise()
     {
-        await writer.WriteStartElementAsync(null, "Double", null);
-        await writer.WriteAttributeStringAsync(null, "Value", null, Value.ToString());
-        await writer.WriteEndElementAsync();
+        await Index.Writer.WriteStartElementAsync(null, "Double", null);
+        await Index.Writer.WriteAttributeStringAsync(null, "Value", null, Value.ToString());
+        await Index.Writer.WriteEndElementAsync();
     }
 }

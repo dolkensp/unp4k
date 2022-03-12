@@ -1,11 +1,10 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace unforge;
-internal class DataForgeString : DataForgeSerializable
+internal class DataForgeString : DataForgeSerializable<string>
 {
-    public string Value { get; set; }
+    internal DataForgeString(DataForgeIndex index) : base(index, index.Reader.ReadCString()) { }
 
-    public DataForgeString(DataForgeIndex documentRoot) : base(documentRoot) { Value = Br.ReadCString(); }
-
-    public override string ToString() => Value;
+    internal override Task Serialise() => Task.CompletedTask;
 }

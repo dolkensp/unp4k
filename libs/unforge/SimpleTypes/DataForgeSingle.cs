@@ -1,19 +1,14 @@
-﻿using System.Xml;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace unforge;
-public class DataForgeSingle : DataForgeSerializable
+internal class DataForgeSingle : DataForgeSerializable<float>
 {
-    public float Value { get; set; }
+    internal DataForgeSingle(DataForgeIndex index) : base(index, index.Reader.ReadSingle()) { }
 
-    public DataForgeSingle(DataForgeIndex documentRoot) : base(documentRoot) { Value = Br.ReadSingle(); }
-
-    public override string ToString() => string.Format("{0}", Value);
-
-    public async Task Read(XmlWriter writer)
+    internal override async Task Serialise()
     {
-        await writer.WriteStartElementAsync(null, "Single", null);
-        await writer.WriteAttributeStringAsync(null, "Value", null, Value.ToString());
-        await writer.WriteEndElementAsync();
+        await Index.Writer.WriteStartElementAsync(null, "Single", null);
+        await Index.Writer.WriteAttributeStringAsync(null, "Value", null, Value.ToString());
+        await Index.Writer.WriteEndElementAsync();
     }
 }

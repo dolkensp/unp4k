@@ -1,25 +1,27 @@
-﻿namespace unforge;
-public class DataForgeDataMapping : DataForgeSerializable
-{
-    public uint StructIndex { get; set; }
-    public uint StructCount { get; set; }
-    public uint NameOffset { get; set; }
-    public string Name { get { return DocumentRoot.ValueMap[NameOffset]; } }
+﻿using System.Threading.Tasks;
 
-    public DataForgeDataMapping(DataForgeIndex documentRoot) : base(documentRoot)
+namespace unforge;
+internal class DataForgeDataMapping : DataForgeSerializable
+{
+    internal string Name => Index.ValueMap[NameOffset];
+    internal uint StructIndex { get; set; }
+    internal uint StructCount { get; set; }
+    internal uint NameOffset { get; set; }
+
+    internal DataForgeDataMapping(DataForgeIndex index) : base(index)
     {
-        if (DocumentRoot.FileVersion >= 5)
+        if (Index.FileVersion >= 5)
         {
-            StructCount = Br.ReadUInt32();
-            StructIndex = Br.ReadUInt32();
+            StructCount = Index.Reader.ReadUInt32();
+            StructIndex = Index.Reader.ReadUInt32();
         }
         else
         {
-            StructCount = Br.ReadUInt16();
-            StructIndex = Br.ReadUInt16();
+            StructCount = Index.Reader.ReadUInt16();
+            StructIndex = Index.Reader.ReadUInt16();
         }
-        NameOffset = DocumentRoot.StructDefinitionTable[StructIndex].NameOffset;
+        NameOffset = Index.StructDefinitionTable[(int)StructIndex].NameOffset;
     }
 
-    public override string ToString() => string.Format("0x{1:X4} {2}[0x{0:X4}]", StructCount, StructIndex, Name);
+    internal override Task Serialise(string name = null) => Task.CompletedTask;
 }

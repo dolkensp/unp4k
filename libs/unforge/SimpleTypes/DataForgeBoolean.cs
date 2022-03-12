@@ -1,19 +1,15 @@
-﻿using System.Xml;
+﻿using System;
 using System.Threading.Tasks;
 
 namespace unforge;
-public class DataForgeBoolean : DataForgeSerializable
+internal class DataForgeBoolean : DataForgeSerializable<bool>
 {
-    public bool Value { get; set; }
+    internal DataForgeBoolean(DataForgeIndex index) : base(index, index.Reader.ReadBoolean()) { }
 
-    public DataForgeBoolean(DataForgeIndex documentRoot) : base(documentRoot) { Value = Br.ReadBoolean(); }
-
-    public override string ToString() => string.Format("{0}", Value ? "1" : "0");
-
-    public async Task Read(XmlWriter writer)
+    internal override async Task Serialise()
     {
-        await writer.WriteStartElementAsync(null, "Bool", null);
-        await writer.WriteAttributeStringAsync(null, "Value", null, Value ? "1" : "0");
-        await writer.WriteEndElementAsync();
+        await Index.Writer.WriteStartElementAsync(null, "Bool", null);
+        await Index.Writer.WriteAttributeStringAsync(null, "Value", null, Convert.ToInt32(Value).ToString());
+        await Index.Writer.WriteEndElementAsync();
     }
 }

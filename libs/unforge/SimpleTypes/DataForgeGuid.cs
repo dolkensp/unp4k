@@ -1,21 +1,16 @@
 ﻿using System;
 using System.IO;
-using System.Xml;
 using System.Threading.Tasks;
 
 namespace unforge;
-public class DataForgeGuid : DataForgeSerializable
+internal class DataForgeGuid : DataForgeSerializable<Guid>
 {
-    public Guid Value { get; set; }
+    internal DataForgeGuid(DataForgeIndex index) : base(index, index.Reader.ReadGuid(false).Value) { }
 
-    public DataForgeGuid(DataForgeIndex documentRoot) : base(documentRoot) { Value = Br.ReadGuid(false).Value; }
-
-    public override string ToString() => Value.ToString();
-
-    public async Task Read(XmlWriter writer)
+    internal override async Task Serialise()
     {
-        await writer.WriteStartElementAsync(null, "Guid", null);
-        await writer.WriteAttributeStringAsync(null, "Value", null, Value.ToString());
-        await writer.WriteEndElementAsync();
+        await Index.Writer.WriteStartElementAsync(null, "Guid", null);
+        await Index.Writer.WriteAttributeStringAsync(null, "Value", null, Value.ToString());
+        await Index.Writer.WriteEndElementAsync();
     }
 }

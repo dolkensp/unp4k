@@ -121,7 +121,8 @@ public static class DataForge
     {
         XmlWriter writer = null;
         string currentSection = null;
-        foreach (DataForgeDataMapping dm in new DataForgeIndex(fileIn).DataMappingTable)
+        DataForgeIndex index = new(fileIn, writer);
+        foreach (DataForgeDataMapping dm in index.DataMappingTable)
         {
             Stopwatch fileTime = new();
             fileTime.Start();
@@ -139,7 +140,7 @@ public static class DataForge
                     Async = true
                 });
             }
-            await pckg.StructDefinitionTable[dm.StructIndex].Read(writer);
+            await index.StructDefinitionTable[(int)dm.StructIndex].Serialise();
             fileTime.Stop();
             if (detailedLogs)
             {

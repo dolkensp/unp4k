@@ -1,35 +1,26 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace unforge;
-public class DataForgeRecord : DataForgeSerializable
+internal class DataForgeRecord : DataForgeSerializable
 {
-    public uint NameOffset { get; set; }
-    public string Name { get { return DocumentRoot.ValueMap[NameOffset]; } }
+    internal uint NameOffset { get; set; }
+    internal uint FileNameOffset { get; set; }
+    internal uint StructIndex { get; set; }
+    internal Guid? Hash { get; set; }
+    internal ushort VariantIndex { get; set; }
+    internal ushort OtherIndex { get; set; }
 
-    public string FileName { get { return DocumentRoot.ValueMap[FileNameOffset]; } }
-    public uint FileNameOffset { get; set; }
-
-    public string __structIndex { get { return string.Format("{0:X4}", StructIndex); } }
-    public uint StructIndex { get; set; }
-
-    public Guid? Hash { get; set; }
-
-    public string __variantIndex { get { return string.Format("{0:X4}", VariantIndex); } }
-    public ushort VariantIndex { get; set; }
-
-    public string __otherIndex { get { return string.Format("{0:X4}", OtherIndex); } }
-    public ushort OtherIndex { get; set; }
-
-    public DataForgeRecord(DataForgeIndex documentRoot) : base(documentRoot)
+    internal DataForgeRecord(DataForgeIndex index) : base(index)
     {
-        NameOffset = Br.ReadUInt32();
-        FileNameOffset = Br.ReadUInt32();
-        StructIndex = Br.ReadUInt32();
-        Hash = Br.ReadGuid(false);
-        VariantIndex = Br.ReadUInt16();
-        OtherIndex = Br.ReadUInt16();
+        NameOffset = Index.Reader.ReadUInt32();
+        FileNameOffset = Index.Reader.ReadUInt32();
+        StructIndex = Index.Reader.ReadUInt32();
+        Hash = Index.Reader.ReadGuid(false);
+        VariantIndex = Index.Reader.ReadUInt16();
+        OtherIndex = Index.Reader.ReadUInt16();
     }
 
-    public override string ToString() => string.Format("<{0} {1:X4} />", Name, StructIndex);
+    internal override Task Serialise(string name = null) => Task.CompletedTask;
 }

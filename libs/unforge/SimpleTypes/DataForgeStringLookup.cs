@@ -1,20 +1,14 @@
-﻿using System.Xml;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace unforge;
-public class DataForgeStringLookup : DataForgeSerializable
+internal class DataForgeStringLookup : DataForgeSerializable<string>
 {
-    private uint _value;
-    public string Value { get { return DocumentRoot.ValueMap[_value]; } }
+    internal DataForgeStringLookup(DataForgeIndex index) : base(index, index.ValueMap[index.Reader.ReadUInt32()]) { }
 
-    public DataForgeStringLookup(DataForgeIndex documentRoot) : base(documentRoot) { _value = Br.ReadUInt32(); }
-
-    public override string ToString() => Value;
-
-    public async Task Read(XmlWriter writer)
+    internal override async Task Serialise()
     {
-        await writer.WriteStartElementAsync(null, "String", null);
-        await writer.WriteAttributeStringAsync(null, "Value", null, Value);
-        await writer.WriteEndElementAsync();
+        await Index.Writer.WriteStartElementAsync(null, "String", null);
+        await Index.Writer.WriteAttributeStringAsync(null, "Value", null, Value);
+        await Index.Writer.WriteEndElementAsync();
     }
 }

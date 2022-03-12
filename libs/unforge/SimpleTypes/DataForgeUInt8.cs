@@ -1,19 +1,14 @@
-﻿using System.Xml;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace unforge;
-public class DataForgeUInt8 : DataForgeSerializable
+internal class DataForgeUInt8 : DataForgeSerializable<byte>
 {
-    public byte Value { get; set; }
+    internal DataForgeUInt8(DataForgeIndex index) : base(index, index.Reader.ReadByte()) { }
 
-    public DataForgeUInt8(DataForgeIndex documentRoot) : base(documentRoot) { Value = Br.ReadByte(); }
-
-    public override string ToString() => string.Format("{0}", Value);
-
-    public async Task Read(XmlWriter writer)
+    internal override async Task Serialise()
     {
-        await writer.WriteStartElementAsync(null, "UInt8", null);
-        await writer.WriteAttributeStringAsync(null, "Value", null, Value.ToString());
-        await writer.WriteEndElementAsync();
+        await Index.Writer.WriteStartElementAsync(null, "UInt8", null);
+        await Index.Writer.WriteAttributeStringAsync(null, "Value", null, Value.ToString());
+        await Index.Writer.WriteEndElementAsync();
     }
 }

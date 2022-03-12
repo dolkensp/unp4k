@@ -1,20 +1,14 @@
-﻿using System.Xml;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace unforge;
-public class DataForgeLocale : DataForgeSerializable
+internal class DataForgeLocale : DataForgeSerializable<string>
 {
-    private uint _value;
-    public string Value { get { return DocumentRoot.ValueMap[_value]; } }
+    internal DataForgeLocale(DataForgeIndex index) : base(index, index.ValueMap[index.Reader.ReadUInt32()]) { }
 
-    public DataForgeLocale(DataForgeIndex documentRoot) : base(documentRoot) { _value = Br.ReadUInt32(); }
-
-    public override string ToString() => Value;
-
-    public async Task Read(XmlWriter writer)
+    internal override async Task Serialise()
     {
-        await writer.WriteStartElementAsync(null, "LocID", null);
-        await writer.WriteAttributeStringAsync(null, "Value", null, Value.ToString());
-        await writer.WriteEndElementAsync();
+        await Index.Writer.WriteStartElementAsync(null, "LocID", null);
+        await Index.Writer.WriteAttributeStringAsync(null, "Value", null, Value.ToString());
+        await Index.Writer.WriteEndElementAsync();
     }
 }

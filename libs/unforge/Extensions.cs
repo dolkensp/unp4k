@@ -212,7 +212,7 @@ namespace Dolkens.Framework.BinaryExtensions
 
             path.Reverse();
 
-            return string.Join(".", path.Skip(3).Select(p => p.Value.HasValue ? string.Format("{0}[{1}]", p.Key, p.Value) : p.Key));
+            return string.Join(".", path.Skip(3).Select(p => p.Value.HasValue ? $"{p.Key}[{p.Value}]" : p.Key));
         }
 
         #endregion

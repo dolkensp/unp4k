@@ -4,87 +4,87 @@ using System.Xml;
 using System.Threading.Tasks;
 
 namespace unforge;
-public class DataForgePropertyDefinition : DataForgeSerializable
+internal class DataForgePropertyDefinition : DataForgeSerializable
 {
-    public uint NameOffset { get; set; }
-    public string Name { get { return DocumentRoot.ValueMap[NameOffset]; } }
-    public ushort StructIndex { get; set; }
-    public EDataType DataType { get; set; }
-    public EConversionType ConversionType { get; set; }
-    public ushort Padding { get; set; }
+    internal string Name => Index.ValueMap[NameOffset];
+    internal uint NameOffset { get; set; }
+    internal ushort StructIndex { get; set; }
+    internal EDataType DataType { get; set; }
+    internal EConversionType ConversionType { get; set; }
+    internal ushort Padding { get; set; }
 
-    public DataForgePropertyDefinition(DataForgeIndex documentRoot) : base(documentRoot)
+    internal DataForgePropertyDefinition(DataForgeIndex index) : base(index)
     {
-        NameOffset = Br.ReadUInt32();
-        StructIndex = Br.ReadUInt16();
-        DataType = (EDataType)Br.ReadUInt16();
-        ConversionType = (EConversionType)Br.ReadUInt16();
-        Padding = Br.ReadUInt16();
+        NameOffset = Index.Reader.ReadUInt32();
+        StructIndex = Index.Reader.ReadUInt16();
+        DataType = (EDataType)Index.Reader.ReadUInt16();
+        ConversionType = (EConversionType)Index.Reader.ReadUInt16();
+        Padding = Index.Reader.ReadUInt16();
     }
 
-    public async Task ReadAttribute(XmlWriter writer)
+    internal async Task ReadAttribute(XmlWriter writer)
     {
         string val;
         switch (DataType)
         {
             case EDataType.varReference:
-                val = Br.ReadGuid(false).ToString();
+                val = Index.Reader.ReadGuid(false).ToString();
                 break;
             case EDataType.varLocale:
-                val = DocumentRoot.ValueMap[Br.ReadUInt32()];
+                val = Index.ValueMap[Index.Reader.ReadUInt32()];
                 break;
             case EDataType.varStrongPointer:
-                val = string.Format("{0}:{1:X8} {2:X8}", DataType, Br.ReadUInt32(), Br.ReadUInt32());
+                val = $"{DataType}:{Index.Reader.ReadUInt32():X8} {Index.Reader.ReadUInt32():X8}";
                 break;
             case EDataType.varWeakPointer:
-                uint structIndex = Br.ReadUInt32();
-                Br.ReadUInt32(); // Item Index offset
-                val = string.Format("{0}:{1:X8} {1:X8}", DataType, structIndex);
+                uint structIndex = Index.Reader.ReadUInt32();
+                Index.Reader.ReadUInt32(); // Item Index offset
+                val = $"{DataType}:{structIndex:X8} {structIndex:X8}";
                 break;
             case EDataType.varString:
-                uint stringKey = Br.ReadUInt32();
-                val = DocumentRoot.ValueMap.ContainsKey(stringKey) ? DocumentRoot.ValueMap[stringKey] : DataType.ToString();
+                uint stringKey = Index.Reader.ReadUInt32();
+                val = Index.ValueMap.ContainsKey(stringKey) ? Index.ValueMap[stringKey] : DataType.ToString();
                 break;
             case EDataType.varBoolean:
-                val = Br.ReadByte().ToString();
+                val = Index.Reader.ReadByte().ToString();
                 break;
             case EDataType.varSingle:
-                val = Br.ReadSingle().ToString();
+                val = Index.Reader.ReadSingle().ToString();
                 break;
             case EDataType.varDouble:
-                val = Br.ReadDouble().ToString();
+                val = Index.Reader.ReadDouble().ToString();
                 break;
             case EDataType.varGuid:
-                val = Br.ReadGuid(false).ToString();
+                val = Index.Reader.ReadGuid(false).ToString();
                 break;
             case EDataType.varSByte:
-                val = Br.ReadSByte().ToString();
+                val = Index.Reader.ReadSByte().ToString();
                 break;
             case EDataType.varInt16:
-                val = Br.ReadInt16().ToString();
+                val = Index.Reader.ReadInt16().ToString();
                 break;
             case EDataType.varInt32:
-                val = Br.ReadInt32().ToString();
+                val = Index.Reader.ReadInt32().ToString();
                 break;
             case EDataType.varInt64:
-                val = Br.ReadInt64().ToString();
+                val = Index.Reader.ReadInt64().ToString();
                 break;
             case EDataType.varByte:
-                val = Br.ReadByte().ToString();
+                val = Index.Reader.ReadByte().ToString();
                 break;
             case EDataType.varUInt16:
-                val = Br.ReadUInt16().ToString();
+                val = Index.Reader.ReadUInt16().ToString();
                 break;
             case EDataType.varUInt32:
-                val = Br.ReadUInt32().ToString();
+                val = Index.Reader.ReadUInt32().ToString();
                 break;
             case EDataType.varUInt64:
-                val = Br.ReadUInt64().ToString();
+                val = Index.Reader.ReadUInt64().ToString();
                 break;
             case EDataType.varEnum:
-                DataForgeEnumDefinition enumDefinition = DocumentRoot.EnumDefinitionTable[StructIndex];
-                uint enumKey = Br.ReadUInt32();
-                val = DocumentRoot.ValueMap.ContainsKey(enumKey) ? DocumentRoot.ValueMap[enumKey] : enumDefinition.Name;
+                DataForgeEnumDefinition enumDefinition = Index.EnumDefinitionTable[StructIndex];
+                uint enumKey = Index.Reader.ReadUInt32();
+                val = Index.ValueMap.ContainsKey(enumKey) ? Index.ValueMap[enumKey] : enumDefinition.Name;
                 break;
             default:
                 throw new NotImplementedException();
@@ -92,5 +92,5 @@ public class DataForgePropertyDefinition : DataForgeSerializable
         await writer.WriteAttributeStringAsync(null, Name, null, val);
     }
 
-    public override string ToString() => string.Format("<{0} />", Name);
+    internal override Task Serialise(string name = null) => Task.CompletedTask;
 }

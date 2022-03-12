@@ -1,17 +1,19 @@
-﻿namespace unforge;
-public class DataForgeEnumDefinition : DataForgeSerializable
-{
-    public uint NameOffset { get; set; }
-    public string Name { get { return DocumentRoot.ValueMap[NameOffset]; } }
-    public ushort ValueCount { get; set; }
-    public ushort FirstValueIndex { get; set; }
+﻿using System.Threading.Tasks;
 
-    public DataForgeEnumDefinition(DataForgeIndex documentRoot) : base(documentRoot)
+namespace unforge;
+internal class DataForgeEnumDefinition : DataForgeSerializable
+{
+    internal string Name => Index.ValueMap[NameOffset];
+    internal uint NameOffset { get; set; }
+    internal ushort ValueCount { get; set; }
+    internal ushort FirstValueIndex { get; set; }
+
+    internal DataForgeEnumDefinition(DataForgeIndex documentRoot) : base(documentRoot)
     {
-        NameOffset = Br.ReadUInt32();
-        ValueCount = Br.ReadUInt16();
-        FirstValueIndex = Br.ReadUInt16();
+        NameOffset = Index.Reader.ReadUInt32();
+        ValueCount = Index.Reader.ReadUInt16();
+        FirstValueIndex = Index.Reader.ReadUInt16();
     }
 
-    public override string ToString() => string.Format("<{0} />", Name);
+    internal override Task Serialise(string name = null) => Task.CompletedTask;
 }

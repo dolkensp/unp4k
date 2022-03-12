@@ -1,19 +1,14 @@
-﻿using System.Xml;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace unforge;
-public class DataForgeInt16 : DataForgeSerializable
+internal class DataForgeInt16 : DataForgeSerializable<short>
 {
-    public short Value { get; set; }
+    internal DataForgeInt16(DataForgeIndex index) : base(index, index.Reader.ReadInt16()) { }
 
-    public DataForgeInt16(DataForgeIndex documentRoot) : base(documentRoot) { Value = Br.ReadInt16(); }
-
-    public override string ToString() => string.Format("{0}", Value);
-
-    public async Task Read(XmlWriter writer)
+    internal override async Task Serialise()
     {
-        await writer.WriteStartElementAsync(null, "Int16", null);
-        await writer.WriteAttributeStringAsync(null, "Value", null, Value.ToString());
-        await writer.WriteEndElementAsync();
+        await Index.Writer.WriteStartElementAsync(null, "Int16", null);
+        await Index.Writer.WriteAttributeStringAsync(null, "Value", null, Value.ToString());
+        await Index.Writer.WriteEndElementAsync();
     }
 }

@@ -1,20 +1,14 @@
-﻿using System.Xml;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace unforge;
-public class DataForgeEnum : DataForgeSerializable
+internal class DataForgeEnum : DataForgeSerializable<string>
 {
-    private uint _value;
-    public string Value { get { return DocumentRoot.ValueMap[_value]; } }
+    internal DataForgeEnum(DataForgeIndex index) : base(index, index.ValueMap[index.Reader.ReadUInt32()]) { }
 
-    public DataForgeEnum(DataForgeIndex documentRoot) : base(documentRoot) { _value = Br.ReadUInt32(); }
-
-    public override string ToString() => Value;
-
-    public async Task Read(XmlWriter writer)
+    internal override async Task Serialise()
     {
-        await writer.WriteStartElementAsync(null, "Enum", null);
-        await writer.WriteAttributeStringAsync(null, "Value", null, Value);
-        await writer.WriteEndElementAsync();
+        await Index.Writer.WriteStartElementAsync(null, "Enum", null);
+        await Index.Writer.WriteAttributeStringAsync(null, "Value", null, Value);
+        await Index.Writer.WriteEndElementAsync();
     }
 }
