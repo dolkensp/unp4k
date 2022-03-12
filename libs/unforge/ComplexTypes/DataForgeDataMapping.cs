@@ -4,9 +4,9 @@ namespace unforge;
 internal class DataForgeDataMapping : DataForgeSerializable
 {
     internal string Name => Index.ValueMap[NameOffset];
-    internal uint StructIndex { get; set; }
-    internal uint StructCount { get; set; }
-    internal uint NameOffset { get; set; }
+    internal uint StructIndex       { get; set; }
+    internal uint StructCount       { get; set; }
+    internal uint NameOffset        { get; set; }
 
     internal DataForgeDataMapping(DataForgeIndex index) : base(index)
     {
