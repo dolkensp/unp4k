@@ -46,6 +46,7 @@ public static class DataForge
         int stringTableOffset = br.ReadInt32(byteOrder);
         int stringTableCount = br.ReadInt32(byteOrder);
 
+#if DEBUG
         if (detailedLogs) Logger.LogInfo("Header" + '\n' +
                 $"0x{0x00:X6}: {header}" + '\n' +
                 $"0x{headerLength + 0x00:X6}: {fileLength:X8} (Dec: {fileLength:D8})" + '\n' +
@@ -58,6 +59,7 @@ public static class DataForge
                 $"0x{headerLength + 0x28:X6}: {stringTableOffset:X8} (Dec: {stringTableOffset:D8}) content offset" + '\n' +
                 $"0x{headerLength + 0x32:X6}: {stringTableCount:X8} (Dec: {stringTableCount:D8}) content" + '\n' +
                 "Node Table");
+#endif
 
         List<CryXmlNode> nodeTable = new();
         br.BaseStream.Seek(nodeTableOffset, SeekOrigin.Begin);
@@ -79,11 +81,15 @@ public static class DataForge
             };
 
             nodeTable.Add(value);
+#if DEBUG
             if (detailedLogs) Logger.LogInfo($"0x{position:X6}: {value.NodeNameOffset:X8} {value.ContentOffset:X8} attr:{value.AttributeCount:X4} {value.ChildCount:X4} {value.ParentNodeID:X8} " +
                 $"{value.FirstAttributeIndex:X8} {value.FirstChildIndex:X8} {value.Reserved:X8}");
+#endif
         }
 
+#if DEBUG
         if (detailedLogs) Logger.LogInfo('\n' + "Reference Table");
+#endif
 
         List<CryXmlReference> attributeTable = new();
         br.BaseStream.Seek(attributeTableOffset, SeekOrigin.Begin);
@@ -97,10 +103,14 @@ public static class DataForge
             };
 
             attributeTable.Add(value);
+#if DEBUG
             if (detailedLogs) Logger.LogInfo($"0x{position:X6}: {value.NameOffset:X8} {value.ValueOffset:X8}");
+#endif
         }
 
+#if DEBUG
         if (detailedLogs) Logger.LogInfo('\n' + "Order Table");
+#endif
 
         List<int> parentTable = new();
         br.BaseStream.Seek(childTableOffset, SeekOrigin.Begin);
@@ -109,11 +119,15 @@ public static class DataForge
             long position = br.BaseStream.Position;
             int value = br.ReadInt32(byteOrder);
             parentTable.Add(value);
+#if DEBUG
             if (detailedLogs) Logger.LogInfo($"0x{position:X6}: {value:X8}");
+#endif
         }
 
+#if DEBUG
         if (detailedLogs) Logger.LogInfo('\n' + "Dynamic Dictionary");
-        
+#endif
+
         List<CryXmlValue> dataTable = new();
         br.BaseStream.Seek(stringTableOffset, SeekOrigin.Begin);
         while (br.BaseStream.Position < br.BaseStream.Length)
@@ -125,7 +139,9 @@ public static class DataForge
                 Value = br.ReadCString(),
             };
             dataTable.Add(value);
+#if DEBUG
             if (detailedLogs) Logger.LogInfo($"0x{position:X6}: {value.Offset:X8} {value.Value}");
+#endif
         }
 
         Dictionary<int, string> dataMap = dataTable.ToDictionary(k => k.Offset, v => v.Value);
@@ -150,7 +166,6 @@ public static class DataForge
             else xmlDoc.AppendChild(element);
         }
         if (xmlDoc != null) xmlDoc.Save(Path.ChangeExtension(outFile.FullName, "xml"));
-        else Logger.LogInfo($"{outFile.FullName} already in XML format");
     }
 
     // Just a simplicity abstraction
