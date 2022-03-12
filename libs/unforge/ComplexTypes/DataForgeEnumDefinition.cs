@@ -15,5 +15,6 @@ internal class DataForgeEnumDefinition : DataForgeSerializable
         FirstValueIndex = Index.Reader.ReadUInt16();
     }
 
+    internal override Task PreSerialise() => Task.CompletedTask;
     internal override Task Serialise(string name = null) => Task.CompletedTask;
 }

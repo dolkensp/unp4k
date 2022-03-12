@@ -141,6 +141,7 @@ internal class DataForgeIndex
     internal async Task Serialise(FileInfo fileOut, bool detailedLogs)
     {
         string currentSection = null;
+        foreach (DataForgeDataMapping dm in DataMappingTable) await StructDefinitionTable[(int)dm.StructIndex].PreSerialise();
         foreach (DataForgeDataMapping dm in DataMappingTable)
         {
             Stopwatch fileTime = new();

@@ -8,6 +8,7 @@ internal abstract class DataForgeSerializable
 
     internal DataForgeSerializable(DataForgeIndex index) { Index = index; }
 
+    internal abstract Task PreSerialise();
     internal abstract Task Serialise(string name = null);
 }
 

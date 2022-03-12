@@ -23,5 +23,6 @@ internal class DataForgeDataMapping : DataForgeSerializable
         NameOffset = Index.StructDefinitionTable[(int)StructIndex].NameOffset;
     }
 
+    internal override Task PreSerialise() => Task.CompletedTask;
     internal override Task Serialise(string name = null) => Task.CompletedTask;
 }

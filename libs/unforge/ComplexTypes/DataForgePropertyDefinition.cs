@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Xml;
 using System.Threading.Tasks;
 
 namespace unforge;
@@ -22,75 +21,56 @@ internal class DataForgePropertyDefinition : DataForgeSerializable
         Padding = Index.Reader.ReadUInt16();
     }
 
-    internal async Task ReadAttribute(XmlWriter writer)
+    internal string ReadAttribute()
     {
-        string val;
         switch (DataType)
         {
             case EDataType.varReference:
-                val = Index.Reader.ReadGuid(false).ToString();
-                break;
+                return Index.Reader.ReadGuid(false).ToString();
             case EDataType.varLocale:
-                val = Index.ValueMap[Index.Reader.ReadUInt32()];
-                break;
+                return Index.ValueMap[Index.Reader.ReadUInt32()];
             case EDataType.varStrongPointer:
-                val = $"{DataType}:{Index.Reader.ReadUInt32():X8} {Index.Reader.ReadUInt32():X8}";
-                break;
+                return $"{DataType}:{Index.Reader.ReadUInt32():X8} {Index.Reader.ReadUInt32():X8}";
             case EDataType.varWeakPointer:
                 uint structIndex = Index.Reader.ReadUInt32();
                 Index.Reader.ReadUInt32(); // Item Index offset
-                val = $"{DataType}:{structIndex:X8} {structIndex:X8}";
-                break;
+                return $"{DataType}:{structIndex:X8} {structIndex:X8}";
             case EDataType.varString:
                 uint stringKey = Index.Reader.ReadUInt32();
-                val = Index.ValueMap.ContainsKey(stringKey) ? Index.ValueMap[stringKey] : DataType.ToString();
-                break;
+                return Index.ValueMap.ContainsKey(stringKey) ? Index.ValueMap[stringKey] : DataType.ToString();
             case EDataType.varBoolean:
-                val = Index.Reader.ReadByte().ToString();
-                break;
+                return Index.Reader.ReadByte().ToString();
             case EDataType.varSingle:
-                val = Index.Reader.ReadSingle().ToString();
-                break;
+                return Index.Reader.ReadSingle().ToString();
             case EDataType.varDouble:
-                val = Index.Reader.ReadDouble().ToString();
-                break;
+                return Index.Reader.ReadDouble().ToString();
             case EDataType.varGuid:
-                val = Index.Reader.ReadGuid(false).ToString();
-                break;
+                return Index.Reader.ReadGuid(false).ToString();
             case EDataType.varSByte:
-                val = Index.Reader.ReadSByte().ToString();
-                break;
+                return Index.Reader.ReadSByte().ToString();
             case EDataType.varInt16:
-                val = Index.Reader.ReadInt16().ToString();
-                break;
+                return Index.Reader.ReadInt16().ToString();
             case EDataType.varInt32:
-                val = Index.Reader.ReadInt32().ToString();
-                break;
+                return Index.Reader.ReadInt32().ToString();
             case EDataType.varInt64:
-                val = Index.Reader.ReadInt64().ToString();
-                break;
+                return Index.Reader.ReadInt64().ToString();
             case EDataType.varByte:
-                val = Index.Reader.ReadByte().ToString();
-                break;
+                return Index.Reader.ReadByte().ToString();
             case EDataType.varUInt16:
-                val = Index.Reader.ReadUInt16().ToString();
-                break;
+                return Index.Reader.ReadUInt16().ToString();
             case EDataType.varUInt32:
-                val = Index.Reader.ReadUInt32().ToString();
-                break;
+                return Index.Reader.ReadUInt32().ToString();
             case EDataType.varUInt64:
-                val = Index.Reader.ReadUInt64().ToString();
-                break;
+                return Index.Reader.ReadUInt64().ToString();
             case EDataType.varEnum:
                 DataForgeEnumDefinition enumDefinition = Index.EnumDefinitionTable[StructIndex];
                 uint enumKey = Index.Reader.ReadUInt32();
-                val = Index.ValueMap.ContainsKey(enumKey) ? Index.ValueMap[enumKey] : enumDefinition.Name;
-                break;
+                return Index.ValueMap.ContainsKey(enumKey) ? Index.ValueMap[enumKey] : enumDefinition.Name;
             default:
                 throw new NotImplementedException();
         }
-        await writer.WriteAttributeStringAsync(null, Name, null, val);
     }
 
+    internal override Task PreSerialise() => Task.CompletedTask;
     internal override Task Serialise(string name = null) => Task.CompletedTask;
 }
