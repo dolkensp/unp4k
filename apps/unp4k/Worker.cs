@@ -138,7 +138,7 @@ internal class Worker
                 FileInfo smeltedFile = new(Path.Join(Globals.SmelterOutDirectory.FullName, entry.Name));
                 try
                 {
-                    if (extractedFile.Extension is ".dcb") await DataForge.ForgeData(new(extractedFile, smeltedFile), Globals.DetailedLogs);
+                    if (extractedFile.Extension is ".dcb") await DataForge.ForgeData(extractedFile, smeltedFile, Globals.DetailedLogs);
                     else DataForge.SerialiseData(extractedFile, smeltedFile);
                 }
                 catch (Exception e)
