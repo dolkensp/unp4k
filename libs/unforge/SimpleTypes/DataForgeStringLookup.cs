@@ -3,7 +3,9 @@
 namespace unforge;
 internal class DataForgeStringLookup : DataForgeSerializable<string>
 {
-    internal DataForgeStringLookup(DataForgeIndex index) : base(index, index.ValueMap[index.Reader.ReadUInt32()]) { }
+    private static string TryValue;
+
+    internal DataForgeStringLookup(DataForgeIndex index) : base(index, index.ValueMap.TryGetValue(index.Reader.ReadUInt32(), out TryValue) ? TryValue : string.Empty) { }
 
     internal override async Task Serialise()
     {
