@@ -172,7 +172,11 @@ public static class DataForge
                 else xmlDoc.AppendChild(element);
             }
         }
-        if (xmlDoc != null) xmlDoc.Save(Path.ChangeExtension(outFile.FullName, "xml"));
+        if (xmlDoc != null)
+        {
+            if (!outFile.Directory.Exists) outFile.Directory.Create();
+            xmlDoc.Save(Path.ChangeExtension(outFile.FullName, "xml"));
+        }
     }
 
     // Just a simplicity abstraction
