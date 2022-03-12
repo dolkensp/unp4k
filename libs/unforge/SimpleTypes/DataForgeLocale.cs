@@ -3,7 +3,9 @@
 namespace unforge;
 internal class DataForgeLocale : DataForgeSerializable<string>
 {
-    internal DataForgeLocale(DataForgeIndex index) : base(index, index.ValueMap[index.Reader.ReadUInt32()]) { }
+    private static string TryValue;
+
+    internal DataForgeLocale(DataForgeIndex index) : base(index, index.ValueMap.TryGetValue(index.Reader.ReadUInt32(), out TryValue) ? TryValue : string.Empty) { }
 
     internal override async Task Serialise()
     {
