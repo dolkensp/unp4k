@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Xml;
+﻿using System.Xml;
 
 namespace unforge;
 
@@ -53,7 +49,7 @@ internal class DataForgeStructDefinition : DataForgeSerializable
         }
 
         XmlElement element = Index.Writer.CreateElement(name ?? baseStruct.Name);
-        properties.ForEach(node => 
+        properties.ForEach(node =>
         {
             node.ConversionType = (EConversionType)((int)node.ConversionType & 0xFF);
             if (node.ConversionType == EConversionType.varAttribute)

@@ -3,12 +3,13 @@
   <PropertyGroup>
 	<TargetFramework>net6.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <StartupObject></StartupObject>
+	<ImplicitUsings>enable</ImplicitUsings>
     <Nullable>annotations</Nullable>
+	<DebugType>embedded</DebugType>
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
-    <AssemblyName>lib$(MSBuildProjectName)</AssemblyName>
     <NoWin32Manifest>true</NoWin32Manifest>
     <Platforms>x64;ARM64</Platforms>
+    <AssemblyName>libunforge</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">

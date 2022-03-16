@@ -6,43 +6,37 @@
     },
     "unp4k - Smelt LIVE Game.dcb": {
       "commandName": "Project",
-      "commandLineArgs": "-o \"C:\\SC\" -f \".dcb\" -l -forge -e -c -d",
+      "commandLineArgs": "-o \"C:\\SC\" -f \".dcb\" -l -forge -e -d -w -s",
       "hotReloadEnabled": false,
       "authenticationMode": "None"
     },
     "unp4k - Smelt PTU Game.dcb": {
       "commandName": "Project",
-      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -o \"C:\\SC\" -f \".dcb\" -l -forge -e -c -d",
-      "hotReloadEnabled": false,
-      "authenticationMode": "None"
-    },
-    "unp4k - Smelt WSL": {
-      "commandName": "Project",
-      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -o \"C:\\SC\" -l -forge -e -c -d",
+      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -o \"C:\\SC\" -f \".dcb\" -e -d -w -s",
       "hotReloadEnabled": false,
       "authenticationMode": "None"
     },
     "unp4k - Smelt PTU": {
       "commandName": "Project",
-      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -o \"C:\\SC\" -l -forge -e -c -d",
+      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -o \"C:\\SC\" -e -d -w -s",
       "hotReloadEnabled": false,
       "authenticationMode": "None"
     },
     "unp4k - Smelt LIVE": {
       "commandName": "Project",
-      "commandLineArgs": "-o \"C:\\SC\" -l -forge -e -c -d",
+      "commandLineArgs": "-o \"C:\\SC\" -e -d -w -s",
       "hotReloadEnabled": false,
       "authenticationMode": "None"
     },
     "unp4k - LIVE": {
       "commandName": "Project",
-      "commandLineArgs": "-o \"C:\\SC\" -l -e -d",
+      "commandLineArgs": "-o \"C:\\SC\" -e -d -w",
       "hotReloadEnabled": false,
       "authenticationMode": "None"
     },
     "unp4k - PTU": {
       "commandName": "Project",
-      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -o \"C:\\SC\" -l -e -d",
+      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -o \"C:\\SC\" -e -d -w",
       "hotReloadEnabled": false,
       "authenticationMode": "None"
     }

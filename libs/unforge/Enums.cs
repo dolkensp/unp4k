@@ -30,10 +30,3 @@ internal enum EConversionType : ushort
     varSimpleArray = 0x02,
     varClassArray = 0x03,
 }
-
-internal enum StringSizeEnum
-{
-    Int8 = 1,
-    Int16 = 2,
-    Int32 = 4,
-}

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Xml;
+﻿using System.Xml;
 
 namespace unforge;
 
@@ -149,7 +145,7 @@ public static class DataForge
         XmlDocument xmlDoc = new();
 
         Dictionary<int, XmlElement> xmlMap = new();
-        foreach (CryXmlNode node in nodeTable)
+        nodeTable.ForEach(node =>
         {
             if (dataMap.ContainsKey(node.NodeNameOffset) && !string.IsNullOrEmpty(dataMap[node.NodeNameOffset]))
             {
@@ -171,7 +167,7 @@ public static class DataForge
                 if (xmlMap.ContainsKey(node.ParentNodeID)) xmlMap[node.ParentNodeID].AppendChild(element);
                 else xmlDoc.AppendChild(element);
             }
-        }
+        });
         if (xmlDoc != null)
         {
             if (!outFile.Directory.Exists) outFile.Directory.Create();

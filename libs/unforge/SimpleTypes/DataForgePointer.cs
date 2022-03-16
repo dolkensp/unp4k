@@ -6,8 +6,8 @@ internal class DataForgePointer : DataForgeSerializable<uint>
 {
     internal uint StructType { get; set; }
 
-    internal DataForgePointer(DataForgeIndex index) : base(index, 0) 
-    { 
+    internal DataForgePointer(DataForgeIndex index) : base(index, 0)
+    {
         StructType = index.Reader.ReadUInt32();
         Value = index.Reader.ReadUInt32();
     }

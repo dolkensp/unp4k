@@ -3,34 +3,35 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
 	<OutputType>Library</OutputType>
-	<ImplicitUsings>enable</ImplicitUsings>
+    <ImplicitUsings>enable</ImplicitUsings>
 	<Nullable>annotations</Nullable>
 	<DebugType>embedded</DebugType>
 	<EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
 	<NoWin32Manifest>true</NoWin32Manifest>
 	<Platforms>x64;ARM64</Platforms>
-	<AssemblyName>libun</AssemblyName>
+	<AssemblyName>libunp4k</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
-    <PlatformTarget>x64</PlatformTarget>
+	<PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <PlatformTarget>x64</PlatformTarget>
+	<PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
-    <PlatformTarget>x64</PlatformTarget>
+	<PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <PlatformTarget>x64</PlatformTarget>
+	<PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Serilog" Version="2.10.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
+    <ProjectReference Include="..\..\SharpZipLib\src\ICSharpCode.SharpZipLib\ICSharpCode.SharpZipLib.csproj" />
+    <ProjectReference Include="..\unforge\unforge.csproj" />
+    <ProjectReference Include="..\unlib\unlib.csproj" />
   </ItemGroup>
 
 </Project>

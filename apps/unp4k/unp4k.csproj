@@ -27,8 +27,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\libs\unforge\unforge.csproj" />
     <ProjectReference Include="..\..\libs\unlib\unlib.csproj" />
+    <ProjectReference Include="..\..\libs\unp4k\unp4k.csproj" />
     <ProjectReference Include="..\..\SharpZipLib\src\ICSharpCode.SharpZipLib\ICSharpCode.SharpZipLib.csproj" />
   </ItemGroup>
 

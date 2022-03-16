@@ -1,8 +1,6 @@
-﻿using System.Text;
-
-using Serilog;
+﻿using Serilog;
 using Serilog.Sinks.SystemConsole.Themes;
-
+using System.Text;
 using unlib;
 
 public static class Logger
@@ -20,7 +18,8 @@ public static class Logger
     {
         if (pckg.ClearMode is 0)
         {
-            if (pckg.Level is -1) Console.WriteLine(pckg.Message);
+            if (pckg.Level is -2) Console.Write(pckg.Message);
+            else if (pckg.Level is -1) Console.WriteLine(pckg.Message);
             else if (pckg.Level is 0) InternalConsoleLogger.Information(pckg.Message);
             else if (pckg.Level is 1) InternalConsoleLogger.Warning(pckg.Message);
             else if (pckg.Level is 2) InternalConsoleLogger.Error(pckg.Message);
@@ -31,6 +30,22 @@ public static class Logger
         else if (pckg.ClearMode is 3) Console.Clear();
         else if (pckg.ClearMode is 2) Console.WriteLine();
         else if (pckg.ClearMode is 1) Console.WriteLine(pckg.Message);
+    }
+
+    public static void Write(object msg)
+    {
+        LogPackage pckg = default;
+        pckg.Level = -2;
+        pckg.Message = msg is not null ? msg.ToString() : "null";
+        PushLog(pckg);
+    }
+
+    public static void WriteLine(object msg)
+    {
+        LogPackage pckg = default;
+        pckg.Level = -1;
+        pckg.Message = msg is not null ? msg.ToString() : "null";
+        PushLog(pckg);
     }
 
     public static void LogInfo(object msg)
@@ -118,10 +133,49 @@ public static class Logger
         PushLog(pckg);
     }
 
+    public static void SetTitle(object msg) => Console.Title = msg.ToString();
+
     internal struct LogPackage
     {
         internal int ClearMode { get; set; }
         internal int Level { get; set; }
         internal string Message { get; set; }
+    }
+
+    // Other Methods
+
+    public static void RunProgressBarAction(string keystring, Action action)
+    {
+        bool loadingTrigger = true;
+        new Task(async () =>
+        {
+            Console.Write($"{keystring}...");
+            while (loadingTrigger)
+            {
+                Console.Write('.');
+                await Task.Delay(TimeSpan.FromSeconds(1));
+            }
+        }).RunSynchronously();
+        action();
+        NewLine();
+        loadingTrigger = false;
+    }
+
+    public static bool AskUserInput(string question)
+    {
+        char? c = null;
+        while (c is null)
+        {
+            NewLine();
+            Console.Write($"{question} y/n: ");
+            c = Console.ReadKey().KeyChar.ToString().ToLower()[0];
+            if (c is null || c != 'y' && c != 'n')
+            {
+                Console.Error.WriteLine("Please input y for yes or n for no!");
+                c = null;
+            }
+        }
+        NewLine(2);
+        return c is 'y';
     }
 }
