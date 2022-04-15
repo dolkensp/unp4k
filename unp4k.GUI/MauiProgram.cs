@@ -1,4 +1,4 @@
-﻿namespace unp4k.GUI
+﻿namespace unp4k
 {
     public static class MauiProgram
     {
