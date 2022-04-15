@@ -1,7 +1,7 @@
 ﻿using Android.App;
 using Android.Runtime;
 
-namespace unp4k
+namespace unp4k.Android
 {
     [Application]
     public class MainApplication : MauiApplication
