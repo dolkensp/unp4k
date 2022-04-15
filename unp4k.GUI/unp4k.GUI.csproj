@@ -27,6 +27,10 @@
 		<TargetPlatformMinVersion Condition="$(TargetFramework.Contains('-windows'))">10.0.17763.0</TargetPlatformMinVersion>
 		<AssemblyName>unp4k</AssemblyName>
 		<DefaultLanguage>en-GB</DefaultLanguage>
+		<Nullable>enable</Nullable>
+		<EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+		<DebugType>embedded</DebugType>
+		<CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
 	</PropertyGroup>
 
 	<ItemGroup>
