@@ -10,10 +10,10 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 
 		<!-- Display name -->
-		<ApplicationTitle>unp4k.GUI</ApplicationTitle>
+		<ApplicationTitle>unp4k</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.unp4k.gui</ApplicationId>
+		<ApplicationId>com.companyname.unp4k</ApplicationId>
 		<ApplicationId Condition="$(TargetFramework.Contains('-windows'))">66A32334-36A6-4A57-B712-6088CDF58ABF</ApplicationId>
 
 		<!-- Versions -->
