@@ -40,7 +40,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ICSharpCode.SharpZipLib", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "unp4k", "libs\unp4k\unp4k.csproj", "{15FA4DAB-08E8-4B3E-BEF2-CEE995541DD4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "unp4k.GUI", "unp4k.GUI\unp4k.GUI.csproj", "{966E87FF-1AE9-4C9C-A36A-58AD634D0CFF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "unp4k.GUI", "apps\unp4k.GUI\unp4k.GUI.csproj", "{966E87FF-1AE9-4C9C-A36A-58AD634D0CFF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
