@@ -1,0 +1,245 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+	<PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-android|AnyCPU'">
+	  <TypeScriptTarget>ES2021</TypeScriptTarget>
+	  <TypeScriptNoImplicitAny>True</TypeScriptNoImplicitAny>
+	  <TypeScriptRemoveComments>True</TypeScriptRemoveComments>
+	  <TypeScriptOutFile>bundle.min.js</TypeScriptOutFile>
+	  <TypeScriptOutDir>wwwroot\</TypeScriptOutDir>
+	  <TypeScriptMapRoot>wwwroot\</TypeScriptMapRoot>
+	  <TypeScriptSourceRoot>wwwroot\ts</TypeScriptSourceRoot>
+	</PropertyGroup>
+
+	<PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-android|AnyCPU'">
+	  <TypeScriptTarget>ES2021</TypeScriptTarget>
+	  <TypeScriptNoImplicitAny>True</TypeScriptNoImplicitAny>
+	  <TypeScriptRemoveComments>True</TypeScriptRemoveComments>
+	  <TypeScriptOutFile>bundle.min.js</TypeScriptOutFile>
+	  <TypeScriptOutDir>wwwroot\</TypeScriptOutDir>
+	  <TypeScriptMapRoot>wwwroot\</TypeScriptMapRoot>
+	  <TypeScriptSourceRoot>wwwroot\ts</TypeScriptSourceRoot>
+	</PropertyGroup>
+
+	<PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-ios|AnyCPU'">
+	  <TypeScriptTarget>ES2021</TypeScriptTarget>
+	  <TypeScriptNoImplicitAny>True</TypeScriptNoImplicitAny>
+	  <TypeScriptRemoveComments>True</TypeScriptRemoveComments>
+	  <TypeScriptOutFile>bundle.min.js</TypeScriptOutFile>
+	  <TypeScriptOutDir>wwwroot\</TypeScriptOutDir>
+	  <TypeScriptMapRoot>wwwroot\</TypeScriptMapRoot>
+	  <TypeScriptSourceRoot>wwwroot\ts</TypeScriptSourceRoot>
+	</PropertyGroup>
+
+	<PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-ios|AnyCPU'">
+	  <TypeScriptTarget>ES2021</TypeScriptTarget>
+	  <TypeScriptNoImplicitAny>True</TypeScriptNoImplicitAny>
+	  <TypeScriptRemoveComments>True</TypeScriptRemoveComments>
+	  <TypeScriptOutFile>bundle.min.js</TypeScriptOutFile>
+	  <TypeScriptOutDir>wwwroot\</TypeScriptOutDir>
+	  <TypeScriptMapRoot>wwwroot\</TypeScriptMapRoot>
+	  <TypeScriptSourceRoot>wwwroot\ts</TypeScriptSourceRoot>
+	</PropertyGroup>
+
+	<PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-maccatalyst|AnyCPU'">
+	  <TypeScriptTarget>ES2021</TypeScriptTarget>
+	  <TypeScriptNoImplicitAny>True</TypeScriptNoImplicitAny>
+	  <TypeScriptRemoveComments>True</TypeScriptRemoveComments>
+	  <TypeScriptOutFile>bundle.min.js</TypeScriptOutFile>
+	  <TypeScriptOutDir>wwwroot\</TypeScriptOutDir>
+	  <TypeScriptMapRoot>wwwroot\</TypeScriptMapRoot>
+	  <TypeScriptSourceRoot>wwwroot\ts</TypeScriptSourceRoot>
+	</PropertyGroup>
+
+	<PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-maccatalyst|AnyCPU'">
+	  <TypeScriptTarget>ES2021</TypeScriptTarget>
+	  <TypeScriptNoImplicitAny>True</TypeScriptNoImplicitAny>
+	  <TypeScriptRemoveComments>True</TypeScriptRemoveComments>
+	  <TypeScriptOutFile>bundle.min.js</TypeScriptOutFile>
+	  <TypeScriptOutDir>wwwroot\</TypeScriptOutDir>
+	  <TypeScriptMapRoot>wwwroot\</TypeScriptMapRoot>
+	  <TypeScriptSourceRoot>wwwroot\ts</TypeScriptSourceRoot>
+	</PropertyGroup>
+
+	<PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-windows10.0.19041.0|AnyCPU'">
+	  <TypeScriptTarget>ES2021</TypeScriptTarget>
+	  <TypeScriptNoImplicitAny>True</TypeScriptNoImplicitAny>
+	  <TypeScriptRemoveComments>True</TypeScriptRemoveComments>
+	  <TypeScriptOutFile>bundle.min.js</TypeScriptOutFile>
+	  <TypeScriptOutDir>wwwroot\</TypeScriptOutDir>
+	  <TypeScriptMapRoot>wwwroot\</TypeScriptMapRoot>
+	  <TypeScriptSourceRoot>wwwroot\ts</TypeScriptSourceRoot>
+	</PropertyGroup>
+
+	<PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-windows10.0.19041.0|AnyCPU'">
+	  <TypeScriptTarget>ES2021</TypeScriptTarget>
+	  <TypeScriptNoImplicitAny>True</TypeScriptNoImplicitAny>
+	  <TypeScriptRemoveComments>True</TypeScriptRemoveComments>
+	  <TypeScriptOutFile>bundle.min.js</TypeScriptOutFile>
+	  <TypeScriptOutDir>wwwroot\</TypeScriptOutDir>
+	  <TypeScriptMapRoot>wwwroot\</TypeScriptMapRoot>
+	  <TypeScriptSourceRoot>wwwroot\ts</TypeScriptSourceRoot>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<TargetFrameworks>net6.0-android;net6.0-ios;net6.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net6.0-windows10.0.19041.0</TargetFrameworks>
+		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
+		<!-- <TargetFrameworks>$(TargetFrameworks);net6.0-tizen</TargetFrameworks> -->
+		<OutputType>Exe</OutputType>
+		<RootNamespace>unp4k.GUI</RootNamespace>
+		<UseMaui>true</UseMaui>
+		<SingleProject>true</SingleProject>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<EnableDefaultCssItems>false</EnableDefaultCssItems>
+
+		<!-- Display name -->
+		<ApplicationTitle>unp4k</ApplicationTitle>
+
+		<!-- App Identifier -->
+		<ApplicationId>me.dolkens.peter.unp4k.gui</ApplicationId>
+		<ApplicationIdGuid>3FFB641B-4B21-460F-9DF9-A2D6E85CAE12</ApplicationIdGuid>
+
+		<!-- Versions -->
+		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+		<ApplicationVersion>1</ApplicationVersion>
+
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">14.2</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">14.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
+		<Nullable>enable</Nullable>
+		<EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+		<BundleAssemblies>True</BundleAssemblies>
+		<RunAOTCompilation>False</RunAOTCompilation>
+		<EnableLLVM>True</EnableLLVM>
+		<PublishTrimmed>False</PublishTrimmed>
+		<AndroidKeyStore>False</AndroidKeyStore>
+		<MtouchProfiling>True</MtouchProfiling>
+		<MtouchDebug>True</MtouchDebug>
+		<TypeScriptModuleKind>amd</TypeScriptModuleKind>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-android|AnyCPU'">
+	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
+	  <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
+	  <AndroidTlsProvider>btls</AndroidTlsProvider>
+	  <UseNativeHttpHandler>False</UseNativeHttpHandler>
+	  <MtouchI18n>cjk;other;rare;west;mideast;</MtouchI18n>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-android|AnyCPU'">
+	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
+	  <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
+	  <AndroidTlsProvider>btls</AndroidTlsProvider>
+	  <UseNativeHttpHandler>False</UseNativeHttpHandler>
+	  <MtouchI18n>cjk;other;rare;west;mideast;</MtouchI18n>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-ios|AnyCPU'">
+	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
+	  <AndroidTlsProvider>btls</AndroidTlsProvider>
+	  <MtouchEnableBitcode>True</MtouchEnableBitcode>
+	  <MtouchUseThumb>True</MtouchUseThumb>
+	  <EnableSGenConc>True</EnableSGenConc>
+	  <MtouchI18n>cjk;other;rare;west;mideast;</MtouchI18n>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-ios|AnyCPU'">
+	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
+	  <AndroidTlsProvider>btls</AndroidTlsProvider>
+	  <MtouchEnableBitcode>True</MtouchEnableBitcode>
+	  <MtouchUseThumb>True</MtouchUseThumb>
+	  <EnableSGenConc>True</EnableSGenConc>
+	  <MtouchI18n>cjk;other;rare;west;mideast;</MtouchI18n>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-maccatalyst|AnyCPU'">
+	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
+	  <AndroidTlsProvider>btls</AndroidTlsProvider>
+	  <UseNativeHttpHandler>True</UseNativeHttpHandler>
+	  <OptimizePNGs>True</OptimizePNGs>
+	  <MtouchI18n>cjk;other;rare;west;mideast;</MtouchI18n>
+	  <EnableSGenConc>True</EnableSGenConc>
+	  <MtouchUseThumb>True</MtouchUseThumb>
+	  <MtouchEnableBitcode>True</MtouchEnableBitcode>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-maccatalyst|AnyCPU'">
+	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
+	  <AndroidTlsProvider>btls</AndroidTlsProvider>
+	  <UseNativeHttpHandler>True</UseNativeHttpHandler>
+	  <OptimizePNGs>True</OptimizePNGs>
+	  <MtouchI18n>cjk;other;rare;west;mideast;</MtouchI18n>
+	  <EnableSGenConc>True</EnableSGenConc>
+	  <MtouchUseThumb>True</MtouchUseThumb>
+	  <MtouchEnableBitcode>True</MtouchEnableBitcode>
+	  <MtouchUseLlvm>True</MtouchUseLlvm>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-windows10.0.19041.0|AnyCPU'">
+	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
+	  <AndroidTlsProvider>btls</AndroidTlsProvider>
+	  <MtouchI18n>cjk;other;rare;west;mideast;</MtouchI18n>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-windows10.0.19041.0|AnyCPU'">
+	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
+	  <AndroidTlsProvider>btls</AndroidTlsProvider>
+	  <MtouchI18n>cjk;other;rare;west;mideast;</MtouchI18n>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- App Icon -->
+
+		<!-- Splash Screen -->
+
+		<!-- Images -->
+		<MauiImage Include="Resources\Images\*" />
+		<MauiImage Update="Resources\Images\dotnet_bot.svg" BaseSize="168,208" />
+
+		<!-- Custom Fonts -->
+		<MauiFont Include="Resources\Fonts\*" />
+
+		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
+		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Remove="sassconfig.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Data\" />
+	  <Folder Include="Resources\Fonts\" />
+	  <Folder Include="Resources\Images\" />
+	  <Folder Include="Resources\Raw\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="sassconfig.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="4.6.4">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	</ItemGroup>
+
+</Project>
