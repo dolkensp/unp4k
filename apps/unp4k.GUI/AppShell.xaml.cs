@@ -1,4 +1,4 @@
-﻿namespace unp4k
+﻿namespace unp4k.GUI
 {
     public partial class AppShell : Shell
     {

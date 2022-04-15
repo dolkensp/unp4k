@@ -28,9 +28,5 @@
 	</array>
 	<key>XSAppIconAssets</key>
 	<string>Assets.xcassets/appicon.appiconset</string>
-	<key>CFBundleDisplayName</key>
-	<string>unp4k</string>
-	<key>CFBundleIdentifier</key>
-	<string>com.companyname.unp4k</string>
 </dict>
 </plist>

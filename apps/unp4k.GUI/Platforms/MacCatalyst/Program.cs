@@ -1,7 +1,7 @@
 ﻿using ObjCRuntime;
 using UIKit;
 
-namespace unp4k.Mac
+namespace unp4k.GUI
 {
     public class Program
     {

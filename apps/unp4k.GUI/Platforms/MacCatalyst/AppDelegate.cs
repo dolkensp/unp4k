@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace unp4k.Mac
+namespace unp4k.GUI
 {
     [Register("AppDelegate")]
     public class AppDelegate : MauiUIApplicationDelegate
