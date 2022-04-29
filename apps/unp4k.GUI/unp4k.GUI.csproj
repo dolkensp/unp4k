@@ -32,7 +32,7 @@
 		<Nullable>enable</Nullable>
 		<EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
 		<BundleAssemblies>True</BundleAssemblies>
-		<RunAOTCompilation>True</RunAOTCompilation>
+		<RunAOTCompilation>False</RunAOTCompilation>
 		<EnableLLVM>True</EnableLLVM>
 		<PublishTrimmed>False</PublishTrimmed>
 		<AndroidKeyStore>False</AndroidKeyStore>
@@ -42,7 +42,6 @@
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-android|AnyCPU'">
 	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
-	  <AndroidLinkTool>r8</AndroidLinkTool>
 	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
 	  <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
 	  <AndroidTlsProvider>btls</AndroidTlsProvider>
@@ -52,7 +51,6 @@
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-android|AnyCPU'">
 	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
-	  <AndroidLinkTool>r8</AndroidLinkTool>
 	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
 	  <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
 	  <AndroidTlsProvider>btls</AndroidTlsProvider>
@@ -63,7 +61,6 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-ios|AnyCPU'">
 	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
 	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
-	  <AndroidLinkTool>r8</AndroidLinkTool>
 	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
 	  <AndroidTlsProvider>btls</AndroidTlsProvider>
 	  <MtouchEnableBitcode>True</MtouchEnableBitcode>
@@ -75,7 +72,6 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-ios|AnyCPU'">
 	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
 	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
-	  <AndroidLinkTool>r8</AndroidLinkTool>
 	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
 	  <AndroidTlsProvider>btls</AndroidTlsProvider>
 	  <MtouchEnableBitcode>True</MtouchEnableBitcode>
@@ -87,7 +83,6 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-maccatalyst|AnyCPU'">
 	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
 	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
-	  <AndroidLinkTool>r8</AndroidLinkTool>
 	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
 	  <AndroidTlsProvider>btls</AndroidTlsProvider>
 	  <UseNativeHttpHandler>True</UseNativeHttpHandler>
@@ -101,7 +96,6 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-maccatalyst|AnyCPU'">
 	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
 	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
-	  <AndroidLinkTool>r8</AndroidLinkTool>
 	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
 	  <AndroidTlsProvider>btls</AndroidTlsProvider>
 	  <UseNativeHttpHandler>True</UseNativeHttpHandler>
@@ -116,7 +110,6 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-windows10.0.19041.0|AnyCPU'">
 	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
 	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
-	  <AndroidLinkTool>r8</AndroidLinkTool>
 	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
 	  <AndroidTlsProvider>btls</AndroidTlsProvider>
 	  <MtouchI18n>cjk;other;rare;west;mideast;</MtouchI18n>
@@ -125,7 +118,6 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-windows10.0.19041.0|AnyCPU'">
 	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
 	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
-	  <AndroidLinkTool>r8</AndroidLinkTool>
 	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
 	  <AndroidTlsProvider>btls</AndroidTlsProvider>
 	  <MtouchI18n>cjk;other;rare;west;mideast;</MtouchI18n>
