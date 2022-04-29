@@ -43,7 +43,6 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-android|AnyCPU'">
 	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
 	  <AndroidLinkTool>r8</AndroidLinkTool>
-	  <TrimMode>link</TrimMode>
 	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
 	  <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
 	  <AndroidTlsProvider>btls</AndroidTlsProvider>
@@ -54,7 +53,6 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-android|AnyCPU'">
 	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
 	  <AndroidLinkTool>r8</AndroidLinkTool>
-	  <TrimMode>link</TrimMode>
 	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
 	  <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
 	  <AndroidTlsProvider>btls</AndroidTlsProvider>
@@ -66,7 +64,6 @@
 	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
 	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
 	  <AndroidLinkTool>r8</AndroidLinkTool>
-	  <TrimMode>link</TrimMode>
 	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
 	  <AndroidTlsProvider>btls</AndroidTlsProvider>
 	  <MtouchEnableBitcode>True</MtouchEnableBitcode>
@@ -79,7 +76,6 @@
 	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
 	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
 	  <AndroidLinkTool>r8</AndroidLinkTool>
-	  <TrimMode>link</TrimMode>
 	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
 	  <AndroidTlsProvider>btls</AndroidTlsProvider>
 	  <MtouchEnableBitcode>True</MtouchEnableBitcode>
@@ -92,7 +88,6 @@
 	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
 	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
 	  <AndroidLinkTool>r8</AndroidLinkTool>
-	  <TrimMode>link</TrimMode>
 	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
 	  <AndroidTlsProvider>btls</AndroidTlsProvider>
 	  <UseNativeHttpHandler>True</UseNativeHttpHandler>
@@ -107,7 +102,6 @@
 	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
 	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
 	  <AndroidLinkTool>r8</AndroidLinkTool>
-	  <TrimMode>link</TrimMode>
 	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
 	  <AndroidTlsProvider>btls</AndroidTlsProvider>
 	  <UseNativeHttpHandler>True</UseNativeHttpHandler>
@@ -123,7 +117,6 @@
 	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
 	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
 	  <AndroidLinkTool>r8</AndroidLinkTool>
-	  <TrimMode>link</TrimMode>
 	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
 	  <AndroidTlsProvider>btls</AndroidTlsProvider>
 	  <MtouchI18n>cjk;other;rare;west;mideast;</MtouchI18n>
@@ -133,7 +126,6 @@
 	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
 	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
 	  <AndroidLinkTool>r8</AndroidLinkTool>
-	  <TrimMode>link</TrimMode>
 	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
 	  <AndroidTlsProvider>btls</AndroidTlsProvider>
 	  <MtouchI18n>cjk;other;rare;west;mideast;</MtouchI18n>
