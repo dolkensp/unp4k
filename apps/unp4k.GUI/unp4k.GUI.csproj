@@ -34,7 +34,7 @@
 		<BundleAssemblies>True</BundleAssemblies>
 		<RunAOTCompilation>True</RunAOTCompilation>
 		<EnableLLVM>True</EnableLLVM>
-		<PublishTrimmed>True</PublishTrimmed>
+		<PublishTrimmed>False</PublishTrimmed>
 		<AndroidKeyStore>False</AndroidKeyStore>
 		<MtouchProfiling>True</MtouchProfiling>
 		<MtouchDebug>True</MtouchDebug>
