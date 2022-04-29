@@ -221,10 +221,18 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Content Remove="sassconfig.json" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <Folder Include="Data\" />
 	  <Folder Include="Resources\Fonts\" />
 	  <Folder Include="Resources\Images\" />
 	  <Folder Include="Resources\Raw\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="sassconfig.json" />
 	</ItemGroup>
 
 	<ItemGroup>
