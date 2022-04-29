@@ -13,10 +13,10 @@
 		<EnableDefaultCssItems>false</EnableDefaultCssItems>
 
 		<!-- Display name -->
-		<ApplicationTitle>unp4k.GUI</ApplicationTitle>
+		<ApplicationTitle>unp4k</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.unp4k.gui</ApplicationId>
+		<ApplicationId>me.dolkens.peter.unp4k.gui</ApplicationId>
 		<ApplicationIdGuid>3FFB641B-4B21-460F-9DF9-A2D6E85CAE12</ApplicationIdGuid>
 
 		<!-- Versions -->
@@ -29,14 +29,119 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
+		<Nullable>enable</Nullable>
+		<EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+		<BundleAssemblies>True</BundleAssemblies>
+		<RunAOTCompilation>True</RunAOTCompilation>
+		<EnableLLVM>True</EnableLLVM>
+		<PublishTrimmed>True</PublishTrimmed>
+		<AndroidKeyStore>False</AndroidKeyStore>
+		<MtouchProfiling>True</MtouchProfiling>
+		<MtouchDebug>True</MtouchDebug>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-android|AnyCPU'">
+	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+	  <AndroidLinkTool>r8</AndroidLinkTool>
+	  <TrimMode>link</TrimMode>
+	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
+	  <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
+	  <AndroidTlsProvider>btls</AndroidTlsProvider>
+	  <UseNativeHttpHandler>False</UseNativeHttpHandler>
+	  <MtouchI18n>cjk;other;rare;west;mideast;</MtouchI18n>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-android|AnyCPU'">
+	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+	  <AndroidLinkTool>r8</AndroidLinkTool>
+	  <TrimMode>link</TrimMode>
+	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
+	  <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidClientHandler</AndroidHttpClientHandlerType>
+	  <AndroidTlsProvider>btls</AndroidTlsProvider>
+	  <UseNativeHttpHandler>False</UseNativeHttpHandler>
+	  <MtouchI18n>cjk;other;rare;west;mideast;</MtouchI18n>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-ios|AnyCPU'">
+	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+	  <AndroidLinkTool>r8</AndroidLinkTool>
+	  <TrimMode>link</TrimMode>
+	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
+	  <AndroidTlsProvider>btls</AndroidTlsProvider>
+	  <MtouchEnableBitcode>True</MtouchEnableBitcode>
+	  <MtouchUseThumb>True</MtouchUseThumb>
+	  <EnableSGenConc>True</EnableSGenConc>
+	  <MtouchI18n>cjk;other;rare;west;mideast;</MtouchI18n>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-ios|AnyCPU'">
+	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+	  <AndroidLinkTool>r8</AndroidLinkTool>
+	  <TrimMode>link</TrimMode>
+	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
+	  <AndroidTlsProvider>btls</AndroidTlsProvider>
+	  <MtouchEnableBitcode>True</MtouchEnableBitcode>
+	  <MtouchUseThumb>True</MtouchUseThumb>
+	  <EnableSGenConc>True</EnableSGenConc>
+	  <MtouchI18n>cjk;other;rare;west;mideast;</MtouchI18n>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-maccatalyst|AnyCPU'">
+	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+	  <AndroidLinkTool>r8</AndroidLinkTool>
+	  <TrimMode>link</TrimMode>
+	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
+	  <AndroidTlsProvider>btls</AndroidTlsProvider>
+	  <UseNativeHttpHandler>True</UseNativeHttpHandler>
+	  <OptimizePNGs>True</OptimizePNGs>
+	  <MtouchI18n>cjk;other;rare;west;mideast;</MtouchI18n>
+	  <EnableSGenConc>True</EnableSGenConc>
+	  <MtouchUseThumb>True</MtouchUseThumb>
+	  <MtouchEnableBitcode>True</MtouchEnableBitcode>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-maccatalyst|AnyCPU'">
+	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+	  <AndroidLinkTool>r8</AndroidLinkTool>
+	  <TrimMode>link</TrimMode>
+	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
+	  <AndroidTlsProvider>btls</AndroidTlsProvider>
+	  <UseNativeHttpHandler>True</UseNativeHttpHandler>
+	  <OptimizePNGs>True</OptimizePNGs>
+	  <MtouchI18n>cjk;other;rare;west;mideast;</MtouchI18n>
+	  <EnableSGenConc>True</EnableSGenConc>
+	  <MtouchUseThumb>True</MtouchUseThumb>
+	  <MtouchEnableBitcode>True</MtouchEnableBitcode>
+	  <MtouchUseLlvm>True</MtouchUseLlvm>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-windows10.0.19041.0|AnyCPU'">
+	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+	  <AndroidLinkTool>r8</AndroidLinkTool>
+	  <TrimMode>link</TrimMode>
+	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
+	  <AndroidTlsProvider>btls</AndroidTlsProvider>
+	  <MtouchI18n>cjk;other;rare;west;mideast;</MtouchI18n>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-windows10.0.19041.0|AnyCPU'">
+	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+	  <AndroidLinkTool>r8</AndroidLinkTool>
+	  <TrimMode>link</TrimMode>
+	  <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
+	  <AndroidTlsProvider>btls</AndroidTlsProvider>
+	  <MtouchI18n>cjk;other;rare;west;mideast;</MtouchI18n>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<!-- App Icon -->
-		<MauiIcon
-			Include="Resources\appicon.svg"
-			ForegroundFile="Resources\appiconfg.svg"
-			Color="#512BD4" />
+		<MauiIcon Include="Resources\appicon.svg" ForegroundFile="Resources\appiconfg.svg" Color="#512BD4" />
 
 		<!-- Splash Screen -->
 		<MauiSplashScreen Include="Resources\appiconfg.svg" Color="#512BD4" BaseSize="128,128" />
