@@ -8,8 +8,6 @@
     <DebugType>embedded</DebugType>
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
     <Platforms>x64;ARM64</Platforms>
-    <RootNamespace>unp4k</RootNamespace>
-    <AssemblyName>unp4k</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">

@@ -1,9 +1,0 @@
-[
-  {
-    "outputFile": "wwwroot/bundle.min.css",
-    "inputFile": "wwwroot/bundle.min.scss",
-    "sourceMap": true,
-    "style": "Compressed",
-    "precision": 3
-  }
-]
