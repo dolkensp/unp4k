@@ -1,0 +1,32 @@
+{
+  "profiles": {
+    "unp4k": {
+      "commandName": "Project",
+      "hotReloadEnabled": false
+    },
+    "unp4k - LIVE": {
+      "commandName": "Project",
+      "commandLineArgs": "-o \"C:\\SC\" -e -d",
+      "hotReloadEnabled": false,
+      "authenticationMode": "None"
+    },
+    "unp4k - PTU": {
+      "commandName": "Project",
+      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -o \"C:\\SC\" -e -d",
+      "hotReloadEnabled": false,
+      "authenticationMode": "None"
+    },
+    "unp4k - LIVE Game.dcb": {
+      "commandName": "Project",
+      "commandLineArgs": "-o \"C:\\SC\" -f \".dcb\" -l -forge -e -d",
+      "hotReloadEnabled": false,
+      "authenticationMode": "None"
+    },
+    "unp4k - PTU Game.dcb": {
+      "commandName": "Project",
+      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -o \"C:\\SC\" -f \".dcb\" -e -d",
+      "hotReloadEnabled": false,
+      "authenticationMode": "None"
+    }
+  }
+}

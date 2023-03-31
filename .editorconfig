@@ -1,35 +1,22 @@
-# editorconfig.org
+[*.cs]
 
-# top-most EditorConfig file
-root = true
+# CS8601: Possible null reference assignment.
+dotnet_diagnostic.CS8601.severity = silent
 
-# Default settings:
-# A newline ending every file
-# Use 4 spaces as indentation
-[*]
-insert_final_newline = true
-indent_style = tab
-indent_size = 4
+# IDE0011: Add braces
+dotnet_diagnostic.IDE0011.severity = silent
 
-# C++ Files
-[*.{cpp,h,in}]
-curly_bracket_next_line = true
-indent_brace_style = Allman
+# CS8602: Possible null reference argument.
+dotnet_diagnostic.CS8602.severity = silent
 
-# Xml project files
-[*.{csproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj}]
-indent_size = 2
+# CS8604: Possible null reference argument.
+dotnet_diagnostic.CS8604.severity = silent
 
-# Xml files
-[*.{xml,stylecop,resx,ruleset}]
-indent_size = 2
+# CS8606: Possible null reference argument.
+dotnet_diagnostic.CS8606.severity = silent
 
-# Xml config files
-[*.{props,targets,config,nuspec}]
-indent_size = 2
+# CS8600: Converting null literal or possible null value to non-nullable type.
+dotnet_diagnostic.CS8600.severity = silent
 
-# Shell scripts
-[*.sh]
-end_of_line = lf
-[*.{cmd, bat}]
-end_of_line = crlf
+# CA1416: Validate platform compatibility
+dotnet_diagnostic.CA1416.severity = silent
