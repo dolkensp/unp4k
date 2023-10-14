@@ -300,18 +300,18 @@ namespace unp4k.gui
 
 		private async void trvFileExploder_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 		{
-			var selectedNode = e.OriginalSource as TreeViewItem;
+			var selectedNode = e.Source as SharpTreeNodeView;
 
-			if (selectedNode == null) return;
+			if (selectedNode == null)
+			{
+				return;
+			}
 
-			var selectedItem = selectedNode.DataContext as ITreeItem;
+			ITreeItem selectedItem = selectedNode.DataContext as ITreeItem;
 
-			if (selectedItem == null) return;
+			if (selectedItem == null || selectedItem.Children.Any()) return;
 
-			// Move to background thread
-			new Thread(async () => await this._extractor.ExtractNodeAsync(selectedItem, false)).Start();
-
-			await Task.CompletedTask;
+			await _extractor.ExtractNodeAsync(selectedItem, true);
 		}
 
 		#endregion
@@ -434,15 +434,6 @@ namespace unp4k.gui
 		{
 			txtFilter.Focus();
 			txtFilter.SelectAll();
-		}
-
-		private void trvFileExploder_SelectionChanged(object sender, SelectionChangedEventArgs e)
-		{
-		}
-
-		private async void hdrSort_ClickAsync(object sender, RoutedEventArgs e)
-		{
-
 		}
 	}
 }

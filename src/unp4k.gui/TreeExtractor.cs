@@ -35,7 +35,7 @@ namespace unp4k.gui
 		private Int32 _filesSelected;
 		private Int32 _filesExtracted;
 
-		public async Task<Boolean> ExtractNodeAsync(ITreeItem selectedItem, Boolean useTemp = false)
+		public async Task<bool> ExtractNodeAsync(ITreeItem selectedItem, Boolean useTemp = false)
 		{
 			if (selectedItem == null) return false;
 
