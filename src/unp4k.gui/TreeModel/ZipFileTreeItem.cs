@@ -55,16 +55,10 @@ namespace unp4k.gui.TreeModel
 				await Task.CompletedTask;
 			});
 
-			var entryList = new List<ZipEntry> { };
 
 			foreach (ZipEntry entry in zipFile)
 			{
-				entryList.Add(entry);	
-			}
-
-			foreach (var entry in entryList)
-			{
-				this.AddStream(entry.Name, () => zipFile.GetInputStream(entry), entry.DateTime.ToUniversalTime(), entry.Size);
+				AddStream(entry.Name, () => zipFile.GetInputStream(entry), entry.DateTime.ToUniversalTime(), entry.Size);
 
 				lastIndex = entry.ZipFileIndex;
 			}

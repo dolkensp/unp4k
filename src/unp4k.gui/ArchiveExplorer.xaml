@@ -5,15 +5,20 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:unp4k.gui"
         xmlns:model="clr-namespace:unp4k.gui.TreeModel"
+		xmlns:converters="clr-namespace:unp4k.gui.Converters"
         xmlns:sd="http://icsharpcode.net/sharpdevelop/treeview"
         mc:Ignorable="d"
-        Title="unp4k by /u/alluran"
+        Title="unp4k by /u/alluran and mageInt"
 		MinHeight="400"
 		MinWidth="400"
 		Height="600"
 		Width="600"
 		>
+
 	<Window.Resources>
+		
+		<converters:LongToHumanReadableSizeConverter x:Key="LongToHumanReadableSizeConverter"></converters:LongToHumanReadableSizeConverter>
+
 		<RoutedUICommand x:Key="ExitApplication" Text="E_xit">
 			<RoutedUICommand.InputGestures>
 				<KeyGesture>ALT+F4</KeyGesture>
@@ -37,6 +42,7 @@
 		<RoutedUICommand x:Key="OpenFile" Text="Open File">
 			<RoutedUICommand.InputGestures>
 				<KeyGesture>ENTER</KeyGesture>
+				<KeyGesture>DOUBLEClick</KeyGesture>
 			</RoutedUICommand.InputGestures>
 		</RoutedUICommand>
 		<ContextMenu x:Key="mnuLeaf" StaysOpen="True">
@@ -121,7 +127,7 @@
 						<GridViewColumn Header="Size" HeaderContainerStyle="{StaticResource styTreeView}" Width="Auto">
 							<GridViewColumn.CellTemplate>
 								<DataTemplate>
-									<TextBlock Text="{Binding StreamLength,StringFormat=#\,##0}" TextAlignment="Right" ContextMenu="{StaticResource mnuLeaf}" />
+									<TextBlock Text="{Binding StreamLength, Converter={StaticResource LongToHumanReadableSizeConverter}}" TextAlignment="Right" ContextMenu="{StaticResource mnuLeaf}" />
 								</DataTemplate>
 							</GridViewColumn.CellTemplate>
 						</GridViewColumn>
