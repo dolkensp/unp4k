@@ -11,7 +11,6 @@ using ICSharpCode.SharpZipLib.Checksum;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using System.Collections.Generic;
-using System.Net.Http;
 
 namespace ICSharpCode.SharpZipLib.Zip
 {

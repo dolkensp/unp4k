@@ -65,54 +65,53 @@ namespace unp4k.gui.TreeModel
 		public abstract DateTime LastModifiedUtc { get; }
 		public abstract Int64 StreamLength { get; }
 
+		private char[] CharSeparator = new[] { '/', '\\' };
+
 		internal TreeItem(String title)
 		{
 			this.Title = title;
 		}
 
 		// TODO: Factory selection
-		private IFormatFactory[] factories = new IFormatFactory[] {
-			new DataForgeFormatFactory { },
-			new CryXmlFormatFactory { }
-		};
+		//private IFormatFactory[] factories = new IFormatFactory[] {
+		//	new DataForgeFormatFactory { },
+		//	new CryXmlFormatFactory { }
+		//};
 
-		public ITreeItem AddStream(String fullPath, Func<Stream> @delegate, DateTime lastModifiedUtc, Int64 streamLength)
+		public ITreeItem AddStream(string fullPath, Func<Stream> @delegate, DateTime lastModifiedUtc, long streamLength)
 		{
-			var path = Path.GetDirectoryName(fullPath).Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
+			string[] ParentSplitPath = Path.GetDirectoryName(fullPath).Split(CharSeparator, StringSplitOptions.RemoveEmptyEntries);
 
-			var parent = this.GetParentRelativePath(path);
+			ITreeItem parent = GetParentRelativePath(ParentSplitPath); //5%CPU
 
 			if (parent == null) return null;
 
-			var streamItem = new StreamTreeItem(Path.GetFileName(fullPath), @delegate, lastModifiedUtc, streamLength);
+			StreamTreeItem streamItem = new StreamTreeItem(Path.GetFileName(fullPath), @delegate, lastModifiedUtc, streamLength);
 
-			foreach (var factory in factories)
-			{
-				streamItem = factory.Handle(streamItem) as StreamTreeItem;
-			}
+			//TOTO c'est quoi cette merde sans nom
+			//foreach (var factory in factories)
+			//{
+			//	streamItem = factory.Handle(streamItem) as StreamTreeItem; //50% Cpu
+			//}
 
 			parent.Children.Add(streamItem);
 
 			return streamItem;
 		}
 
-		internal ITreeItem GetParentRelativePath(String[] fullPath)
+		internal ITreeItem GetParentRelativePath(string[] fullPath)
 		{
 			if (fullPath.Length == 0) return this;
 
-			var key = fullPath[0];
+			string key = fullPath[0];
 
-			var directory = this
-				.Children
-				.OfType<DirectoryTreeItem>()
-				.Where(d => d.Title == key)
-				.FirstOrDefault();
+			DirectoryTreeItem directory = Children.OfType<DirectoryTreeItem>().Where(d => d.Title == key).FirstOrDefault();
 
 			if (directory == null)
 			{
 				directory = new DirectoryTreeItem(key);
 
-				this.Children.Add(directory);
+				Children.Add(directory);
 			}
 
 			return directory.GetParentRelativePath(fullPath.Skip(1).ToArray());

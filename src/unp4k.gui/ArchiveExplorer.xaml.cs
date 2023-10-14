@@ -164,10 +164,10 @@ namespace unp4k.gui
 		public async Task OpenP4kAsync(String path)
 		{
 			var treeView = this.trvFileExploder;
-			var pakFile = File.OpenRead(path);
-			var pak = new ZipFile(pakFile) { Key = new Byte[] { 0x5E, 0x7A, 0x20, 0x02, 0x30, 0x2E, 0xEB, 0x1A, 0x3B, 0xB6, 0x17, 0xC3, 0x0F, 0xDE, 0x1E, 0x47 } };
+			FileStream pakFile = File.OpenRead(path);
+			ZipFile pak = new ZipFile(pakFile) { Key = new Byte[] { 0x5E, 0x7A, 0x20, 0x02, 0x30, 0x2E, 0xEB, 0x1A, 0x3B, 0xB6, 0x17, 0xC3, 0x0F, 0xDE, 0x1E, 0x47 } };
 
-			var root = new ZipFileTreeItem(pak, Path.GetFileName(path));
+			ZipFileTreeItem root = new ZipFileTreeItem(pak, Path.GetFileName(path));
 			
 			var filter = this._lastFilterText;
 			
