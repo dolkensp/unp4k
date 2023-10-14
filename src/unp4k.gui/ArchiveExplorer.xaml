@@ -42,7 +42,6 @@
 		<RoutedUICommand x:Key="OpenFile" Text="Open File">
 			<RoutedUICommand.InputGestures>
 				<KeyGesture>ENTER</KeyGesture>
-				<KeyGesture>DOUBLEClick</KeyGesture>
 			</RoutedUICommand.InputGestures>
 		</RoutedUICommand>
 		<ContextMenu x:Key="mnuLeaf" StaysOpen="True">
