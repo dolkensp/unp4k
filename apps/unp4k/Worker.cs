@@ -1,6 +1,7 @@
 ﻿using ICSharpCode.SharpZipLib.Zip;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Text;
 using unlib;
 
 namespace unp4k;
@@ -74,6 +75,9 @@ internal static class Worker
                 $" |         Overwrite Existing Files | {Globals.ShouldOverwrite}" + '\n' +
                 $" | Delete Previous Output Directory | {Globals.ShouldDeleteOutput}" + '\n' +
                 $" |                  Do unforge Pass | {Globals.ShouldForge}" + '\n' +
+                 " |                                  | " + '\n' +
+                 " |                                  | The speed this takes highly depends on your storage drives Random IO (Many small files) speeds." + '\n' +
+                 " |                                  | Tools like CrystalDiskMark call this 4kRnd (4k bytes random read/write)." + '\n' +
                 @"/";
 
         // Never allow the extraction to go through if the target storage drive has too little available space.
@@ -141,23 +145,23 @@ internal static class Worker
             outputQueue.CompleteAdding();
             output.Wait();
 
-            static void print(BlockingCollection<ZipEntry> queue, Stopwatch fileTime)
+            static void print(BlockingCollection<ZipEntry> queue, Stopwatch fileTime) // TODO: Add ability to send errors through to this and flag the square as red.
             {
                 foreach (ZipEntry entry in queue.GetConsumingEnumerable())
                 {
                     string percentage = (tasksDone is 0 ? 0D : 100D * tasksDone / P4K.EntryCount).ToString("000.00000");
                     if (Globals.ShouldPrintDetailedLogs)
                     {
-                        Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name}" + '\n' +
-                            @"                              \" + '\n' +
-                            $"                               | Date Last Modified: {entry.DateTime}" + '\n' +
-                            $"                               | Compression Method: {entry.CompressionMethod}" + '\n' +
-                            $"                               | Compressed Size:    {entry.CompressedSize  / 1000000000D:#,##0.000000000} GB" + '\n' +
-                            $"                               | Uncompressed Size:  {entry.Size            / 1000000000D:#,##0.000000000} GB" + '\n' +
-                            $"                               | Time Taken:         {fileTime.ElapsedMilliseconds / 1000D:#,##0.000} seconds" + '\n' +
-                            @"                              /");
+                        Logger.LogInfo($"{percentage}% \u001b[92m■\u001b[39m > {entry.Name}" + '\n' +
+                            @"\" + '\n' +
+                            $" | Date Last Modified: {entry.DateTime}" + '\n' +
+                            $" | Compression Method: {entry.CompressionMethod}" + '\n' +
+                            $" | Compressed Size:    {entry.CompressedSize  / 1000000000D:#,##0.000000000} GB" + '\n' +
+                            $" | Uncompressed Size:  {entry.Size            / 1000000000D:#,##0.000000000} GB" + '\n' +
+                            $" | Time Taken:         {fileTime.ElapsedMilliseconds / 1000D:#,##0.000} seconds" + '\n' +
+                            @"/");
                     }
-                    else Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name[(entry.Name.LastIndexOf('/') + 1)..]}");
+                    else Logger.LogInfo($"{percentage}% \x1b[92m■\x1b[39m > {entry.Name[(entry.Name.LastIndexOf('/') + 1)..]}");
                     Logger.SetTitle($"unp4k: {percentage}%");
                 }
             }
