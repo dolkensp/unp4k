@@ -68,7 +68,7 @@ internal static class Initialiser
             // Basically show the user the manual if there are missing arguments.
             Logger.Write($"{Manual}{(!hasInput ? $"\nNO INPUT Data.p4k PATH HAS BEEN DECLARED. USING DEFAULT PATH {Defaultp4kFile.FullName}" : string.Empty)}" + // TODO: See if we can get the install path in registry.
                 $"{(!hasOutput ? $"\nNO OUTPUT DIRECTORY PATH HAS BEEN DECLARED. ALL EXTRACTS WILL GO INTO {DefaultExtractionDirectory.FullName}" : string.Empty)}" +
-                $"{(!hasFilter ? $"\nNO FILTER HAS BEEN DECLARED. USING THE UNIVERSAL FILTER *.*" : string.Empty)}" +
+                $"{(!hasFilter ? $"\nNO FILTER HAS BEEN DECLARED. USING NO FILTER!" : string.Empty)}" +
                 "\n\nPress any key to continue!\n");
             Console.ReadKey();
             Logger.ClearBuffer();
