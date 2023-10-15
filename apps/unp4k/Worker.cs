@@ -11,7 +11,7 @@ internal static class Worker
 
     internal static void ProcessGameData()
     {
-        Logger.SetTitle($"unp4k: {Globals.P4kFile.FullName}");
+        Logger.SetTitle($"unp4k");
         int isDecompressableCount = 0;
         int isLockedCount = 0;
         long bytesSize = 0L;
@@ -158,6 +158,7 @@ internal static class Worker
                             @"                              /");
                     }
                     else Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
+                    Logger.SetTitle($"unp4k: {percentage}%");
                 }
             }
         }
