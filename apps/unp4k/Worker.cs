@@ -157,7 +157,7 @@ internal static class Worker
                             $"                               | Time Taken:         {fileTime.ElapsedMilliseconds / 1000D:#,##0.000} seconds" + '\n' +
                             @"                              /");
                     }
-                    else Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name[(entry.Name.LastIndexOf("/") + 1)..]}");
+                    else Logger.LogInfo($"{percentage}% - Extracted:  {entry.Name[(entry.Name.LastIndexOf('/') + 1)..]}");
                     Logger.SetTitle($"unp4k: {percentage}%");
                 }
             }

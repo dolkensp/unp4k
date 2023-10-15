@@ -22,7 +22,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Applications", "Application
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Misc", "Misc", "{37E59179-ED8E-422D-AD47-3003A2B9C5C5}"
 	ProjectSection(SolutionItems) = preProject
-		.editorconfig = .editorconfig
 		lgtm.yml = lgtm.yml
 		LICENSE.txt = LICENSE.txt
 	EndProjectSection
@@ -42,6 +41,11 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "unp4k", "libs\unp4k\unp4k.csproj", "{15FA4DAB-08E8-4B3E-BEF2-CEE995541DD4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ICSharpCode.SharpZipLib", "modules\SharpZipLib\src\ICSharpCode.SharpZipLib\ICSharpCode.SharpZipLib.csproj", "{6288F6E3-C110-4E70-B09D-7988D720EC62}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0F2E89EA-29F0-45A0-BA55-A59DBD61D36A}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

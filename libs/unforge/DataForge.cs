@@ -57,7 +57,7 @@ public static class DataForge
                 "Node Table");
 #endif
 
-        List<CryXmlNode> nodeTable = new();
+        List<CryXmlNode> nodeTable = [];
         br.BaseStream.Seek(nodeTableOffset, SeekOrigin.Begin);
         int nodeID = 0;
         while (br.BaseStream.Position < nodeTableOffset + nodeTableCount * nodeTableSize)
@@ -87,7 +87,7 @@ public static class DataForge
         if (detailedLogs) Logger.LogInfo('\n' + "Reference Table");
 #endif
 
-        List<CryXmlReference> attributeTable = new();
+        List<CryXmlReference> attributeTable = [];
         br.BaseStream.Seek(attributeTableOffset, SeekOrigin.Begin);
         while (br.BaseStream.Position < attributeTableOffset + attributeTableCount * referenceTableSize)
         {
@@ -108,7 +108,7 @@ public static class DataForge
         if (detailedLogs) Logger.LogInfo('\n' + "Order Table");
 #endif
 
-        List<int> parentTable = new();
+        List<int> parentTable = [];
         br.BaseStream.Seek(childTableOffset, SeekOrigin.Begin);
         while (br.BaseStream.Position < childTableOffset + childTableCount * length3)
         {
@@ -124,7 +124,7 @@ public static class DataForge
         if (detailedLogs) Logger.LogInfo('\n' + "Dynamic Dictionary");
 #endif
 
-        List<CryXmlValue> dataTable = new();
+        List<CryXmlValue> dataTable = [];
         br.BaseStream.Seek(stringTableOffset, SeekOrigin.Begin);
         while (br.BaseStream.Position < br.BaseStream.Length)
         {
@@ -144,27 +144,27 @@ public static class DataForge
         int attributeIndex = 0;
         XmlDocument xmlDoc = new();
 
-        Dictionary<int, XmlElement> xmlMap = new();
+        Dictionary<int, XmlElement> xmlMap = [];
         nodeTable.ForEach(node =>
         {
-            if (dataMap.ContainsKey(node.NodeNameOffset) && !string.IsNullOrEmpty(dataMap[node.NodeNameOffset]))
+            if (dataMap.TryGetValue(node.NodeNameOffset, out string nodeNameOffset) && !string.IsNullOrEmpty(dataMap[node.NodeNameOffset]))
             {
-                XmlElement element = xmlDoc.CreateElement(dataMap[node.NodeNameOffset]);
+                XmlElement element = xmlDoc.CreateElement(nodeNameOffset);
                 for (int i = 0, j = node.AttributeCount; i < j; i++)
                 {
-                    if (dataMap.ContainsKey(attributeTable[attributeIndex].NameOffset) && !string.IsNullOrEmpty(dataMap[attributeTable[attributeIndex].NameOffset]))
+                    if (dataMap.TryGetValue(attributeTable[attributeIndex].NameOffset, out string attributeNameOffset) && !string.IsNullOrEmpty(dataMap[attributeTable[attributeIndex].NameOffset]))
                     {
-                        if (dataMap.ContainsKey(attributeTable[attributeIndex].ValueOffset) && !string.IsNullOrEmpty(dataMap[attributeTable[attributeIndex].ValueOffset]))
-                            element.SetAttribute(dataMap[attributeTable[attributeIndex].NameOffset], dataMap[attributeTable[attributeIndex].ValueOffset]);
-                        else element.SetAttribute(dataMap[attributeTable[attributeIndex].NameOffset], "BUGGED");
+                        if (dataMap.TryGetValue(attributeTable[attributeIndex].ValueOffset, out string attributeValueOffset) && !string.IsNullOrEmpty(dataMap[attributeTable[attributeIndex].ValueOffset]))
+                            element.SetAttribute(attributeNameOffset, dataMap[attributeTable[attributeIndex].ValueOffset]);
+                        else element.SetAttribute(attributeNameOffset, "BUGGED");
                     }
                     attributeIndex++;
                 }
 
                 xmlMap[node.NodeID] = element;
-                if (dataMap.ContainsKey(node.ContentOffset) && !string.IsNullOrWhiteSpace(dataMap[node.ContentOffset])) element.AppendChild(xmlDoc.CreateCDataSection(dataMap[node.ContentOffset]));
+                if (dataMap.TryGetValue(node.ContentOffset, out string contentOffset) && !string.IsNullOrWhiteSpace(contentOffset)) element.AppendChild(xmlDoc.CreateCDataSection(contentOffset));
                 else element.AppendChild(xmlDoc.CreateCDataSection("BUGGED"));
-                if (xmlMap.ContainsKey(node.ParentNodeID)) xmlMap[node.ParentNodeID].AppendChild(element);
+                if (xmlMap.TryGetValue(node.ParentNodeID, out XmlElement parentNodeID)) parentNodeID.AppendChild(element);
                 else xmlDoc.AppendChild(element);
             }
         });

@@ -79,7 +79,7 @@ internal static class Initialiser
         {
             if (Globals.Arguments[i].ToLowerInvariant() is "-i" || Globals.Arguments[i].ToLowerInvariant() is "-input")             Globals.P4kFile                     = new(Globals.Arguments[i + 1]);
             else if (Globals.Arguments[i].ToLowerInvariant() is "-o" || Globals.Arguments[i].ToLowerInvariant() is "-output")       Globals.OutDirectory                = new(Globals.Arguments[i + 1]);
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-f" || Globals.Arguments[i].ToLowerInvariant() is "-filter")       Globals.Filters                     = Globals.Arguments[i + 1].Split(',').ToList();
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-f" || Globals.Arguments[i].ToLowerInvariant() is "-filter")       Globals.Filters                     = [.. Globals.Arguments[i + 1].Split(',')];
             else if (Globals.Arguments[i].ToLowerInvariant() is "-e" || Globals.Arguments[i].ToLowerInvariant() is "-errors")       Globals.ShouldPrintErrors           = true;
             else if (Globals.Arguments[i].ToLowerInvariant() is "-d" || Globals.Arguments[i].ToLowerInvariant() is "-details")      Globals.ShouldPrintDetailedLogs     = true;
             else if (Globals.Arguments[i].ToLowerInvariant() is "-w" || Globals.Arguments[i].ToLowerInvariant() is "-overwrite")    Globals.ShouldOverwrite             = true;
@@ -94,9 +94,9 @@ internal static class Initialiser
     {
         Logger.SetTitle($"unp4k: Initializing...");
         // Default any of the null argument declared variables.
-        if (Globals.P4kFile is null) Globals.P4kFile = Defaultp4kFile;
-        if (Globals.OutDirectory is null) Globals.OutDirectory = DefaultExtractionDirectory;
-        if (Globals.OutForgedDirectory is null) Globals.OutForgedDirectory = new(Path.Join(Globals.OutDirectory.FullName, "Forged"));
+        Globals.P4kFile ??= Defaultp4kFile;
+        Globals.OutDirectory ??= DefaultExtractionDirectory;
+        Globals.OutForgedDirectory ??= new(Path.Join(Globals.OutDirectory.FullName, "Forged"));
         if (Globals.Filters.Count is 0) Globals.Filters.Add("*.*");
         if (!Globals.P4kFile.Exists)
         {
@@ -117,7 +117,7 @@ internal static class Initialiser
         {
             // Show the user any warning if anything worrisome is detected.
             bool newLineCheck = false;
-            if (OS.IsLinux && Environment.UserName.ToLower() == "root")
+            if (OS.IsLinux && Environment.UserName.Equals("root", StringComparison.CurrentCultureIgnoreCase))
             {
                 newLineCheck = true;
                 Logger.NewLine();

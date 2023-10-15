@@ -5,12 +5,14 @@ using unlib;
 
 public static class Logger
 {
-    private static Serilog.Core.Logger InternalConsoleLogger;
+    private static readonly Serilog.Core.Logger InternalConsoleLogger;
 
     static Logger()
     {
         InternalConsoleLogger = new LoggerConfiguration().WriteTo.Console(theme: AnsiConsoleTheme.Code, outputTemplate: "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {Message}{NewLine}{Exception}").CreateLogger();
+#pragma warning disable CA1416
         if (OS.IsWindows) Console.BufferWidth = Console.WindowWidth;
+#pragma warning restore CA1416
         ClearBuffer();
     }
 
@@ -120,7 +122,7 @@ public static class Logger
     public static void DivideBuffer()
     {
         StringBuilder b = new();
-        for (int i = 0; i < Console.BufferWidth - 1; i++) b.Append("-");
+        for (int i = 0; i < Console.BufferWidth - 1; i++) b.Append('-');
         LogPackage pckg = default;
         pckg.ClearMode = 1;
         pckg.Message = b.ToString();
@@ -130,7 +132,7 @@ public static class Logger
     public static void ClearLine(string? content = null)
     {
         StringBuilder b = new(content is null ? string.Empty : content);
-        for (int i = 0; i < Console.BufferWidth - 1; i++) b.Append(" ");
+        for (int i = 0; i < Console.BufferWidth - 1; i++) b.Append(' ');
         Console.Write("\r{0}", b.ToString());
     }
 

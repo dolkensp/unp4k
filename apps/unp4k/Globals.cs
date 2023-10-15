@@ -7,7 +7,7 @@ internal static class Globals
     internal static FileInfo? P4kFile = null;
     internal static DirectoryInfo? OutDirectory = null;
     internal static DirectoryInfo? OutForgedDirectory = null;
-    internal static List<string> Filters = new();
+    internal static List<string> Filters = [];
 
     internal static bool InternalExitTrigger = false;
 
