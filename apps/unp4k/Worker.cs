@@ -54,33 +54,33 @@ internal static class Worker
 
         DriveInfo outputDrive = DriveInfo.GetDrives().First(x => OS.IsWindows ? x.Name == Globals.OutDirectory.FullName[..3] : new DirectoryInfo(x.Name).Exists);
         string summary =
-                @"                  \" + '\n' +
-                $"                   |                     Output Path | {Globals.OutDirectory.FullName}" + '\n' +
-                $"                   |                       Partition | {outputDrive.Name}" + '\n' +
-                $"                   |      Partition Total Free Space | {outputDrive.TotalFreeSpace / 1000000000D:#,##0.000000000} GB" + '\n' +
-                $"                   |  Partition Available Free Space | {outputDrive.AvailableFreeSpace / 1000000000D:#,##0.000000000} GB" + '\n' +
-                $"                   |        Estimated Required Space | {(!Globals.ShouldOverwrite && additionalFiles ? "An Additional " : string.Empty)}" +
+                @"\" + '\n' +
+                $" |                     Output Path | {Globals.OutDirectory.FullName}" + '\n' +
+                $" |                       Partition | {outputDrive.Name}" + '\n' +
+                $" |      Partition Total Free Space | {outputDrive.TotalFreeSpace / 1000000000D:#,##0.000000000} GB" + '\n' +
+                $" |  Partition Available Free Space | {outputDrive.AvailableFreeSpace / 1000000000D:#,##0.000000000} GB" + '\n' +
+                $" |        Estimated Required Space | {(!Globals.ShouldOverwrite && additionalFiles ? "An Additional " : string.Empty)}" +
                                                                                 $"{bytesSize / 1000000000D:#,##0.000000000} GB" + '\n' +
-                 "                   |                                 | " + '\n' +
-                $"                   |                      File Count | {P4K.EntryCount:#,##0}" +
+                 " |                                 | " + '\n' +
+                $" |                      File Count | {P4K.EntryCount:#,##0}" +
                                                                                 $"{(!Globals.ShouldOverwrite && additionalFiles ? " Additional Files" : string.Empty)}" +
                                                                                 $"{(Globals.Filters[0] != "*.*" ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" + '\n' +
-                $"                   |              Files Incompatible | {isDecompressableCount:#,##0}" +
+                $" |              Files Incompatible | {isDecompressableCount:#,##0}" +
                                                                                 $"{(!Globals.ShouldOverwrite && additionalFiles ? " Additional Files" : string.Empty)}" +
                                                                                 $"{(Globals.Filters[0] != "*.*" ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" + '\n' +
-                $"                   |                    Files Locked | {isLockedCount:#,##0}" +
+                $" |                    Files Locked | {isLockedCount:#,##0}" +
                                                                                 $"{(!Globals.ShouldOverwrite && additionalFiles ? " Additional Files" : string.Empty)}" +
                                                                                 $"{(Globals.Filters[0] != "*.*" ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" + '\n' +
-                 "                   |                                 | " + '\n' +
-                $"                   |   Will Overwrite Existing Files | {Globals.ShouldOverwrite}" + '\n' +
-                $"                   |    Will Delete Output Directory | {Globals.ShouldDeleteOutput}" + '\n' +
-                $"                   | Will Perform Special Extraction | {Globals.ShouldForge}" + '\n' +
-                @"                  /";
+                 "  |                                 | " + '\n' +
+                $" |   Will Overwrite Existing Files | {Globals.ShouldOverwrite}" + '\n' +
+                $" |    Will Delete Output Directory | {Globals.ShouldDeleteOutput}" + '\n' +
+                $" | Will Perform Special Extraction | {Globals.ShouldForge}" + '\n' +
+                @"/";
 
         // Never allow the extraction to go through if the target storage drive has too little available space.
         if (outputDrive.AvailableFreeSpace + (Globals.ShouldOverwrite || Globals.ShouldDeleteOutput ? Globals.OutDirectory.GetFiles("*.*", SearchOption.AllDirectories).Sum(x => x.Length) : 0) < bytesSize)
         {
-            Logger.LogError("The output path you have chosen is on a partition which does not have enough available free space!" + '\n' + summary);
+            Logger.Log("The output path you have chosen is on a partition which does not have enough available free space!" + '\n' + summary);
             if (!Globals.ShouldAcceptEverything) Console.ReadKey();
             Globals.InternalExitTrigger = true;
             return;
@@ -90,7 +90,7 @@ internal static class Worker
         if (!Globals.ShouldAcceptEverything)
         {
             // Give the user a summary of what unp4k/unforge is about to do and some statistics.
-            Logger.LogInfo("Pre-Process Summary" + '\n' + summary);
+            Logger.Log("Pre-Process Summary" + '\n' + summary);
             if (!Logger.AskUserInput("Proceed?"))
             {
                 Globals.InternalExitTrigger = true;

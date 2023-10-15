@@ -48,6 +48,14 @@ public static class Logger
         PushLog(pckg);
     }
 
+    public static void Log(object msg)
+    {
+        LogPackage pckg = default;
+        pckg.Level = -1;
+        pckg.Message = msg is not null ? msg.ToString() : "null";
+        PushLog(pckg);
+    }
+
     public static void LogInfo(object msg)
     {
         LogPackage pckg = default;
