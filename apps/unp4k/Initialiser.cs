@@ -121,32 +121,32 @@ internal static class Initialiser
             {
                 newLineCheck = true;
                 Logger.NewLine();
-                Logger.LogWarn("LINUX ROOT WARNING:");
-                Logger.LogWarn("unp4k has been run as root via the sudo command!");
-                Logger.LogWarn("This may cause issues due to the home path being '/root/'!");
+                Logger.LogWarn("LINUX ROOT WARNING:" + '\n' +
+                    "unp4k has been run as root via the sudo command!" + '\n' +
+                    "This may cause issues due to the home path being '/root/'!");
             }
             if (Globals.Filters.Contains("*.*"))
             {
                 if (newLineCheck) Logger.NewLine();
                 else newLineCheck = true;
-                Logger.LogWarn("ENORMOUS JOB WARNING:");
-                Logger.LogWarn("unp4k has been run with no filters or the *.* filter!");
-                Logger.LogWarn($"Star Citizen when unextracted {(Globals.ShouldForge ? "and forged" : string.Empty)} is very large in storage space and queues 100,000's of tasks.");
+                Logger.LogWarn("ENORMOUS JOB WARNING:" + '\n' + 
+                    "unp4k has been run with no filters or the *.* filter!" + '\n' +
+                    $"When extracted{(Globals.ShouldForge ? " and forged" : string.Empty)}, it will take up a lot of storage space and queues 100,000's of tasks in the process.");
             }
             if (Globals.ShouldOverwrite)
             {
                 if (newLineCheck) Logger.NewLine();
                 else newLineCheck = true;
-                Logger.LogWarn("OVERWRITE ENABLED:");
-                Logger.LogWarn("unp4k has been run with the overwrite option!");
-                Logger.LogWarn("Overwriting files could take very long depending on your drives Random 4k write speed!");
+                Logger.LogWarn("OVERWRITE ENABLED:" + '\n' +
+                    "unp4k has been run with the overwrite option!" + '\n' +
+                    "Overwriting files will potentially take much longer than choosing a new empty directory!");
             }
             if (Globals.ShouldDeleteOutput)
             {
                 if (newLineCheck) Logger.NewLine();
-                Logger.LogWarn("DELETE OUTPUT ENABLED:");
-                Logger.LogWarn($"unp4k will delete {Globals.OutDirectory}");
-                Logger.LogWarn("This could take a while depending on your storage drives Random 4k write speed and depending on how many files which have already been extracted!");
+                Logger.LogWarn("DELETE OUTPUT ENABLED:" + '\n' +
+                    $"unp4k will delete {Globals.OutDirectory}" + '\n' +
+                    "This may a few minutes longer but will benefit the extraction speed!");
             }
             if (!Logger.AskUserInput("Proceed?"))
             {
