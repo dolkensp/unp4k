@@ -10,12 +10,8 @@ internal static class Initialiser
         new(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Roberts Space Industries", "StarCitizen", "LIVE", "Data.p4k")) :
         new(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Desktop", "unp4k", "Data.p4k"));
 
-    private static readonly string Banner = '\n' +
-                "################################################################################" + '\n' + '\n' +
-                "                              unp4k <> Star Citizen                             " + '\n' + '\n' +
-                "################################################################################" + '\n' + '\n';
-    private static readonly string Manual = Banner +
-                "Extracts Star Citizen's Data.p4k into a directory of choice and even convert them into xml files!" + '\n' + '\n' +
+    private static readonly string Manual = 
+                "Extracts Star Citizen's Data.p4k into a directory of choice and optionally converts them into standard xml files!" + '\n' + '\n' +
                @"\" + '\n' +
                @" | Windows PowerShell: .\unp4ck -d -i " + '"' + "[InFilePath]" + '"' + " -o " + '"' + "[OutDirectoryPath]" + '"' + '\n' +
                @" | Windows Command Prompt: unp4ck -d -i " + '"' + "[InFilePath]" + '"' + " -o " + '"' + "[OutDirectoryPath]" + '"' + '\n' +
@@ -28,18 +24,18 @@ internal static class Initialiser
                 " | " + '\n' +
                @" |\" + '\n' +
                 " | - Required Arguments:" + '\n' +
-                " | | -i / -input: The input file path." + '\n' +
-                " | | -o / -output: The output directory path." + '\n' +
+                " | | -i or -input: The input file path." + '\n' +
+                " | | -o or -output: The output directory path." + '\n' +
                 " | |" + '\n' +
                 " | - Optional Arguments:" + '\n' +
-                " | | -f / -filter: Allows you to filter in the files you want." + '\n' +
-                " | | -e / -errors: Enables error and exception printing to console." + '\n' +
-                " | | -d / -details: Enabled detailed logging." + '\n' +
-                " | | -w / -overwrite: Forces all files to be re-extracted/re-forged." + '\n' +
-                " | | -d / -details: Deletes the output directory if it already exists on start." + '\n' +
-                " | | -f / -forge: Enables unforge to forge extracted files." + '\n' +
-                " | | -y / -accept: Don't ask for input, just continue. Recommended for automated systems." + '\n' +
-                " | | -g / -git: Opens unp4k's GitHub repository in your default browser" + '\n' +
+                " | | -f or -filter: Allows you to filter in the files you want." + '\n' +
+                " | | -e or -errors: Enables error and exception printing to console." + '\n' +
+                " | | -d or -details: Enabled detailed logging." + '\n' +
+                " | | -w or -overwrite: Forces all files to be re-extracted/re-forged." + '\n' +
+                " | | -d or -details: Deletes the output directory if it already exists on start." + '\n' +
+                " | | -f or -forge: Enables unforge to forge extracted files." + '\n' +
+                " | | -y or -accept: Don't ask for input, just continue. Recommended for automated systems." + '\n' +
+                " | | -g or -git: Opens unp4k's GitHub repository in your default browser" + '\n' +
                 " |/" + '\n' +
                 " | " + '\n' +
                @" |\" + '\n' +
@@ -51,8 +47,8 @@ internal static class Initialiser
                 " |/" + '\n' +
                 " | " + '\n' +
                @" |\" + '\n' +
-                " | - What is the Forge?" + '\n' +
-                " | | The Forge is a ways and means of deserialising CryXML, which is CryEngine's unique XML syntax." + '\n' +
+                " | - What is the unforge?" + '\n' +
+                " | | The unforge is a ways and means of deserialising CryXML, which is CryEngine's unique XML syntax." + '\n' +
                 " | | This is basically converting CryXML syntax to standard XML syntax." + '\n' +
                 " |/" + '\n' +
                 "/" + '\n';
@@ -121,7 +117,6 @@ internal static class Initialiser
         {
             // Show the user any warning if anything worrisome is detected.
             bool newLineCheck = false;
-            Logger.Write(Banner);
             if (OS.IsLinux && Environment.UserName.ToLower() == "root")
             {
                 newLineCheck = true;
