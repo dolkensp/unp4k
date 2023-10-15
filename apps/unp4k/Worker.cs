@@ -167,12 +167,12 @@ internal static class Worker
         // Print out the post summary.
         overallTime.Stop();
         Logger.NewLine();
-        Logger.LogInfo(
+        Logger.Log(
             "Extraction Complete" + '\n' +
             @"\" + '\n' +
             $" |  File Errors: {Globals.FileErrors:#,##0}" + '\n' +
             $" |  Time Taken: {(float)overallTime.ElapsedMilliseconds / 60000:#,##0.000} minutes" + '\n' +
-             " |  Due to the nature of SSD's/NVMe's, do not excessively (10 times a day etc) run the extraction on an SSD/NVMe. Doing so may dramatically reduce the lifetime of the SSD/NVMe.");
+             " |  DO NOT OUTPUT to any form of SSD/NVMe too many times or else you risk degrading it.");
         if (Logger.AskUserInput("Would you like to open the output directory? (Application will close on input)")) Platform.OpenFileManager(Globals.OutDirectory.FullName);
     }
 }
