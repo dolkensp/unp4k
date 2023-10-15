@@ -123,7 +123,6 @@ internal static class Worker
             Task output = Task.Run(() => print(outputQueue, fileTime));
             ParallelQuery<ZipEntry> pwi = P4K.GetParallelEnumerator(Environment.ProcessorCount, ParallelMergeOptions.NotBuffered, (entry, id) =>
             {
-                Logger.LogInfo($"           - Extracting: {entry.Name}");
                 if (Globals.ShouldPrintDetailedLogs) fileTime.Restart();
                 FileInfo extractionFile = new(Path.Join(Globals.OutDirectory.FullName, entry.Name));
                 FileInfo forgeFile = new(Path.Join(Globals.OutForgedDirectory.FullName, entry.Name));
