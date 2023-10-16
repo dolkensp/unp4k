@@ -23,6 +23,8 @@ namespace unp4k
 
 			if (args.Length == 1) args = new[] { args[0], "*.*" };
 
+			if (args.Length == 2) args = new[] { args[0], args[1], "" };
+
 			using (var pakFile = File.OpenRead(args[0]))
 			{
 				var pak = new ZipFile(pakFile) { Key = key };
@@ -41,17 +43,17 @@ namespace unp4k
 							entry.Name.ToLowerInvariant().Contains(args[1].ToLowerInvariant()) ||                                                                               // Searching for keywords / extensions
 							(args[1].EndsWith("xml", StringComparison.InvariantCultureIgnoreCase) && entry.Name.EndsWith(".dcb", StringComparison.InvariantCultureIgnoreCase))) // Searching for XMLs - include game.dcb
 						{
-							var target = new FileInfo(entry.Name);
+							var target = new FileInfo(args[2] + entry.Name);
 
 							if (!target.Directory.Exists) target.Directory.Create();
 
 							if (!target.Exists)
 							{
-								Console.WriteLine($"{entry.CompressionMethod} | {crypto} | {entry.Name}");
+								Console.WriteLine($"{entry.CompressionMethod} | {crypto} | {args[2] + entry.Name}");
 
 								using (Stream s = pak.GetInputStream(entry))
 								{
-									using (FileStream fs = File.Create(entry.Name))
+									using (FileStream fs = File.Create(args[2] + entry.Name))
 									{
 										StreamUtils.Copy(s, fs, buf);
 									}

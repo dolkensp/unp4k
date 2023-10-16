@@ -2,7 +2,7 @@
 	"profiles": {
 		"unp4k": {
 			"commandName": "Project",
-			"commandLineArgs": "O:\\StarCitizen\\StarCitizenPTU\\LIVE\\Data.p4k dcb"
+			"commandLineArgs": "\"C:/Program Files/Roberts Space Industries/StarCitizen/LIVE/Data.p4k\" dcb \"C:/_temp/\""
 		}
 	}
 }
