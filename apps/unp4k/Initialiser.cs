@@ -13,6 +13,7 @@ internal static class Initialiser
     private static readonly string Manual = 
                 "Extracts Star Citizen's Data.p4k into a directory of choice and optionally converts them into standard xml files!" + '\n' + '\n' +
                @"\" + '\n' +
+                " | Repository: https://github.com/dolkensp/unp4k" + '\n' +
                @" |\" + '\n' +
                 " | - Required Arguments:" + '\n' +
                 " | | -i or -input: The input file path." + '\n' +
@@ -26,21 +27,6 @@ internal static class Initialiser
                 " | | -d or -details: Deletes the output directory if it already exists on start." + '\n' +
                 " | | -f or -forge: Enables unforge to forge extracted files." + '\n' +
                 " | | -y or -accept: Don't ask for input, just continue. Recommended for automated systems." + '\n' +
-                " | | -g or -git: Opens unp4k's GitHub repository in your default browser" + '\n' +
-                " |/" + '\n' +
-                " | " + '\n' +
-               @" |\" + '\n' +
-                " | - Filter Formatting Examples:" + '\n' +
-                " | | File Type Selection: .dcb" + '\n' +
-                " | | Multi-File Type Selection: .dcb,.png,.gif" + '\n' +
-                " | | Specific File Selection: Game.dcb" + '\n' +
-                " | | Multi-Specific File Selection: Game.dcb,smiley_face.png,its_working.gif" + '\n' +
-                " |/" + '\n' +
-                " | " + '\n' +
-               @" |\" + '\n' +
-                " | - What is the unforge?" + '\n' +
-                " | | The unforge is a ways and means of deserialising CryXML, which is CryEngine's unique XML syntax." + '\n' +
-                " | | This is basically converting CryXML syntax to standard XML syntax." + '\n' +
                 " |/" + '\n' +
                 "/" + '\n';
 
