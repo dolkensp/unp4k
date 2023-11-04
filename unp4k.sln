@@ -31,8 +31,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "unlib", "libs\unlib\unlib.c
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Workflows", "Workflows", "{E0923082-1F43-4C41-8B0C-A73C0B3EE039}"
 	ProjectSection(SolutionItems) = preProject
-		build.yaml = build.yaml
 		.github\workflows\release.yaml = .github\workflows\release.yaml
+		.github\workflows\tests.yml = .github\workflows\tests.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{AB30B6F7-B1D5-4D33-9820-0E6DF1DE4C53}"
