@@ -11,16 +11,19 @@ on:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        os: [windows_latest, macos_latest, ubuntu_latest]
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 8.0.x
-    - name: Restore dependencies
+    - name: Restore Git Submodules
+      run: git submodule update --init --recursive
+    - name: Restore .NET Dependencies
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore
