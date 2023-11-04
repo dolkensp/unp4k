@@ -1,46 +1,43 @@
-# unp4k [![Build status](https://ci.appveyor.com/api/projects/status/hkufa3njtl0x9v79/branch/master?svg=true)](https://ci.appveyor.com/project/dolkensp/unp4k/branch/master)
-These tools allow users to open, decrypt, and extract data from Star Citizen `.p4k` files.
+# unp4k
+The go to tools which allow everyone and anyone to open, descrypt as well as extract any data from Star Citizen and Squadron 42!
 
-# Installation:
-1. Download `unp4k-suite-v3.3.x.zip`
-2. Right click the zip and select *Properties*
-3. Under the *General* tab, check the *Unblock* checkbox at the bottom if it exists, and click ok
-4. Extract the selected zip to your desired installation directory
+**Currently Squadron 42 is not out nor is there official Linux support for Star Citizen so, there are either no instructions for or few/supplimentary instructions for them which will be updated in future!**
 
-NOTE: unforge currently requires [.Net Framework 4.6.2](https://www.microsoft.com/net/download/thank-you/net462) or greater to run. If you receive the error `Method not found: '!!0[] System.Array.Empty()'.` you will need to install this framework.
+- [Any 64-bit OS which supports .NET 8 is therefore supported.](https://github.com/dotnet/core/blob/main/release-notes/8.0/supported-os.md)
+- For non-Windows, you will need to download install [.NET 8](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
+- For Windows, if you dont use Win11 or havent updated it, an automatic installer may prompt you about .NET 8.
 
-# Quickstart:
+## Usage (GUI & Command Line)
+1. Download the latest [unp4k](https://github.com/dolkensp/unp4k/releases) and unzip it anywhere within its own folder.
+2. If you are using Windows, you can simply run unp4k.exe.
 
-1. Drag `Data.p4k` from the `Starcitizen\LIVE` folder, directly onto `unp4k.exe`
+## Usage (GUI)
 
-# Advanced Command Line Usage:
 
-1. Launch a command line, and navigate to the unp4k directory
-2. Execute `unp4k.exe c:\path\to\data.p4k [filter]` where filter is a keyword used to filter the results (the default filter is `*.*`)
+## Usage (Command Line)
+**Tip: Use double quotation marks around a file/folder path if it contains spaces or else is will split it into multiple arguments. This also applies to the filter when using paths!**
+### Windows
+#### Powershell (Terminal app default)
+    .\unp4ck -d -i InFilePath -o OutDirectoryPath
+#### Command Line
+    unp4ck -d -i InFilePath -o OutDirectoryPath
+#### Example
+    unp4ck -i "C:\Program Files\Roberts Space Industries\StarCitizen\LIVE\Data.p4k" -o "C:\Windows\SC" -f "*.png" -d
+### macOS
+### Debian Linux
+#### Bash
+    ./unp4ck -d -i InFilePath -o OutDirectoryPath
+#### Example
+    unp4ck -i /home/USERNAME/unp4k/Data.p4k -o /home/USERNAME/unp4k/output -f *.png -d
 
-NOTE: The filter does not fully support wildcards. To extract files of a certain type, you may use `*.ext` as the filter, but no further wildcard functionality exists.
+# File Format Overview
+## p4k
+The p4k format is used by Star Citizen and Squadron 42 as a means of archiving all game files into a single place, simplifying as well as potentially speeding up many of the games systems.
 
-# Basic GUI Usage:
+The format is seemingly a custom PKZip archiving format which supports modes including STORE, DEFLATE and supports ZSTD. It supports bespoke encryption which covers some entries within the archive, obviously depending on what CIG encrypt per release; all the encrypted entries can be decrypted using CryEngine's public key used in its games for various encryption runtimes within the engine itself.
 
-1. Launch `unp4k.gui.exe`
-2. Select `File` > `Open` and browse to your chosen `Data.p4k`
-3. Browse the file structure
-4. Right click to extract/open files
+## dcb
+The dcb format is a bespoke database format which has similarities to CryXML. dcb is the resulting file from a system known internally at CIG as 'DataForge' and is able to be converted/extracted by putting it through unp4k's unforger.
 
-NOTE: unp4k.gui is early alpha, and has many crashes, and unfinished features. Use at your own risk
-
-# File Format Overview:
-
-The p4k files used by Star Citizen are Zip archives.
-
-Star Citizen supports data in multiple modes inside the archive, including STORE, DEFLATE, and custom support for ZSTD.
-
-Star Citizen also implements bespoke encryption over *some* of the data inside the archive - this can all be decrypted with the same public key that is utilized by CryEngine based games for various encryption routines within the engine.
-
-Inside the p4k file, XML files are often stored as CryXML rather than raw XML.
-
-CryXML is a basic serialized XML format which `unforge.exe` is able to deserialize.
-
-Inside the p4k file, there is also a `game.dcb` file, which is a bespoke database format, with similarities to CryXML.
-
-This is the product of what is known internally as "DataForge", and is also able to be converted/extracted using the `unforge.exe` tool.
+## CryXML
+CryXML is a type of the serialised standard XML created for CryEngine and still exists in Star Citizen today! It can be deserialised to standard XML and then to other formats.
