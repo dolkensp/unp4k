@@ -121,13 +121,26 @@ internal static class Worker
             {
                 if (Globals.ShouldPrintDetailedLogs) fileTime.Restart();
                 FileInfo extractionFile = new(Path.Join(Globals.OutDirectory.FullName, entry.Name));
-                FileInfo forgeFile = new(Path.Join(Globals.OutForgedDirectory.FullName, entry.Name));
-                try { P4kUnpacker.ExtractP4kEntry(P4K, entry, extractionFile, Globals.ShouldUnForge ? forgeFile : null); }
+                try 
+                { 
+                    P4kUnpacker.ExtractP4kEntry(P4K, entry, extractionFile);
+                }
                 catch (Exception e)
                 {
                     if (Globals.ShouldPrintDetailedLogs) Logger.LogException(e);
-                    if (forgeFile.Exists) forgeFile.Delete();
                     Globals.FileErrors++;
+                }
+                if (Globals.ShouldUnForge && extractionFile.Extension is ".dcb" or ".xml")
+                {
+                    try
+                    {
+                        P4kUnpacker.UnForgeFile(extractionFile, new(Path.Join(Globals.OutForgedDirectory.FullName, entry.Name)), Globals.ShouldConvertToJson);
+                    }
+                    catch (Exception e)
+                    {
+                        if (Globals.ShouldPrintDetailedLogs) Logger.LogException(e);
+                        Globals.FileErrors++;
+                    }
                 }
                 Interlocked.Increment(ref tasksDone);
                 return entry;

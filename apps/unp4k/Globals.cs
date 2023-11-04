@@ -13,6 +13,7 @@ internal static class Globals
 
     internal static bool ShouldPrintDetailedLogs = false;
     internal static bool ShouldUnForge = false;
+    internal static bool ShouldConvertToJson = false;
     internal static bool ShouldOverwrite = false;
     internal static bool ShouldAcceptEverything = false;
 

@@ -176,5 +176,5 @@ public static class DataForge
     }
 
     // Just a simplicity abstraction
-    public static void Forge(FileInfo fileIn, FileInfo fileOut) => new DataForgeIndex(fileIn).Serialise(fileOut);
+    public static void UnForge(FileInfo fileIn, FileInfo fileOut) => new DataForgeIndex(fileIn).Serialise(fileOut);
 }

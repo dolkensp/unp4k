@@ -24,6 +24,7 @@ internal static class Initialiser
                 " | | -f   or --filter:    Allows you to filter in the files you want." + '\n' +
                 " | | -d   or --details:   Enabled detailed logging including errors." + '\n' +
                 " | | -unf or --unforge:   Enables unforge to forge extracted files." + '\n' +
+                " | | -j   or --json:      Converts all CryXML to JSON while retaining standard XML files." + '\n' +
                 " | | -ow  or --overwrite: Overwrites files that already exist." + '\n' +
                 " | | -y   or --accept:    Don't ask for input, just continue. Recommended for automated systems." + '\n' +
                 " |/" + '\n' +
@@ -37,18 +38,19 @@ internal static class Initialiser
         // Parse the arguments and do what they represent
         for (int i = 0; i < Globals.Arguments.Count; i++)
         {
-            if (Globals.Arguments[i].ToLowerInvariant() is "-i"   || Globals.Arguments[i].ToLowerInvariant() is "--input")          Globals.P4kFile                     = new(Globals.Arguments[i + 1]);
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-o"   || Globals.Arguments[i].ToLowerInvariant() is "--output")    Globals.OutDirectory                = new(Globals.Arguments[i + 1]);
+            if (Globals.Arguments[i].ToLowerInvariant() is "-i"   || Globals.Arguments[i].ToLowerInvariant() is "--input")          Globals.P4kFile                 = new(Globals.Arguments[i + 1]);
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-o"   || Globals.Arguments[i].ToLowerInvariant() is "--output")    Globals.OutDirectory            = new(Globals.Arguments[i + 1]);
             else if (Globals.Arguments[i].ToLowerInvariant() is "-t"   || Globals.Arguments[i].ToLowerInvariant() is "--threads") 
             {
-                if (int.TryParse(Globals.Arguments[i + 1], out int threads))                                                        Globals.ThreadLimit = threads;
+                if (int.TryParse(Globals.Arguments[i + 1], out int threads))                                                        Globals.ThreadLimit             = threads;
                 else throw new InvalidCastException(Globals.Arguments[i + 1]);
             }
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-f"   || Globals.Arguments[i].ToLowerInvariant() is "--filter")    Globals.Filters                     = [.. Globals.Arguments[i + 1].Split(',')];
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-d"   || Globals.Arguments[i].ToLowerInvariant() is "--details")   Globals.ShouldPrintDetailedLogs     = true;
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-unf" || Globals.Arguments[i].ToLowerInvariant() is "--unforge")   Globals.ShouldUnForge               = true;
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-ow"  || Globals.Arguments[i].ToLowerInvariant() is "--overwrite") Globals.ShouldOverwrite             = true;
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-y"   || Globals.Arguments[i].ToLowerInvariant() is "--accept")    Globals.ShouldAcceptEverything      = true;
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-f"   || Globals.Arguments[i].ToLowerInvariant() is "--filter")    Globals.Filters                 = [.. Globals.Arguments[i + 1].Split(',')];
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-d"   || Globals.Arguments[i].ToLowerInvariant() is "--details")   Globals.ShouldPrintDetailedLogs = true;
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-unf" || Globals.Arguments[i].ToLowerInvariant() is "--unforge")   Globals.ShouldUnForge           = true;
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-j"   || Globals.Arguments[i].ToLowerInvariant() is "--json")      Globals.ShouldConvertToJson     = true;
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-ow"  || Globals.Arguments[i].ToLowerInvariant() is "--overwrite") Globals.ShouldOverwrite         = true;
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-y"   || Globals.Arguments[i].ToLowerInvariant() is "--accept")    Globals.ShouldAcceptEverything  = true;
         }
 
         bool hasInput = false;

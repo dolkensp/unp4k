@@ -14,13 +14,13 @@
     },
     "unp4k - LIVE unforge": {
       "commandName": "Project",
-      "commandLineArgs": "-unf -ow",
+      "commandLineArgs": "-unf -ow -j",
       "hotReloadEnabled": false,
       "authenticationMode": "None"
     },
     "unp4k - PTU unforge": {
       "commandName": "Project",
-      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -unf -ow",
+      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -unf -ow -j",
       "hotReloadEnabled": false,
       "authenticationMode": "None"
     }
