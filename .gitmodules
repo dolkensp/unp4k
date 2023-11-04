@@ -1,6 +1,3 @@
 [submodule "modules/SharpZipLib"]
 	path = modules/SharpZipLib
 	url = https://github.com/Stryxus/SharpZipLib
-[submodule "modules/bootstrap"]
-	path = modules/bootstrap
-	url = https://github.com/twbs/bootstrap
