@@ -13,15 +13,6 @@ internal static class Initialiser
     private static readonly string Manual = 
                 "Extracts Star Citizen's Data.p4k into a directory of choice and optionally converts them into standard xml files!" + '\n' + '\n' +
                @"\" + '\n' +
-               @" | Windows PowerShell: .\unp4ck -d -i " + '"' + "[InFilePath]" + '"' + " -o " + '"' + "[OutDirectoryPath]" + '"' + '\n' +
-               @" | Windows Command Prompt: unp4ck -d -i " + '"' + "[InFilePath]" + '"' + " -o " + '"' + "[OutDirectoryPath]" + '"' + '\n' +
-               @" | Linux Terminal: ./unp4ck -d -i " + '"' + "[InFilePath]" + '"' + " -o " + '"' + "[OutDirectoryPath]" + '"' + '\n' +
-                " | " + '\n' +
-               @" | Windows Example: unp4ck -i " + '"' + @"C:\Program Files\Roberts Space Industries\StarCitizen\LIVE\Data.p4k" + '"' + " -o " +
-                        '"' + @"C:\Windows\SC" + '"' + " -f " + '"' + "*.*" + '"' + " -d" + '\n' +
-               @" | Ubuntu Example: unp4ck -i " + '"' + @"/home/USERNAME/unp4k/Data.p4k" + '"' + " -o " + '"' + @"/home/USERNAME/unp4k/output" +
-                        '"' + " -f " + '"' + "*.*" + '"' + " -d" + '\n' +
-                " | " + '\n' +
                @" |\" + '\n' +
                 " | - Required Arguments:" + '\n' +
                 " | | -i or -input: The input file path." + '\n' +
