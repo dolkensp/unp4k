@@ -20,13 +20,11 @@ internal static class Initialiser
                 " | | -o or -output: The output directory path." + '\n' +
                 " | |" + '\n' +
                 " | - Optional Arguments:" + '\n' +
-                " | | -f or -filter: Allows you to filter in the files you want." + '\n' +
-                " | | -e or -errors: Enables error and exception printing to console." + '\n' +
-                " | | -d or -details: Enabled detailed logging." + '\n' +
-                " | | -w or -overwrite: Forces all files to be re-extracted/re-forged." + '\n' +
-                " | | -d or -details: Deletes the output directory if it already exists on start." + '\n' +
-                " | | -f or -forge: Enables unforge to forge extracted files." + '\n' +
-                " | | -y or -accept: Don't ask for input, just continue. Recommended for automated systems." + '\n' +
+                " | | -f   or --filter:    Allows you to filter in the files you want." + '\n' +
+                " | | -d   or --details:   Enabled detailed logging including errors." + '\n' +
+                " | | -unf or --unforge:   Enables unforge to forge extracted files." + '\n' +
+                " | | -ow  or --overwrite: Overwrites files that already exist." + '\n' +
+                " | | -y   or --accept:    Don't ask for input, just continue. Recommended for automated systems." + '\n' +
                 " |/" + '\n' +
                 "/" + '\n';
 
@@ -36,12 +34,12 @@ internal static class Initialiser
         Logger.SetTitle($"unp4k: Pre-Initializing...");
         if (Globals.Arguments.Count is 0 or 1)
         {
-            bool hasInput =  Globals.Arguments.Contains("-i") || Globals.Arguments.Contains("-input");
-            bool hasOutput = Globals.Arguments.Contains("-o") || Globals.Arguments.Contains("-output");
-            bool hasFilter = Globals.Arguments.Contains("-f") || Globals.Arguments.Contains("-filter");
-            if (!hasInput)  Globals.P4kFile = Defaultp4kFile;
-            if (!hasOutput) Globals.OutDirectory = DefaultExtractionDirectory;
-            if (!hasFilter) Globals.Filters.Add("*.*");
+            bool hasInput =  Globals.Arguments.Contains("-i") || Globals.Arguments.Contains("--input");
+            bool hasOutput = Globals.Arguments.Contains("-o") || Globals.Arguments.Contains("--output");
+            bool hasFilter = Globals.Arguments.Contains("-f") || Globals.Arguments.Contains("--filter");
+            if (!hasInput)   Globals.P4kFile = Defaultp4kFile;
+            if (!hasOutput)  Globals.OutDirectory = DefaultExtractionDirectory;
+            if (!hasFilter)  Globals.Filters.Add("*.*");
             // Basically show the user the manual if there are missing arguments.
             Logger.Write($"{Manual}{(!hasInput ? $"\nNO INPUT Data.p4k PATH HAS BEEN DECLARED. USING DEFAULT PATH {Defaultp4kFile.FullName}" : string.Empty)}" + // TODO: See if we can get the install path in registry.
                 $"{(!hasOutput ? $"\nNO OUTPUT DIRECTORY PATH HAS BEEN DECLARED. ALL EXTRACTS WILL GO INTO {DefaultExtractionDirectory.FullName}" : string.Empty)}" +
@@ -54,16 +52,13 @@ internal static class Initialiser
         // Parse the arguments and do what they represent
         for (int i = 0; i < Globals.Arguments.Count; i++)
         {
-            if (Globals.Arguments[i].ToLowerInvariant() is "-i" || Globals.Arguments[i].ToLowerInvariant() is "-input")             Globals.P4kFile                     = new(Globals.Arguments[i + 1]);
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-o" || Globals.Arguments[i].ToLowerInvariant() is "-output")       Globals.OutDirectory                = new(Globals.Arguments[i + 1]);
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-f" || Globals.Arguments[i].ToLowerInvariant() is "-filter")       Globals.Filters                     = [.. Globals.Arguments[i + 1].Split(',')];
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-e" || Globals.Arguments[i].ToLowerInvariant() is "-errors")       Globals.ShouldPrintErrors           = true;
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-d" || Globals.Arguments[i].ToLowerInvariant() is "-details")      Globals.ShouldPrintDetailedLogs     = true;
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-w" || Globals.Arguments[i].ToLowerInvariant() is "-overwrite")    Globals.ShouldOverwrite             = true;
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-p" || Globals.Arguments[i].ToLowerInvariant() is "-delput")       Globals.ShouldDeleteOutput          = true;
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-s" || Globals.Arguments[i].ToLowerInvariant() is "-forge")        Globals.ShouldForge                 = true;
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-y" || Globals.Arguments[i].ToLowerInvariant() is "-accept")       Globals.ShouldAcceptEverything      = true;
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-g" || Globals.Arguments[i].ToLowerInvariant() is "-git")          Platform.OpenWebpage(new Uri("https://github.com/dolkensp/unp4k"));
+            if      (Globals.Arguments[i].ToLowerInvariant() is "-i"   || Globals.Arguments[i].ToLowerInvariant() is "--input")     Globals.P4kFile                     = new(Globals.Arguments[i + 1]);
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-o"   || Globals.Arguments[i].ToLowerInvariant() is "--output")    Globals.OutDirectory                = new(Globals.Arguments[i + 1]);
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-f"   || Globals.Arguments[i].ToLowerInvariant() is "--filter")    Globals.Filters                     = [.. Globals.Arguments[i + 1].Split(',')];
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-d"   || Globals.Arguments[i].ToLowerInvariant() is "--details")   Globals.ShouldPrintDetailedLogs     = true;
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-unf" || Globals.Arguments[i].ToLowerInvariant() is "--unforge")   Globals.ShouldForge                 = true;
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-ow"  || Globals.Arguments[i].ToLowerInvariant() is "--overwrite") Globals.ShouldOverwrite             = true;
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-y"   || Globals.Arguments[i].ToLowerInvariant() is "--accept")    Globals.ShouldAcceptEverything      = true;
         }
     }
 
@@ -117,13 +112,6 @@ internal static class Initialiser
                 Logger.LogWarn("OVERWRITE ENABLED:" + '\n' +
                     "unp4k has been run with the overwrite option!" + '\n' +
                     "Overwriting files will potentially take much longer than choosing a new empty directory!");
-            }
-            if (Globals.ShouldDeleteOutput)
-            {
-                if (newLineCheck) Logger.NewLine();
-                Logger.LogWarn("DELETE OUTPUT ENABLED:" + '\n' +
-                    $"unp4k will delete {Globals.OutDirectory}" + '\n' +
-                    "This may a few minutes longer but will benefit the extraction speed!");
             }
             if (!Logger.AskUserInput("Proceed?"))
             {

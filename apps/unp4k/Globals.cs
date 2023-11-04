@@ -11,11 +11,9 @@ internal static class Globals
 
     internal static bool InternalExitTrigger = false;
 
-    internal static bool ShouldPrintErrors = false;
     internal static bool ShouldPrintDetailedLogs = false;
     internal static bool ShouldForge = false;
     internal static bool ShouldOverwrite = false;
-    internal static bool ShouldDeleteOutput = false;
     internal static bool ShouldAcceptEverything = false;
 
     internal static int FileErrors = 0;

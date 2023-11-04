@@ -34,7 +34,7 @@ internal static class Worker
                     bool fileExists = f.Exists;
                     long fileLength = fileExists ? f.Length : 0L;
                     long entryLength = entry.Size;
-                    if (fileExists && !Globals.ShouldOverwrite && !Globals.ShouldDeleteOutput)
+                    if (fileExists && !Globals.ShouldOverwrite && !Globals.ShouldPrintDetailedLogs)
                     {
                         additionalFiles = true;
                         if (bytesSize - fileLength > 0L) bytesSize -= fileLength;
@@ -46,7 +46,7 @@ internal static class Worker
                         if (!isDecompressable) isDecompressableCount++;
                         if (isLocked) isLockedCount++;
                     }
-                    return isDecompressable && !isLocked && (Globals.ShouldOverwrite || Globals.ShouldDeleteOutput || !fileExists || fileLength != entryLength);
+                    return isDecompressable && !isLocked && (Globals.ShouldOverwrite || Globals.ShouldPrintDetailedLogs || !fileExists || fileLength != entryLength);
                 }
                 else return false;
             });
@@ -73,7 +73,6 @@ internal static class Worker
                                                                                 $"{(Globals.Filters[0] != "*.*" ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" + '\n' +
                  " |                                  | " + '\n' +
                 $" |         Overwrite Existing Files | {Globals.ShouldOverwrite}" + '\n' +
-                $" | Delete Previous Output Directory | {Globals.ShouldDeleteOutput}" + '\n' +
                 $" |                  Do unforge Pass | {Globals.ShouldForge}" + '\n' +
                  " |                                  | " + '\n' +
                  " |                                  | The speed this takes highly depends on your storage drives Random IO (Many small files) speeds." + '\n' +
@@ -81,7 +80,7 @@ internal static class Worker
                 @"/";
 
         // Never allow the extraction to go through if the target storage drive has too little available space.
-        if (outputDrive.AvailableFreeSpace + (Globals.ShouldOverwrite || Globals.ShouldDeleteOutput ? Globals.OutDirectory.GetFiles("*.*", SearchOption.AllDirectories).Sum(x => x.Length) : 0) < bytesSize)
+        if (outputDrive.AvailableFreeSpace + (Globals.ShouldOverwrite ? Globals.OutDirectory.GetFiles("*.*", SearchOption.AllDirectories).Sum(x => x.Length) : 0) < bytesSize)
         {
             Logger.Log("The output path you have chosen is on a partition which does not have enough available free space!" + '\n' + summary);
             if (!Globals.ShouldAcceptEverything) Console.ReadKey();
@@ -105,12 +104,6 @@ internal static class Worker
     private static int tasksDone = 0;
     internal static void DoExtraction()
     {
-        if (Globals.ShouldDeleteOutput && Globals.OutDirectory.Exists)
-        {
-            Logger.RunProgressBarAction($"Deleting {Globals.OutDirectory} - This may take a while", () => Globals.OutDirectory.Delete(true));
-            Globals.OutDirectory.Create();
-            Globals.OutForgedDirectory.Create();
-        }
         Logger.ClearBuffer();
 
         // Time the extraction for those who are interested in it.
@@ -133,7 +126,7 @@ internal static class Worker
                 try { P4kUnpacker.ExtractP4kEntry(P4K, entry, extractionFile, Globals.ShouldForge ? forgeFile : null); }
                 catch (Exception e)
                 {
-                    if (Globals.ShouldPrintErrors) Logger.LogException(e);
+                    if (Globals.ShouldPrintDetailedLogs) Logger.LogException(e);
                     if (forgeFile.Exists) forgeFile.Delete();
                     Globals.FileErrors++;
                 }
