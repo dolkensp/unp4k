@@ -25,7 +25,7 @@ internal static class Worker
             // Speed up the extraction by a large amount by filtering out the files which already exist and dont need updating.
             P4K.FilterEntries(entry =>
             {
-                if (Globals.Filters.Count != 0|| Globals.Filters.Any(o => entry.Name.Contains(o)))
+                if (Globals.Filters.Count == 0 || Globals.Filters.Any(o => entry.Name.Contains(o)))
                 {
                     FileInfo f = new(Path.Join(Globals.OutDirectory.FullName, entry.Name));
                     bool isDecompressable = entry.CanDecompress;
