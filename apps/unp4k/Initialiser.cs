@@ -11,7 +11,7 @@ internal static class Initialiser
         new(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Desktop", "unp4k", "Data.p4k"));
 
     private static readonly string Manual = 
-                "Extracts Star Citizen's Data.p4k into a directory of choice and optionally converts them into standard xml files!" + '\n' + '\n' +
+                "Extracts Star Citizen's Data.p4k into a directory of choice and optionally converts them into standard XML files!" + '\n' + '\n' +
                @"\" + '\n' +
                 " | Repository: https://github.com/dolkensp/unp4k" + '\n' +
                @" |\" + '\n' +
