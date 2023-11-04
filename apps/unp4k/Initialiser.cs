@@ -4,6 +4,7 @@ namespace unp4k;
 
 internal static class Initialiser
 {
+    // CIG seemingly do not store any record of where Star Citizen is installed in any parsable format due to the launcher being Chromium based.
     private static DirectoryInfo? DefaultOutputDirectory { get; } = new(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "unp4k"));
     private static DirectoryInfo? DefaultExtractionDirectory { get; } = new(Path.Join(DefaultOutputDirectory.FullName, "output"));
     private static FileInfo? Defaultp4kFile { get; } = OS.IsWindows ?
