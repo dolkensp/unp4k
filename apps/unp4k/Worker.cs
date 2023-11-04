@@ -117,7 +117,7 @@ internal static class Worker
             byte[] decomBuffer = new byte[4096];
             BlockingCollection<ZipEntry> outputQueue = new(P4K.EntryCount);
             Task output = Task.Run(() => print(outputQueue, fileTime));
-            ParallelQuery<ZipEntry> pwi = P4K.GetParallelEnumerator(Environment.ProcessorCount, ParallelMergeOptions.NotBuffered, (entry, id) =>
+            ParallelQuery<ZipEntry> pwi = P4K.GetParallelEnumerator(Globals.ThreadLimit, ParallelMergeOptions.NotBuffered, (entry, id) =>
             {
                 if (Globals.ShouldPrintDetailedLogs) fileTime.Restart();
                 FileInfo extractionFile = new(Path.Join(Globals.OutDirectory.FullName, entry.Name));

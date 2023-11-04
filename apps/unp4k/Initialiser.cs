@@ -37,11 +37,16 @@ internal static class Initialiser
         // Parse the arguments and do what they represent
         for (int i = 0; i < Globals.Arguments.Count; i++)
         {
-            if      (Globals.Arguments[i].ToLowerInvariant() is "-i"   || Globals.Arguments[i].ToLowerInvariant() is "--input")     Globals.P4kFile                     = new(Globals.Arguments[i + 1]);
+            if (Globals.Arguments[i].ToLowerInvariant() is "-i"   || Globals.Arguments[i].ToLowerInvariant() is "--input")          Globals.P4kFile                     = new(Globals.Arguments[i + 1]);
             else if (Globals.Arguments[i].ToLowerInvariant() is "-o"   || Globals.Arguments[i].ToLowerInvariant() is "--output")    Globals.OutDirectory                = new(Globals.Arguments[i + 1]);
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-t"   || Globals.Arguments[i].ToLowerInvariant() is "--threads") 
+            {
+                if (int.TryParse(Globals.Arguments[i + 1], out int threads))                                                        Globals.ThreadLimit = threads;
+                else throw new InvalidCastException(Globals.Arguments[i + 1]);
+            }
             else if (Globals.Arguments[i].ToLowerInvariant() is "-f"   || Globals.Arguments[i].ToLowerInvariant() is "--filter")    Globals.Filters                     = [.. Globals.Arguments[i + 1].Split(',')];
             else if (Globals.Arguments[i].ToLowerInvariant() is "-d"   || Globals.Arguments[i].ToLowerInvariant() is "--details")   Globals.ShouldPrintDetailedLogs     = true;
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-unf" || Globals.Arguments[i].ToLowerInvariant() is "--unforge")   Globals.ShouldUnForge                 = true;
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-unf" || Globals.Arguments[i].ToLowerInvariant() is "--unforge")   Globals.ShouldUnForge               = true;
             else if (Globals.Arguments[i].ToLowerInvariant() is "-ow"  || Globals.Arguments[i].ToLowerInvariant() is "--overwrite") Globals.ShouldOverwrite             = true;
             else if (Globals.Arguments[i].ToLowerInvariant() is "-y"   || Globals.Arguments[i].ToLowerInvariant() is "--accept")    Globals.ShouldAcceptEverything      = true;
         }

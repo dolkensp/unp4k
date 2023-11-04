@@ -16,5 +16,6 @@ internal static class Globals
     internal static bool ShouldOverwrite = false;
     internal static bool ShouldAcceptEverything = false;
 
+    internal static int ThreadLimit = Environment.ProcessorCount;
     internal static int FileErrors = 0;
 }
