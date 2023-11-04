@@ -41,7 +41,7 @@ internal static class Initialiser
             else if (Globals.Arguments[i].ToLowerInvariant() is "-o"   || Globals.Arguments[i].ToLowerInvariant() is "--output")    Globals.OutDirectory                = new(Globals.Arguments[i + 1]);
             else if (Globals.Arguments[i].ToLowerInvariant() is "-f"   || Globals.Arguments[i].ToLowerInvariant() is "--filter")    Globals.Filters                     = [.. Globals.Arguments[i + 1].Split(',')];
             else if (Globals.Arguments[i].ToLowerInvariant() is "-d"   || Globals.Arguments[i].ToLowerInvariant() is "--details")   Globals.ShouldPrintDetailedLogs     = true;
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-unf" || Globals.Arguments[i].ToLowerInvariant() is "--unforge")   Globals.ShouldForge                 = true;
+            else if (Globals.Arguments[i].ToLowerInvariant() is "-unf" || Globals.Arguments[i].ToLowerInvariant() is "--unforge")   Globals.ShouldUnForge                 = true;
             else if (Globals.Arguments[i].ToLowerInvariant() is "-ow"  || Globals.Arguments[i].ToLowerInvariant() is "--overwrite") Globals.ShouldOverwrite             = true;
             else if (Globals.Arguments[i].ToLowerInvariant() is "-y"   || Globals.Arguments[i].ToLowerInvariant() is "--accept")    Globals.ShouldAcceptEverything      = true;
         }
@@ -102,7 +102,7 @@ internal static class Initialiser
                 else newLineCheck = true;
                 Logger.LogWarn("ENORMOUS JOB WARNING:" + '\n' + 
                     "unp4k has been run with no filters or the *.* filter!" + '\n' +
-                    $"When extracted{(Globals.ShouldForge ? " and forged" : string.Empty)}, it will take up a lot of storage space and queues 100,000's of tasks in the process.");
+                    $"When extracted{(Globals.ShouldUnForge ? " and forged" : string.Empty)}, it will take up a lot of storage space and queues 100,000's of tasks in the process.");
             }
             if (Globals.ShouldOverwrite)
             {

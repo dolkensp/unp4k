@@ -16,9 +16,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries", "Libraries", "{DA2A390A-7859-40FF-8D06-86859BBE85C0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Applications", "Applications", "{B19C9D53-D2FA-4346-B85A-EE475B661006}"
-	ProjectSection(SolutionItems) = preProject
-		unp4k.cmd = unp4k.cmd
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Misc", "Misc", "{37E59179-ED8E-422D-AD47-3003A2B9C5C5}"
 	ProjectSection(SolutionItems) = preProject

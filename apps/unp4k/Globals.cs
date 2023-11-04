@@ -12,7 +12,7 @@ internal static class Globals
     internal static bool InternalExitTrigger = false;
 
     internal static bool ShouldPrintDetailedLogs = false;
-    internal static bool ShouldForge = false;
+    internal static bool ShouldUnForge = false;
     internal static bool ShouldOverwrite = false;
     internal static bool ShouldAcceptEverything = false;
 

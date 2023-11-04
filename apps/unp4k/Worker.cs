@@ -72,7 +72,7 @@ internal static class Worker
                                                                                 $"{(Globals.Filters.Count != 0 ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" + '\n' +
                  " |                                  | " + '\n' +
                 $" |         Overwrite Existing Files | {Globals.ShouldOverwrite}" + '\n' +
-                $" |                  Do unforge Pass | {Globals.ShouldForge}" + '\n' +
+                $" |                  Do unforge Pass | {Globals.ShouldUnForge}" + '\n' +
                  " |                                  | " + '\n' +
                  " |                                  | The speed this takes highly depends on your storage drives Random IO (Many small files) speeds." + '\n' +
                  " |                                  | Tools like CrystalDiskMark call this 4kRnd (4k bytes random read/write)." + '\n' +
@@ -122,7 +122,7 @@ internal static class Worker
                 if (Globals.ShouldPrintDetailedLogs) fileTime.Restart();
                 FileInfo extractionFile = new(Path.Join(Globals.OutDirectory.FullName, entry.Name));
                 FileInfo forgeFile = new(Path.Join(Globals.OutForgedDirectory.FullName, entry.Name));
-                try { P4kUnpacker.ExtractP4kEntry(P4K, entry, extractionFile, Globals.ShouldForge ? forgeFile : null); }
+                try { P4kUnpacker.ExtractP4kEntry(P4K, entry, extractionFile, Globals.ShouldUnForge ? forgeFile : null); }
                 catch (Exception e)
                 {
                     if (Globals.ShouldPrintDetailedLogs) Logger.LogException(e);
