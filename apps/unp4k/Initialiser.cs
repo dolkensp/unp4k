@@ -32,22 +32,6 @@ internal static class Initialiser
     {
         Logger.ClearBuffer();
         Logger.SetTitle($"unp4k: Pre-Initializing...");
-        if (Globals.Arguments.Count is 0 or 1)
-        {
-            bool hasInput =  Globals.Arguments.Contains("-i") || Globals.Arguments.Contains("--input");
-            bool hasOutput = Globals.Arguments.Contains("-o") || Globals.Arguments.Contains("--output");
-            bool hasFilter = Globals.Arguments.Contains("-f") || Globals.Arguments.Contains("--filter");
-            if (!hasInput)   Globals.P4kFile = Defaultp4kFile;
-            if (!hasOutput)  Globals.OutDirectory = DefaultExtractionDirectory;
-            if (!hasFilter)  Globals.Filters.Add("*.*");
-            // Basically show the user the manual if there are missing arguments.
-            Logger.Write($"{Manual}{(!hasInput ? $"\nNO INPUT Data.p4k PATH HAS BEEN DECLARED. USING DEFAULT PATH {Defaultp4kFile.FullName}" : string.Empty)}" + // TODO: See if we can get the install path in registry.
-                $"{(!hasOutput ? $"\nNO OUTPUT DIRECTORY PATH HAS BEEN DECLARED. ALL EXTRACTS WILL GO INTO {DefaultExtractionDirectory.FullName}" : string.Empty)}" +
-                $"{(!hasFilter ? $"\nNO FILTER HAS BEEN DECLARED. USING NO FILTER!" : string.Empty)}" +
-                "\n\nPress any key to continue!\n");
-            Console.ReadKey();
-            Logger.ClearBuffer();
-        }
 
         // Parse the arguments and do what they represent
         for (int i = 0; i < Globals.Arguments.Count; i++)
@@ -59,6 +43,21 @@ internal static class Initialiser
             else if (Globals.Arguments[i].ToLowerInvariant() is "-unf" || Globals.Arguments[i].ToLowerInvariant() is "--unforge")   Globals.ShouldForge                 = true;
             else if (Globals.Arguments[i].ToLowerInvariant() is "-ow"  || Globals.Arguments[i].ToLowerInvariant() is "--overwrite") Globals.ShouldOverwrite             = true;
             else if (Globals.Arguments[i].ToLowerInvariant() is "-y"   || Globals.Arguments[i].ToLowerInvariant() is "--accept")    Globals.ShouldAcceptEverything      = true;
+        }
+
+        bool hasInput = false;
+        bool hasOutput = false;
+        if (!(hasInput = Globals.P4kFile != null) || !(hasOutput = Globals.OutDirectory != null))
+        {
+            if (!hasInput) Globals.P4kFile = Defaultp4kFile;
+            if (!hasOutput) Globals.OutDirectory = DefaultExtractionDirectory;
+
+            // Basically show the user the manual if there are missing arguments.
+            Logger.Write($"{Manual}{(!hasInput ? $"\nNO INPUT Data.p4k PATH HAS BEEN DECLARED. USING DEFAULT PATH {Defaultp4kFile.FullName}" : string.Empty)}" + // TODO: See if we can get the install path in registry.
+                $"{(!hasOutput ? $"\nNO OUTPUT DIRECTORY PATH HAS BEEN DECLARED. ALL EXTRACTS WILL GO INTO {DefaultExtractionDirectory.FullName}" : string.Empty)}" +
+                "\n\nPress any key to continue!\n");
+            Console.ReadKey();
+            Logger.ClearBuffer();
         }
     }
 
