@@ -69,7 +69,6 @@ internal static class Initialiser
         Globals.P4kFile ??= Defaultp4kFile;
         Globals.OutDirectory ??= DefaultExtractionDirectory;
         Globals.OutForgedDirectory ??= new(Path.Join(Globals.OutDirectory.FullName, "Forged"));
-        if (Globals.Filters.Count is 0) Globals.Filters.Add("*.*");
         if (!Globals.P4kFile.Exists)
         {
             Logger.LogError($"Input path '{Globals.P4kFile.FullName}' does not exist!");

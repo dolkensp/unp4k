@@ -1,7 +1,6 @@
 ﻿using ICSharpCode.SharpZipLib.Zip;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Text;
 using unlib;
 
 namespace unp4k;
@@ -26,7 +25,7 @@ internal static class Worker
             // Speed up the extraction by a large amount by filtering out the files which already exist and dont need updating.
             P4K.FilterEntries(entry =>
             {
-                if (Globals.Filters.Contains("*.*") || Globals.Filters.Any(o => entry.Name.Contains(o)))
+                if (Globals.Filters.Count != 0|| Globals.Filters.Any(o => entry.Name.Contains(o)))
                 {
                     FileInfo f = new(Path.Join(Globals.OutDirectory.FullName, entry.Name));
                     bool isDecompressable = entry.CanDecompress;
@@ -64,13 +63,13 @@ internal static class Worker
                  " |                                  | " + '\n' +
                 $" |                       File Count | {P4K.EntryCount:#,##0}" +
                                                                                 $"{(!Globals.ShouldOverwrite && additionalFiles ? " Additional Files" : string.Empty)}" +
-                                                                                $"{(Globals.Filters[0] != "*.*" ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" + '\n' +
+                                                                                $"{(Globals.Filters.Count != 0 ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" + '\n' +
                 $" |               Files Incompatible | {isDecompressableCount:#,##0}" +
                                                                                 $"{(!Globals.ShouldOverwrite && additionalFiles ? " Additional Files" : string.Empty)}" +
-                                                                                $"{(Globals.Filters[0] != "*.*" ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" + '\n' +
+                                                                                $"{(Globals.Filters.Count != 0 ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" + '\n' +
                 $" |                     Files Locked | {isLockedCount:#,##0}" +
                                                                                 $"{(!Globals.ShouldOverwrite && additionalFiles ? " Additional Files" : string.Empty)}" +
-                                                                                $"{(Globals.Filters[0] != "*.*" ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" + '\n' +
+                                                                                $"{(Globals.Filters.Count != 0 ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" + '\n' +
                  " |                                  | " + '\n' +
                 $" |         Overwrite Existing Files | {Globals.ShouldOverwrite}" + '\n' +
                 $" |                  Do unforge Pass | {Globals.ShouldForge}" + '\n' +
