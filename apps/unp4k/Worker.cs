@@ -76,6 +76,7 @@ internal static class Worker
                 $" |         Overwrite Existing Files | {Globals.ShouldOverwrite}" + '\n' +
                 $" |                  Do unforge Pass | {Globals.ShouldUnForge}" + '\n' +
                  " |                                  | " + '\n' +
+                 " |                                  | These estimates do not including the UnForging process!" + '\n' +
                  " |                                  | The speed this takes highly depends on your storage drives Random IO (Many small files) speeds." + '\n' +
                  " |                                  | Tools like CrystalDiskMark call this 4kRnd (4k bytes random read/write)." + '\n' +
                 @"/";
