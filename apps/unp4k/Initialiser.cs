@@ -114,15 +114,17 @@ internal static class Initialiser
             if (Globals.ShouldOverwrite)
             {
                 if (newLineCheck) Logger.NewLine();
-                else newLineCheck = true;
                 Logger.LogWarn("OVERWRITE ENABLED:" + '\n' +
                     "unp4k has been run with the overwrite option!" + '\n' +
                     "Overwriting files will potentially take much longer than choosing a new empty directory!");
             }
-            if (!Logger.AskUserInput("Proceed?"))
+            if (newLineCheck)
             {
-                Globals.InternalExitTrigger = true;
-                return;
+                if (!Logger.AskUserInput("Proceed?"))
+                {
+                    Globals.InternalExitTrigger = true;
+                    return;
+                }
             }
         }
     }
