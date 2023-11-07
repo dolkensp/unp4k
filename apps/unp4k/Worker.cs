@@ -1,13 +1,15 @@
-﻿using ICSharpCode.SharpZipLib.Zip;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics;
+
+using ICSharpCode.SharpZipLib.Zip;
+
 using unlib;
 
 namespace unp4k;
 
 internal static class Worker
 {
-    private static P4kFileInstance P4K;
+    private static P4kFile P4K;
 
     internal static void ProcessGameData()
     {
@@ -123,7 +125,7 @@ internal static class Worker
                 FileInfo extractionFile = new(Path.Join(Globals.OutDirectory.FullName, entry.Name));
                 try 
                 { 
-                    P4kUnpacker.ExtractP4kEntry(P4K, entry, extractionFile);
+                    P4K.Extract(entry, extractionFile);
                 }
                 catch (Exception e)
                 {
@@ -134,7 +136,7 @@ internal static class Worker
                 {
                     try
                     {
-                        P4kUnpacker.UnForgeFile(extractionFile, new(Path.Join(Globals.OutForgedDirectory.FullName, entry.Name)), Globals.ShouldConvertToJson);
+                        P4KHelper.UnForgeFile(extractionFile, new(Path.Join(Globals.OutForgedDirectory.FullName, entry.Name)), Globals.ShouldConvertToJson);
                     }
                     catch (Exception e)
                     {

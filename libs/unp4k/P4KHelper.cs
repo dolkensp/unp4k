@@ -1,25 +1,20 @@
-﻿using ICSharpCode.SharpZipLib.Core;
-using ICSharpCode.SharpZipLib.Zip;
+﻿using System.Xml;
+
 using Newtonsoft.Json;
-using System.Xml;
+
 using unforge;
 
 namespace unp4k;
 
-public static class P4kUnpacker
+public static class P4KHelper
 {
-    public static void ExtractP4kEntry(P4kFileInstance instance, ZipEntry entry, FileInfo extractionFile)
-    {
-        byte[] decomBuffer = new byte[4096];
-        if (!extractionFile.Directory.Exists) extractionFile.Directory.Create();
-        else if (extractionFile.Exists) extractionFile.Delete();
-        FileStream fs = extractionFile.Open(FileMode.Create, FileAccess.Write, FileShare.ReadWrite); // Dont want people accessing incomplete files.
-        Stream decompStream = instance.P4kFile.GetInputStream(entry);
-        StreamUtils.Copy(decompStream, fs, decomBuffer);
-        decompStream.Close();
-        fs.Close();
-    }
-
+    /// <summary>
+    /// UnForge a file extracted from a P4K from CryXML to standard XML as well as JSON.
+    /// </summary>
+    /// <param name="extractionFile"></param>
+    /// <param name="forgeFile"></param>
+    /// <param name="convertToJson"></param>
+    /// <exception cref="InvalidOperationException"></exception>
     public static void UnForgeFile(FileInfo extractionFile, FileInfo forgeFile, bool convertToJson)
     {
         try

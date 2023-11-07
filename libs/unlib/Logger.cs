@@ -1,6 +1,8 @@
-﻿using Serilog;
+﻿using System.Text;
+
+using Serilog;
 using Serilog.Sinks.SystemConsole.Themes;
-using System.Text;
+
 using unlib;
 
 public static class Logger
