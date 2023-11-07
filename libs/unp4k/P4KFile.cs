@@ -3,7 +3,7 @@ using ICSharpCode.SharpZipLib.Zip;
 
 namespace unp4k;
 
-public class P4kFile
+public class P4KFile
 {
     internal ZipFile? P4K { get; private set; }
     public List<ZipEntry> Entries { get; internal set; } = new();
@@ -17,7 +17,7 @@ public class P4kFile
     /// A P4KFile object contains all the relevant data and utilities to exploit a P4K file.
     /// </summary>
     /// <param name="p4kFile"></param>
-    public P4kFile(FileInfo p4kFile)
+    public P4KFile(FileInfo p4kFile)
     {
         P4K = new(p4kFile.Open(FileMode.Open, FileAccess.Read, FileShare.None))
         {

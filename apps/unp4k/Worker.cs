@@ -9,7 +9,7 @@ namespace unp4k;
 
 internal static class Worker
 {
-    private static P4kFile P4K;
+    private static P4KFile P4K;
 
     internal static void ProcessGameData()
     {

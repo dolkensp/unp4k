@@ -10,6 +10,7 @@
 	<NoWin32Manifest>true</NoWin32Manifest>
 	<Platforms>x64;ARM64</Platforms>
 	<AssemblyName>libunp4k</AssemblyName>
+	<RootNamespace>unp4k</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
