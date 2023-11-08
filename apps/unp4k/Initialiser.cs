@@ -9,7 +9,7 @@ internal static class Initialiser
     private static DirectoryInfo? DefaultExtractionDirectory { get; } = new(Path.Join(DefaultOutputDirectory.FullName, "output"));
     private static FileInfo? Defaultp4kFile { get; } = OS.IsWindows ?
         new(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Roberts Space Industries", "StarCitizen", "LIVE", "Data.p4k")) :
-        new(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Desktop", "unp4k", "Data.p4k"));
+        new(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "unp4k", "Data.p4k"));
 
     private static readonly string Manual = 
                 "Extracts Star Citizen's Data.p4k into a directory of choice and optionally converts them into standard XML or JSON formats!" + '\n' + '\n' +
