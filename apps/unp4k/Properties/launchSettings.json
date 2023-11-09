@@ -23,10 +23,6 @@
       "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -unf -ow -j",
       "hotReloadEnabled": false,
       "authenticationMode": "None"
-    },
-    "WSL": {
-      "commandName": "WSL2",
-      "distributionName": ""
     }
   }
 }
