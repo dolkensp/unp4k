@@ -39,7 +39,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Actions", "Actions", "{4FA9
 		.github\workflows\release.yaml = .github\workflows\release.yaml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "unp4k.GUI", "apps\unp4k.GUI\unp4k.GUI.csproj", "{C5EF1FF0-C48B-403D-BEB5-F8F2FC13538F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "unp4k.GUI", "apps\unp4k.GUI\unp4k.GUI.csproj", "{C5EF1FF0-C48B-403D-BEB5-F8F2FC13538F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
