@@ -20,10 +20,10 @@
 		<Nullable>enable</Nullable>
 
 		<!-- Display name -->
-		<ApplicationTitle>unp4k.GUI</ApplicationTitle>
+		<ApplicationTitle>unp4ker</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.unp4k.gui</ApplicationId>
+		<ApplicationId>peter.dolkens.unp4k.gui</ApplicationId>
 
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
