@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Shell
-    x:Class="unp4k.GUI.AppShell"
+    x:Class="unp4k.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:unp4k.GUI"
+    xmlns:local="clr-namespace:unp4k"
     Shell.FlyoutBehavior="Disabled"
-    Title="unp4k.GUI">
+    Title="unp4k">
 
     <ShellContent
         Title="Home"
