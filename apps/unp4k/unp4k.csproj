@@ -32,6 +32,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\libs\unlib\unlib.csproj" />
     <ProjectReference Include="..\..\libs\unp4k\unp4k.csproj" />
+    <ProjectReference Include="..\unp4k.Common\unp4k.Common.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,7 +2,34 @@
 <?xaml-comp compile="true" ?>
 <ResourceDictionary 
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:unp4k">
+
+    <FontImage x:Key="TabHome"
+               FontFamily="FontAwesome"
+               Size="22"
+               Color="{StaticResource Primary}"
+               Glyph="{x:Static local:IconFont.House}"/>
+    <FontImage x:Key="TabBrowser"
+               FontFamily="FontAwesome"
+               Size="22"
+               Color="{StaticResource Primary}"
+               Glyph="{x:Static local:IconFont.Compass}"/>
+    <FontImage x:Key="TabExtraction"
+               FontFamily="FontAwesome"
+               Size="22"
+               Color="{StaticResource Primary}"
+               Glyph="{x:Static local:IconFont.FileZipper}"/>
+    <FontImage x:Key="TabTerminal"
+               FontFamily="FontAwesome"
+               Size="22"
+               Color="{StaticResource Primary}"
+               Glyph="{x:Static local:IconFont.Terminal}"/>
+    <FontImage x:Key="TabAbout"
+               FontFamily="FontAwesome"
+               Size="22"
+               Color="{StaticResource Primary}"
+               Glyph="{x:Static local:IconFont.Users}"/>
 
     <Style TargetType="ActivityIndicator">
         <Setter Property="Color" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource White}}" />
@@ -395,19 +422,6 @@
     <Style TargetType="Page" ApplyToDerivedTypes="True">
         <Setter Property="Padding" Value="0"/>
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}" />
-    </Style>
-
-    <Style TargetType="Shell" ApplyToDerivedTypes="True">
-        <Setter Property="Shell.BackgroundColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}" />
-        <Setter Property="Shell.ForegroundColor" Value="{OnPlatform WinUI={StaticResource Primary}, Default={StaticResource White}}" />
-        <Setter Property="Shell.TitleColor" Value="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource SecondaryDarkText}}" />
-        <Setter Property="Shell.DisabledColor" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray950}}" />
-        <Setter Property="Shell.UnselectedColor" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray200}}" />
-        <Setter Property="Shell.NavBarHasShadow" Value="False" />
-        <Setter Property="Shell.TabBarBackgroundColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Black}}" />
-        <Setter Property="Shell.TabBarForegroundColor" Value="{AppThemeBinding Light={StaticResource Magenta}, Dark={StaticResource White}}" />
-        <Setter Property="Shell.TabBarTitleColor" Value="{AppThemeBinding Light={StaticResource Magenta}, Dark={StaticResource White}}" />
-        <Setter Property="Shell.TabBarUnselectedColor" Value="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource Gray200}}" />
     </Style>
 
     <Style TargetType="NavigationPage">

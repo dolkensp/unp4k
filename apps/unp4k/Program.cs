@@ -1,8 +1,10 @@
-﻿unp4k.Globals.Arguments = [.. args];
+﻿using unp4k;
 
-unp4k.Initialiser.PreInit();
-unp4k.Initialiser.Init();
-unp4k.Initialiser.PostInit();
+Globals.Arguments = [.. args];
 
-if (!unp4k.Globals.InternalExitTrigger) unp4k.Worker.ProcessGameData();
-if (!unp4k.Globals.InternalExitTrigger) unp4k.Worker.DoExtraction();
+Initialiser.PreInit();
+Initialiser.Init();
+Initialiser.PostInit();
+
+if (!Globals.InternalExitTrigger) Worker.ProcessGameData();
+if (!Globals.InternalExitTrigger) Worker.DoExtraction();

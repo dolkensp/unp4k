@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>libunp4kcommon</AssemblyName>
+    <RootNamespace>unp4k</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\libs\unlib\unlib.csproj" />
+    <ProjectReference Include="..\..\libs\unp4k\unp4k.csproj" />
+    <ProjectReference Include="..\..\modules\SharpZipLib\src\ICSharpCode.SharpZipLib\ICSharpCode.SharpZipLib.csproj" />
+  </ItemGroup>
+
+</Project>

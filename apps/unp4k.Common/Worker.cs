@@ -7,11 +7,11 @@ using unlib;
 
 namespace unp4k;
 
-internal static class Worker
+public static class Worker
 {
     private static P4KFile P4K;
 
-    internal static void ProcessGameData()
+    public static void ProcessGameData()
     {
         Logger.SetTitle($"unp4k");
         int isDecompressableCount = 0;
@@ -104,7 +104,7 @@ internal static class Worker
     }
 
     private static int tasksDone = 0;
-    internal static void DoExtraction()
+    public static void DoExtraction()
     {
         Logger.ClearBuffer();
 
