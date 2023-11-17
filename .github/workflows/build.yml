@@ -21,16 +21,22 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 8.0.x
-    - name: Setup .NET WASM
+    - name: Setup .NET MAUI
       if: matrix.os != 'ubuntu-latest'
-      run: dotnet workload install maui
+      run: dotnet workload install maui maui-tizen wasi-experimental 
     - name: Restore Git Submodules
       run: git submodule update --init --recursive
+
     - name: Restore .NET Dependencies
+      if: matrix.os != 'ubuntu-latest'
       run: dotnet restore
+    - name: Restore .NET Dependencies
+      if: matrix.os == 'ubuntu-latest'
+      run: dotnet restore apps/unp4k
+
     - name: Build
       if: matrix.os != 'ubuntu-latest'
       run: dotnet build --no-restore
     - name: Build
       if: matrix.os == 'ubuntu-latest'
-      run: dotnet build unp4k --no-restore
+      run: dotnet build apps/unp4k --no-restore
