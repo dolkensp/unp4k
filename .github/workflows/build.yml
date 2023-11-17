@@ -23,7 +23,7 @@ jobs:
         dotnet-version: 8.0.x
     - name: Setup .NET WASM
       if: matrix.os != 'ubuntu-latest'
-      run: dotnet workload install install maui --source https://api.nuget.org/v3/index.json
+      run: dotnet workload install maui
     - name: Restore Git Submodules
       run: git submodule update --init --recursive
     - name: Restore .NET Dependencies
