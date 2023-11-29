@@ -2,12 +2,12 @@
 
 namespace unp4k;
 
-internal static class Initialiser
+public static class Initialiser
 {
     // CIG seemingly do not store any record of where Star Citizen is installed in any parsable format due to the launcher being Chromium based.
-    private static DirectoryInfo? DefaultOutputDirectory { get; } = new(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "unp4k"));
-    private static DirectoryInfo? DefaultExtractionDirectory { get; } = new(Path.Join(DefaultOutputDirectory.FullName, "output"));
-    private static FileInfo? Defaultp4kFile { get; } = OS.IsWindows ?
+    private static DirectoryInfo DefaultOutputDirectory { get; } = new(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "unp4k"));
+    private static DirectoryInfo DefaultExtractionDirectory { get; } = new(Path.Join(DefaultOutputDirectory.FullName, "output"));
+    private static FileInfo Defaultp4kFile { get; } = OS.IsWindows ?
         new(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Roberts Space Industries", "StarCitizen", "LIVE", "Data.p4k")) :
         new(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "unp4k", "Data.p4k"));
 
@@ -30,67 +30,124 @@ internal static class Initialiser
                 " |/" + '\n' +
                 "/" + '\n';
 
-    internal static void PreInit()
+    public static class Terminal
     {
-        Logger.ClearBuffer();
-        Logger.SetTitle($"unp4k: Pre-Initializing...");
-
-        // Parse the arguments and do what they represent
-        for (int i = 0; i < Globals.Arguments.Count; i++)
+        public static async Task PreInit()
         {
-            if (Globals.Arguments[i].ToLowerInvariant() is "-i"   || Globals.Arguments[i].ToLowerInvariant() is "--input")          Globals.P4kFile                 = new(Globals.Arguments[i + 1]);
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-o"   || Globals.Arguments[i].ToLowerInvariant() is "--output")    Globals.OutDirectory            = new(Globals.Arguments[i + 1]);
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-t"   || Globals.Arguments[i].ToLowerInvariant() is "--threads") 
-            {
-                if (int.TryParse(Globals.Arguments[i + 1], out int threads))                                                        Globals.ThreadLimit             = threads;
-                else throw new InvalidCastException(Globals.Arguments[i + 1]);
-            }
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-f"   || Globals.Arguments[i].ToLowerInvariant() is "--filter")    Globals.Filters                 = [.. Globals.Arguments[i + 1].Split(',')];
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-d"   || Globals.Arguments[i].ToLowerInvariant() is "--details")   Globals.ShouldPrintDetailedLogs = true;
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-unf" || Globals.Arguments[i].ToLowerInvariant() is "--unforge")   Globals.ShouldUnForge           = true;
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-j"   || Globals.Arguments[i].ToLowerInvariant() is "--json")      Globals.ShouldConvertToJson     = true;
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-ow"  || Globals.Arguments[i].ToLowerInvariant() is "--overwrite") Globals.ShouldOverwrite         = true;
-            else if (Globals.Arguments[i].ToLowerInvariant() is "-y"   || Globals.Arguments[i].ToLowerInvariant() is "--accept")    Globals.ShouldAcceptEverything  = true;
+            Logger.ClearBuffer();
+            Logger.SetTitle($"unp4k: Pre-Initializing...");
+            await PreInitCommon(Enviroment.Terminal);
         }
 
-        bool hasInput = false;
-        bool hasOutput = false;
-        if (!(hasInput = Globals.P4kFile != null) || !(hasOutput = Globals.OutDirectory != null))
+        public static async Task Init()
         {
-            if (!hasInput) Globals.P4kFile = Defaultp4kFile;
-            if (!hasOutput) Globals.OutDirectory = DefaultExtractionDirectory;
+            Logger.SetTitle($"unp4k: Initializing...");
+            await InitCommon(Enviroment.Terminal);
+        }
 
-            // Basically show the user the manual if there are missing arguments.
-            Logger.Write($"{Manual}{(!hasInput ? $"\nNO INPUT Data.p4k PATH HAS BEEN DECLARED. USING DEFAULT PATH {Defaultp4kFile.FullName}" : string.Empty)}" + // TODO: See if we can get the install path in registry.
-                $"{(!hasOutput ? $"\nNO OUTPUT DIRECTORY PATH HAS BEEN DECLARED. ALL EXTRACTS WILL GO INTO {DefaultExtractionDirectory.FullName}" : string.Empty)}" +
-                "\n\nPress any key to continue!\n");
-            Console.ReadKey();
-            Logger.ClearBuffer();
+        public static async Task PostInit()
+        {
+            Logger.SetTitle($"unp4k: Post-Initializing...");
+            await PostInitCommon(Enviroment.Terminal);
         }
     }
 
-    internal static void Init()
+    public static class MAUI
     {
-        Logger.SetTitle($"unp4k: Initializing...");
+        public static async Task PreInit(FileInfo p4kFile)
+        {
+            await PreInitCommon(Enviroment.MAUI, p4kFile);
+        }
+
+        public static async Task Init()
+        {
+            await InitCommon(Enviroment.MAUI);
+        }
+
+        public static async Task PostInit()
+        {
+            await PostInitCommon(Enviroment.MAUI);
+        }
+    }
+
+    private static async Task PreInitCommon(Enviroment env, FileInfo? p4kFile = null)
+    {
+        if (Globals.Arguments is not null || env is Enviroment.MAUI)
+        {
+            if (env is Enviroment.Terminal)
+            {
+                // Parse the arguments and do what they represent
+                for (int i = 0; i < Globals.Arguments.Count; i++)
+                {
+                    if (Globals.Arguments[i].ToLowerInvariant() is "-i"        || Globals.Arguments[i].ToLowerInvariant() is "--input") Globals.P4kFile                   = new(Globals.Arguments[i + 1]);
+                    else if (Globals.Arguments[i].ToLowerInvariant() is "-o"   || Globals.Arguments[i].ToLowerInvariant() is "--output") Globals.OutDirectory             = new(Globals.Arguments[i + 1]);
+                    else if (Globals.Arguments[i].ToLowerInvariant() is "-t"   || Globals.Arguments[i].ToLowerInvariant() is "--threads")
+                    {
+                        if (int.TryParse(Globals.Arguments[i + 1], out int threads)) Globals.ThreadLimit = threads;
+                        else throw new InvalidCastException(Globals.Arguments[i + 1]);
+                    }
+                    else if (Globals.Arguments[i].ToLowerInvariant() is "-f"   || Globals.Arguments[i].ToLowerInvariant() is "--filter") Globals.Filters                  = [.. Globals.Arguments[i + 1].Split(',')];
+                    else if (Globals.Arguments[i].ToLowerInvariant() is "-d"   || Globals.Arguments[i].ToLowerInvariant() is "--details") Globals.ShouldPrintDetailedLogs = true;
+                    else if (Globals.Arguments[i].ToLowerInvariant() is "-unf" || Globals.Arguments[i].ToLowerInvariant() is "--unforge") Globals.ShouldUnForge           = true;
+                    else if (Globals.Arguments[i].ToLowerInvariant() is "-j"   || Globals.Arguments[i].ToLowerInvariant() is "--json") Globals.ShouldConvertToJson        = true;
+                    else if (Globals.Arguments[i].ToLowerInvariant() is "-ow"  || Globals.Arguments[i].ToLowerInvariant() is "--overwrite") Globals.ShouldOverwrite       = true;
+                    else if (Globals.Arguments[i].ToLowerInvariant() is "-y"   || Globals.Arguments[i].ToLowerInvariant() is "--accept") Globals.ShouldAcceptEverything   = true;
+                }
+            }
+            else Globals.P4kFile = p4kFile;
+
+            bool hasInput = false;
+            bool hasOutput = false;
+            if (!(hasInput = Globals.P4kFile != null) || !(hasOutput = Globals.OutDirectory != null))
+            {
+                if (!hasInput) Globals.P4kFile = Defaultp4kFile;
+                if (!hasOutput) Globals.OutDirectory = DefaultExtractionDirectory;
+
+                // Basically show the user the manual if there are missing arguments.
+                Logger.Write($"{(env is Enviroment.Terminal ? Manual : string.Empty)}{(!hasInput ? $"\nNO INPUT Data.p4k PATH HAS BEEN DECLARED. USING DEFAULT PATH {Defaultp4kFile.FullName}" : string.Empty)}" +
+                    $"{(!hasOutput ? $"\nNO OUTPUT DIRECTORY PATH HAS BEEN DECLARED. ALL EXTRACTS WILL GO INTO {DefaultExtractionDirectory.FullName}" : string.Empty)}" +
+                    (env is Enviroment.Terminal ? "\n\nPress any key to continue!\n" : string.Empty));
+
+                if (env is Enviroment.Terminal)
+                {
+                    Console.ReadKey();
+                    Logger.ClearBuffer();
+                }
+            }
+        }
+        else
+        {
+            Logger.LogError("No arguments were set! Exiting...");
+            await Task.Delay(TimeSpan.FromSeconds(2.5));
+            Globals.InternalExitTrigger = true;
+        }
+    }
+
+    private static async Task InitCommon(Enviroment env)
+    {
         // Default any of the null argument declared variables.
         Globals.P4kFile ??= Defaultp4kFile;
         Globals.OutDirectory ??= DefaultExtractionDirectory;
-        Globals.OutForgedDirectory ??= new(Path.Join(Globals.OutDirectory.FullName, "Forged"));
-        if (!Globals.P4kFile.Exists)
+        if (Globals.P4kFile is not null) // This will never be null but it makes the analyser happy.
         {
-            Logger.LogError($"Input path '{Globals.P4kFile.FullName}' does not exist!");
-            Logger.LogError($"Make sure you have the path pointing to a Star Citizen Data.p4k file!");
-            if (!Globals.ShouldAcceptEverything) Console.ReadKey();
-            Globals.InternalExitTrigger = true;
-            return;
+            if (Globals.OutDirectory is not null) // This will never be null but it makes the analyser happy.
+            {
+                Globals.OutForgedDirectory ??= new(Path.Join(Globals.OutDirectory.FullName, "Forged"));
+                if (!Globals.P4kFile.Exists)
+                {
+                    Logger.LogError($"Input path '{Globals.P4kFile.FullName}' does not exist!");
+                    Logger.LogError($"Make sure you have the path pointing to a Star Citizen Data.p4k file!");
+                    if (!Globals.ShouldAcceptEverything) Console.ReadKey();
+                    Globals.InternalExitTrigger = true;
+                }
+                if (!Globals.OutDirectory.Exists) Globals.OutDirectory.Create();
+                if (!Globals.OutForgedDirectory.Exists) Globals.OutForgedDirectory.Create();
+            }
         }
-        if (!Globals.OutDirectory.Exists) Globals.OutDirectory.Create();
-        if (!Globals.OutForgedDirectory.Exists) Globals.OutForgedDirectory.Create();
     }
 
-    internal static void PostInit()
+    private static async Task PostInitCommon(Enviroment env)
     {
-        Logger.SetTitle($"unp4k: Post-Initializing...");
         if (!Globals.ShouldAcceptEverything)
         {
             // Show the user any warning if anything worrisome is detected.
@@ -118,12 +175,14 @@ internal static class Initialiser
                     "unp4k has been run with the overwrite option!" + '\n' +
                     "Overwriting files will potentially take much longer than choosing a new empty directory!");
             }
-            if (newLineCheck)
+            if (env is Enviroment.Terminal)
             {
-                if (!Logger.AskUserInput("Proceed?"))
+                if (newLineCheck)
                 {
-                    Globals.InternalExitTrigger = true;
-                    return;
+                    if (!Logger.AskUserInput("Proceed?"))
+                    {
+                        Globals.InternalExitTrigger = true;
+                    }
                 }
             }
         }

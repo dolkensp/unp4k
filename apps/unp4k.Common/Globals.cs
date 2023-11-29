@@ -1,22 +1,22 @@
 ﻿namespace unp4k;
 
-internal static class Globals
+public static class Globals
 {
-    internal static List<string> Arguments = null;
+    public static List<string>? Arguments = null;
 
-    internal static FileInfo? P4kFile = null;
-    internal static DirectoryInfo? OutDirectory = null;
-    internal static DirectoryInfo? OutForgedDirectory = null;
-    internal static List<string> Filters = [];
+    public static FileInfo? P4kFile { get; internal set; } = null;
+    public static DirectoryInfo? OutDirectory { get; internal set; } = null;
+    public static DirectoryInfo? OutForgedDirectory { get; internal set; } = null;
+    public static List<string> Filters { get; internal set; } = [];
 
-    internal static bool InternalExitTrigger = false;
+    public static bool InternalExitTrigger = false;
 
-    internal static bool ShouldPrintDetailedLogs = false;
-    internal static bool ShouldUnForge = false;
-    internal static bool ShouldConvertToJson = false;
-    internal static bool ShouldOverwrite = false;
-    internal static bool ShouldAcceptEverything = false;
+    public static bool ShouldPrintDetailedLogs { get; internal set; } = false;
+    public static bool ShouldUnForge { get; internal set; } = false;
+    public static bool ShouldConvertToJson { get; internal set; } = false;
+    public static bool ShouldOverwrite { get; internal set; } = false;
+    public static bool ShouldAcceptEverything { get; internal set; } = false;
 
-    internal static int ThreadLimit = Environment.ProcessorCount;
-    internal static int FileErrors = 0;
+    public static int ThreadLimit { get; internal set; } = Environment.ProcessorCount;
+    public static int FileErrors { get; internal set; } = 0;
 }

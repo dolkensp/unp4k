@@ -7,4 +7,11 @@ static class IconFont
     public const string FileZipper = "\uf1c6";
     public const string Terminal = "\uf120";
     public const string Users = "\uf0c0";
+
+    // Brands
+    public const string Github = "\uf09b";
+
+    //
+    public const string Folder = "\uf07b";
+    public const string FolderOpen = "\uf07c";
 }

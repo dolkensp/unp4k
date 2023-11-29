@@ -2,12 +2,67 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="unp4k.Pages.AboutPage"
+             xmlns:local="clr-namespace:unp4k"
              Title="">
-    
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+
+    <ScrollView HorizontalScrollBarVisibility="Never">
+        <VerticalStackLayout>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Border Grid.Row="0" Padding="8, 8, 24, 8" Margin="0, 16, 0, 0" StrokeThickness="0" BackgroundColor="{AppThemeBinding Light={StaticResource Gray300TransparencyLow}, Dark={StaticResource Gray700TransparencyLow}}">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="0, 40, 0, 40" />
+                        </Border.StrokeShape>
+                        <HorizontalStackLayout>
+                            <HorizontalStackLayout.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped" />
+                            </HorizontalStackLayout.GestureRecognizers>
+                            <Image Grid.Column="0" Source="{AppThemeBinding Light={StaticResource PageAboutGithubLight}, Dark={StaticResource PageAboutGithubDark}}" WidthRequest="60" 
+                                HorizontalOptions="Start" VerticalOptions="Start" Margin="12" />
+                            <Label Grid.Column="1" FontSize="40" HorizontalTextAlignment="Center" Margin="11" FontFamily="OpenSansBold" Text="dolkensp/unp4k" />
+                        </HorizontalStackLayout>
+                    </Border>
+                    <Grid Grid.Row="1">
+                        <Label FontSize="14" HorizontalTextAlignment="Center" Margin="10, 6, 10, 6" FontFamily="OpenSansBold" Text="Remember to check for new releases!" />
+                    </Grid>
+                    <VerticalStackLayout Grid.Row="2" MaximumWidthRequest="600">
+                        <Border Padding="8" Margin="0, 8, 0, 8" StrokeThickness="0" BackgroundColor="{AppThemeBinding Light={StaticResource Gray300TransparencyLow}, Dark={StaticResource Gray700TransparencyLow}}" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="0, 40, 0, 40" />
+                            </Border.StrokeShape>
+                            <Label Grid.Column="0" FontSize="20" HorizontalTextAlignment="Center" FontFamily="OpenSansBold" Text="Contributing" />
+                        </Border>
+                        <VerticalStackLayout Padding="16">
+                            <Label Padding="0, 0, 0, 8" FontFamily="OpenSans" Text="Everyone is welcome to contribute! This project isnt strictly managed, it is entirely open and free flowing." />
+                            <Label FontFamily="OpenSans" Text="If you have any .NET/C# skills, reverse engineering skills or even want to help out with language translations then you will be able to help!" />
+                        </VerticalStackLayout>
+                        <Border Padding="8" Margin="0, 8, 0, 8" StrokeThickness="0" BackgroundColor="{AppThemeBinding Light={StaticResource Gray300TransparencyLow}, Dark={StaticResource Gray700TransparencyLow}}" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="0, 40, 0, 40" />
+                            </Border.StrokeShape>
+                            <Label Grid.Column="0" FontSize="30" HorizontalTextAlignment="Center" FontFamily="OpenSansBold" Text="Contributors" />
+                        </Border>
+                    </VerticalStackLayout>
+                </Grid>
+            </Grid>
+            <Border Padding="0" Margin="16, 8, 0, 16" StrokeThickness="0" BackgroundColor="{AppThemeBinding Light={StaticResource Gray300TransparencyLow}, Dark={StaticResource Gray700TransparencyLow}}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="40, 0, 40, 0" />
+                </Border.StrokeShape>
+                <ScrollView Orientation="Horizontal">
+                    <HorizontalStackLayout x:Name="ContributorsList" Padding="0, 0, 16, 0" />
+                </ScrollView>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

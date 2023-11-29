@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="unp4k.Components.GithubContributor">
+
+    <Border Padding="0" Margin="12, 12, 0, 12" WidthRequest="250" StrokeThickness="0" BackgroundColor="{AppThemeBinding Light={StaticResource Gray300TransparencyLow}, Dark={StaticResource Gray700TransparencyLow}}">
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="24" />
+        </Border.StrokeShape>
+        <VerticalStackLayout Padding="12">
+            <VerticalStackLayout.GestureRecognizers>
+                <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped" />
+            </VerticalStackLayout.GestureRecognizers>
+            <Border StrokeThickness="0" Margin="-12">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="24, 24, 12, 12" />
+                </Border.StrokeShape>
+                <Image x:Name="Avatar" />
+            </Border>
+            <Border StrokeThickness="0" BackgroundColor="{AppThemeBinding Light={StaticResource Gray300TransparencyHigh}, Dark={StaticResource Gray700TransparencyHigh}}" Padding="16, 8, 16, 8" Margin="0, -26, 0, 0">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+                <VerticalStackLayout>
+                    <Label x:Name="Name" FontSize="15" Margin="0, 0, 0, 16" />
+                    <Label x:Name="Handle" FontSize="12" Margin="0, 0, 0, 8" />
+                    <Label x:Name="Bio" FontSize="12" />
+                </VerticalStackLayout>
+            </Border>
+            <VerticalStackLayout Margin="16, 16, 16, 0">
+                <Label x:Name="Commits" FontSize="12" FontFamily="OpenSansSemibold" />
+                <HorizontalStackLayout>
+                    <Label FontSize="12" FontFamily="OpenSansSemibold" Text="Changes:" />
+                    <Label x:Name="Additions" FontSize="12" FontFamily="OpenSansSemibold" TextColor="{StaticResource Green}" />
+                    <Label Text="/" FontSize="12" FontFamily="OpenSansSemibold" TextColor="{StaticResource Gray500}" Margin="6, 0, 6, 0" />
+                    <Label x:Name="Deletions" FontSize="12" FontFamily="OpenSansSemibold" TextColor="{StaticResource Red}" />
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </Border>
+</ContentView>

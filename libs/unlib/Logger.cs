@@ -3,8 +3,6 @@
 using Serilog;
 using Serilog.Sinks.SystemConsole.Themes;
 
-using unlib;
-
 public static class Logger
 {
     private static readonly Serilog.Core.Logger InternalConsoleLogger;
@@ -12,11 +10,14 @@ public static class Logger
     static Logger()
     {
         InternalConsoleLogger = new LoggerConfiguration().WriteTo.Console(theme: AnsiConsoleTheme.Code, outputTemplate: "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {Message}{NewLine}{Exception}").CreateLogger();
-#pragma warning disable CA1416
-        if (OS.IsWindows) Console.BufferWidth = Console.WindowWidth;
-#pragma warning restore CA1416
-        ClearBuffer();
+        try
+        {
+            Console.Clear();
+        }
+        catch { } // For non-console apps.
     }
+
+    public static event Action<int, int, string>? OnLog;
 
     private static void PushLog(LogPackage pckg)
     {
@@ -28,12 +29,22 @@ public static class Logger
             else if (pckg.Level is 1) InternalConsoleLogger.Warning(pckg.Message);
             else if (pckg.Level is 2) InternalConsoleLogger.Error(pckg.Message);
             else if (pckg.Level is 3) InternalConsoleLogger.Fatal(pckg.Message);
-            else if (pckg.Level is 4) InternalConsoleLogger.Debug(pckg.Message);
             else InternalConsoleLogger.Information(pckg.Message);
+#if DEBUG
+            InternalConsoleLogger.Debug(pckg.Message);
+#endif
         }
-        else if (pckg.ClearMode is 3) Console.Clear();
+        else if (pckg.ClearMode is 3)
+        {
+            try
+            {
+                Console.Clear();
+            }
+            catch { } // For non-console apps.
+        }
         else if (pckg.ClearMode is 2) Console.WriteLine();
         else if (pckg.ClearMode is 1) Console.WriteLine(pckg.Message);
+        OnLog?.Invoke(pckg.ClearMode, pckg.Level, pckg.Message);
     }
 
     public static void Write(object msg)
@@ -92,24 +103,6 @@ public static class Logger
         PushLog(pckg);
     }
 
-#if DEBUG
-    public static void LogDebug(object msg)
-    {
-        LogPackage pckg = default;
-        pckg.Level = 3;
-        pckg.Message = msg is not null ? msg.ToString() : "null";
-        PushLog(pckg);
-    }
-#else
-    public static void LogDebug(object msg)
-    {
-        LogPackage pckg = default;
-        pckg.Level = 4;
-        pckg.Message = "Debug logs should not be called in Release mode!";
-        PushLog(pckg);
-    }
-#endif
-
     public static void NewLine(int lines = 1)
     {
         if (lines < 1) lines = 1;
@@ -145,7 +138,14 @@ public static class Logger
         PushLog(pckg);
     }
 
-    public static void SetTitle(object msg) => Console.Title = msg.ToString();
+    public static void SetTitle(object msg)
+    {
+        try
+        {
+            Console.Title = msg.ToString();
+        }
+        catch { } // For non-console apps.
+    }
 
     internal struct LogPackage
     {

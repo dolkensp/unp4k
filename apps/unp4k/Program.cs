@@ -3,8 +3,8 @@
 Globals.Arguments = [.. args];
 
 Initialiser.PreInit();
-Initialiser.Init();
-Initialiser.PostInit();
+if (!Globals.InternalExitTrigger) Initialiser.Init();
+if (!Globals.InternalExitTrigger) Initialiser.PostInit();
 
-if (!Globals.InternalExitTrigger) Worker.ProcessGameData();
-if (!Globals.InternalExitTrigger) Worker.DoExtraction();
+if (!Globals.InternalExitTrigger) Worker.Terminal.Processp4k();
+if (!Globals.InternalExitTrigger) Worker.Terminal.Extract();

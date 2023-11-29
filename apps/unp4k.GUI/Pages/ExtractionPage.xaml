@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="unp4k.Pages.Extraction"
-             Title="">
-    
+             x:Class="unp4k.Pages.ExtractionPage"
+             Title="ExtractionPage">
     <VerticalStackLayout>
         <Label 
             Text="Welcome to .NET MAUI!"

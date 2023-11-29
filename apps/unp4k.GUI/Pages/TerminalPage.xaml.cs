@@ -8,7 +8,12 @@ public partial class TerminalPage : ContentPage
     public TerminalPage()
 	{
 		InitializeComponent();
-        BindingContext = new TerminalOutput();
+        TerminalOutput tout = new();
+        BindingContext = tout;
+        Logger.OnLog += (clearLevel, level, msg) => 
+        {
+            tout.Out.Add(new TermOut { Output = msg });
+        };
     }
 }
 
@@ -19,5 +24,5 @@ public class TermOut
 
 public class TerminalOutput
 {
-    public ObservableCollection<TermOut> Out { get; set; } = [new TermOut { Output = "Console Emulation Sample..." }, new TermOut { Output = "123" }];
+    public ObservableCollection<TermOut> Out { get; set; } = [];
 }

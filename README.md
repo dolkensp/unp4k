@@ -1,5 +1,5 @@
 # unp4k
-The go to tools which allow everyone and anyone to open, descrypt as well as extract any data from Star Citizen and Squadron 42!
+The go to tools which allow everyone and anyone to open, decrypt as well as extract any data from Star Citizen and Squadron 42!
 
 **Currently Squadron 42 is not out nor is there official Linux support for Star Citizen so, there are either no instructions for or few/supplimentary instructions for them which will be updated in future!**
 

@@ -18,7 +18,7 @@
     </NavigationPage>
     <NavigationPage Title="Extraction" IconImageSource="{StaticResource TabExtraction}">
         <x:Arguments>
-            <pages:Extraction Title="Extraction" />
+            <pages:ExtractionPage Title="Extraction" />
         </x:Arguments>
     </NavigationPage>
     <NavigationPage Title="Terminal" IconImageSource="{StaticResource TabTerminal}">

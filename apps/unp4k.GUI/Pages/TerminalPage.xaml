@@ -3,16 +3,20 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:unp4k.Pages"
              x:Class="unp4k.Pages.TerminalPage"
-             x:DataType="local:TerminalOutput"
-             Title="">
+             x:DataType="local:TerminalOutput">
 
-    <ScrollView Margin="0" BackgroundColor="Black">
-        <CollectionView ItemsSource="{Binding Out}">
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="local:TermOut">
-                    <Label Text="{Binding Output}" TextColor="White" />
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
-    </ScrollView>
+    <VerticalStackLayout BackgroundColor="Black" VerticalOptions="FillAndExpand">
+        <Border StrokeThickness="0" BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray900}}" Padding="20">
+            <Label FontFamily="OpenSansBold" FontSize="16" Text="Here you can see the output of what you would get when using the Terminal edition of unp4k, for the most part anyway due to Terminal and GUI differences." />
+        </Border>
+        <ScrollView Margin="0">
+            <CollectionView ItemsSource="{Binding Out}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="local:TermOut">
+                        <Label Text="{Binding Output}" TextColor="White" />
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </ScrollView>
+    </VerticalStackLayout>
 </ContentPage>
