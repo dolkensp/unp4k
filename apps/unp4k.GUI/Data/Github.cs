@@ -24,8 +24,10 @@ internal static class Github
 
     internal static async Task<List<GithubUser>> GetContributors()
     {
+        // TODO: Figure out why this fails half the time.
         if (Contributors.Count is 0)
         {
+            Logger.LogInfo("Fetching unp4k contributors...");
             using HttpClient client = new();
             using HttpRequestMessage req = new()
             {
@@ -87,7 +89,8 @@ internal static class Github
             {
                 Logger.LogError($"Unable to retreive Github Contributors... {e.Message}");
             }
-        }
+			Logger.LogInfo($"Fetched {Contributors.Count} contributors.");
+		}
         return Contributors;
     }
 }
