@@ -7,7 +7,7 @@
         <FlexLayout Margin="32" Wrap="Wrap" JustifyContent="Center">
             <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Margin="32">
                 <Image Source="logo.png" MaximumHeightRequest="600" />
-                <Label FontSize="30" FontFamily="OpenSansBold" HorizontalTextAlignment="Center" Text="unp4k by Peter Dolkens" />
+                <Label FontSize="30" FontFamily="OpenSansBold" HorizontalTextAlignment="Center" Text="unp4k by Peter Dolkens and Stryxus" />
                 <Label FontFamily="OpenSans" HorizontalTextAlignment="Center" Padding="0, 16, 0, 0" Text="Go to the Browser page or the Extraction page to begin!" />
             </VerticalStackLayout>
             <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" MaximumWidthRequest="500" Margin="32">
