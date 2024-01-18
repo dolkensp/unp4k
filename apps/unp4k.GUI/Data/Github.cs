@@ -35,7 +35,7 @@ internal static class Github
                 Method = HttpMethod.Get,
             };
 #if DEBUG
-            req.Headers.Add("Authorization", $"Bearer {UserSecrets.GetSecret("GithubToken")}");
+            if (UserSecrets.GetSecret("GithubToken") is not null) req.Headers.Add("Authorization", $"Bearer {UserSecrets.GetSecret("GithubToken")}");
 #endif
             req.Headers.Add("Accept", "application/vnd.github+json");
             req.Headers.Add("X-GitHub-Api-Version", "2022-11-28");
@@ -60,7 +60,7 @@ internal static class Github
                             Method = HttpMethod.Get,
                         };
 #if DEBUG
-                        reqAuthor.Headers.Add("Authorization", $"Bearer {UserSecrets.GetSecret("GithubToken")}");
+						if (UserSecrets.GetSecret("GithubToken") is not null) reqAuthor.Headers.Add("Authorization", $"Bearer {UserSecrets.GetSecret("GithubToken")}");
 #endif
                         reqAuthor.Headers.Add("Accept", "application/vnd.github+json");
                         reqAuthor.Headers.Add("X-GitHub-Api-Version", "2022-11-28");
