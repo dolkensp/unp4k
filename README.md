@@ -4,8 +4,8 @@ The go to tools which allow everyone and anyone to open, decrypt as well as extr
 **Currently Squadron 42 is not out nor is there official Linux support for Star Citizen so, there are either no instructions for or few/supplimentary instructions for them which will be updated in future!**
 
 - [Any 64-bit OS which supports .NET 8 is therefore supported.](https://github.com/dotnet/core/blob/main/release-notes/8.0/supported-os.md)
-- For non-Windows, you will need to download install [.NET 8](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
-- For Windows, if you dont use Win11 or havent updated it, an automatic installer may prompt you about .NET 8.
+- For non-Windows, you will need to download and install [.NET 8](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
+For Windows 11, if you dont use it or havent updated it in a while, an automatic installer may prompt you about .NET 8, making installation simpler.
 
 ## Usage (GUI & Command Line)
 1. Download the latest [unp4k](https://github.com/dolkensp/unp4k/releases) and unzip it anywhere within its own folder.
