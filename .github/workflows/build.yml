@@ -36,7 +36,7 @@ jobs:
 
     - name: Build
       if: matrix.os != 'ubuntu-latest'
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore -a x64
     - name: Build
       if: matrix.os == 'ubuntu-latest'
-      run: dotnet build apps/unp4k --no-restore
+      run: dotnet build apps/unp4k --no-restore -a x64
