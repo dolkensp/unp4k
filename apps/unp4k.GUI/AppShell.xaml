@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Shell 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:root="clr-namespace:unp4k"
+    xmlns:pages="clr-namespace:unp4k.Pages"
+    x:Class="unp4k.AppShell"
+    Shell.FlyoutBehavior="Disabled"
+    Title="unp4cker"
+    IconImageSource="logo.svg">
+
+    <TabBar>
+        <ShellContent
+            Title="Browser"
+            Icon="{x:StaticResource TabBrowser}"
+            ContentTemplate="{DataTemplate pages:BrowserPage}"
+            Route="Browser" />
+        <ShellContent
+            Title="Extraction"
+            Icon="{x:StaticResource TabExtraction}"
+            ContentTemplate="{DataTemplate pages:ExtractionPage}"
+            Route="Extraction" />
+        <ShellContent
+            Title="Terminal"
+            Icon="{x:StaticResource TabTerminal}"
+            ContentTemplate="{DataTemplate pages:TerminalPage}"
+            Route="Terminal" />
+        <ShellContent
+            Title="About"
+            Icon="{x:StaticResource TabAbout}"
+            ContentTemplate="{DataTemplate pages:AboutPage}"
+            Route="About" />
+    </TabBar>
+</Shell>

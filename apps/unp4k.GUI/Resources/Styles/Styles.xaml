@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<?xaml-comp compile="true" ?>
+<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:unp4k">
+
+    <FontImage x:Key="FAFolder"
+               FontFamily="FontAwesome"
+               Size="22"
+               Color="{StaticResource Gray900}"
+               Glyph="{Static local:IconFont.Folder}"/>
+    <FontImage x:Key="FAFolderOpen"
+               FontFamily="FontAwesome"
+               Size="22"
+               Color="{StaticResource Gray900}"
+               Glyph="{Static local:IconFont.FolderOpen}"/>
+
+    <!-- Navigation Bar -->
+
+    <FontImage x:Key="TabHome"
+               FontFamily="FontAwesome"
+               Size="22"
+               Color="{StaticResource Gray900}"
+               Glyph="{Static local:IconFont.House}"/>
+    <FontImage x:Key="TabBrowser"
+               FontFamily="FontAwesome"
+               Size="22"
+               Color="{StaticResource Gray900}"
+               Glyph="{Static local:IconFont.Compass}"/>
+    <FontImage x:Key="TabExtraction"
+               FontFamily="FontAwesome"
+               Size="22"
+               Color="{StaticResource Gray900}"
+               Glyph="{Static local:IconFont.FileZipper}"/>
+    <FontImage x:Key="TabTerminal"
+               FontFamily="FontAwesome"
+               Size="22"
+               Color="{StaticResource Gray900}"
+               Glyph="{Static local:IconFont.Terminal}"/>
+    <FontImage x:Key="TabAbout"
+               FontFamily="FontAwesome"
+               Size="22"
+               Color="{StaticResource Gray900}"
+               Glyph="{Static local:IconFont.Users}"/>
+    
+    <!-- About Page -->
+
+    <FontImage x:Key="PageAboutGithubDark"
+               FontFamily="FontAwesomeBrands"
+               Size="60"
+               Color="{StaticResource White}"
+               Glyph="{Static local:IconFont.Github}"/>
+
+    <FontImage x:Key="PageAboutGithubLight"
+               FontFamily="FontAwesomeBrands"
+               Size="60"
+               Color="{StaticResource Black}"
+               Glyph="{Static local:IconFont.Github}"/>
+
+</ResourceDictionary>

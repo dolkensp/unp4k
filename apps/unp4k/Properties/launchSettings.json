@@ -1,0 +1,28 @@
+{
+  "profiles": {
+    "unp4k - LIVE": {
+      "commandName": "Project",
+      "commandLineArgs": "-ow",
+      "hotReloadEnabled": false,
+      "authenticationMode": "None"
+    },
+    "unp4k - PTU": {
+      "commandName": "Project",
+      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -ow",
+      "hotReloadEnabled": false,
+      "authenticationMode": "None"
+    },
+    "unp4k - LIVE unforge": {
+      "commandName": "Project",
+      "commandLineArgs": "-unf -ow -j",
+      "hotReloadEnabled": false,
+      "authenticationMode": "None"
+    },
+    "unp4k - PTU unforge": {
+      "commandName": "Project",
+      "commandLineArgs": "-i \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" -unf -ow -j",
+      "hotReloadEnabled": false,
+      "authenticationMode": "None"
+    }
+  }
+}

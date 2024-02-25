@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<?xaml-comp compile="true" ?>
+<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- Note: For Android please see also Platforms\Android\Resources\values\colors.xml -->
+
+    <Color x:Key="Green">Green</Color>
+    <Color x:Key="Red">Red</Color>
+
+    <Color x:Key="White">White</Color>
+    <Color x:Key="Gray100">#E6E6E6</Color>
+    <Color x:Key="Gray200">#CCCCCC</Color>
+    <Color x:Key="Gray300">#B3B3B3</Color>
+    <Color x:Key="Gray400">#999999</Color>
+    <Color x:Key="Gray500">#808080</Color>
+    <Color x:Key="Gray600">#676767</Color>
+    <Color x:Key="Gray700">#4D4D4D</Color>
+    <Color x:Key="Gray800">#343434</Color>
+    <Color x:Key="Gray900">#1A1A1A</Color>
+    <Color x:Key="Black">Black</Color>
+
+    <Color x:Key="Gray300TransparencyLow">#60FFFFFF</Color>
+    <Color x:Key="Gray700TransparencyLow">#60000000</Color>
+    <Color x:Key="Gray300TransparencyHigh">#A0FFFFFF</Color>
+    <Color x:Key="Gray700TransparencyHigh">#A0000000</Color>
+
+    <SolidColorBrush x:Key="GreenBrush" Color="{StaticResource Green}"/>
+    <SolidColorBrush x:Key="RedBrush" Color="{StaticResource Red}"/>
+
+    <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource White}"/>
+    <SolidColorBrush x:Key="Gray100Brush" Color="{StaticResource Gray100}"/>
+    <SolidColorBrush x:Key="Gray200Brush" Color="{StaticResource Gray200}"/>
+    <SolidColorBrush x:Key="Gray300Brush" Color="{StaticResource Gray300}"/>
+    <SolidColorBrush x:Key="Gray400Brush" Color="{StaticResource Gray400}"/>
+    <SolidColorBrush x:Key="Gray500Brush" Color="{StaticResource Gray500}"/>
+    <SolidColorBrush x:Key="Gray600Brush" Color="{StaticResource Gray600}"/>
+    <SolidColorBrush x:Key="Gray700Brush" Color="{StaticResource Gray700}"/>
+    <SolidColorBrush x:Key="Gray800Brush" Color="{StaticResource Gray800}"/>
+    <SolidColorBrush x:Key="Gray900Brush" Color="{StaticResource Gray900}"/>
+    <SolidColorBrush x:Key="BlackBrush" Color="{StaticResource Black}"/>
+
+    <SolidColorBrush x:Key="Gray300TransparencyLowBrush" Color="{StaticResource Gray300TransparencyLow}"/>
+    <SolidColorBrush x:Key="Gray700TransparencyLowBrush" Color="{StaticResource Gray700TransparencyLow}"/>
+    <SolidColorBrush x:Key="Gray300TransparencyHighBrush" Color="{StaticResource Gray300TransparencyHigh}"/>
+    <SolidColorBrush x:Key="Gray700TransparencyHighBrush" Color="{StaticResource Gray700TransparencyHigh}"/>
+</ResourceDictionary>

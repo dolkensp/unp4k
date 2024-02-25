@@ -1,0 +1,42 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: unp4k Build
+# Change branches to develop when merged!
+on:
+  push:
+    branches: [ "feature/rewrite" ]
+  pull_request:
+    branches: [ "feature/rewrite" ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+    - name: Setup .NET MAUI
+      if: matrix.os != 'ubuntu-latest'
+      run: dotnet workload install maui maui-tizen wasi-experimental 
+    - name: Restore Git Submodules
+      run: git submodule update --init --recursive
+
+    - name: Restore .NET Dependencies
+      if: matrix.os != 'ubuntu-latest'
+      run: dotnet restore
+    - name: Restore .NET Dependencies
+      if: matrix.os == 'ubuntu-latest'
+      run: dotnet restore apps/unp4k
+
+    - name: Build
+      if: matrix.os != 'ubuntu-latest'
+      run: dotnet build --no-restore -a x64
+    - name: Build
+      if: matrix.os == 'ubuntu-latest'
+      run: dotnet build apps/unp4k --no-restore -a x64
