@@ -34,10 +34,10 @@ For Windows 11, if you dont use it or havent updated it in a while, an automatic
 ## p4k
 The p4k format is used by Star Citizen and Squadron 42 as a means of archiving all game files into a single place, simplifying as well as potentially speeding up many of the games systems.
 
-The format is seemingly a custom PKZip archiving format which supports modes including STORE, DEFLATE and supports ZSTD. It supports bespoke encryption which covers some entries within the archive, obviously depending on what CIG encrypt per release; all the encrypted entries can be decrypted using CryEngine's public key used in its games for various encryption runtimes within the engine itself.
+The format is seemingly a custom PKZip archiving format which supports modes including STORE, DEFLATE and supports ZSTD. It supports bespoke encryption which covers some entries within the archive, obviously depending on what CIG encrypt per release; all the encrypted entries can be decrypted using CryEngine's public key, which is used in its games for various encryption runtimes within the engine itself.
 
 ## dcb
 The dcb format is a bespoke database format which has similarities to CryXML. dcb is the resulting file from a system known internally at CIG as 'DataForge' and is able to be converted/extracted by putting it through unp4k's unforger.
 
 ## CryXML
-CryXML is a type of the serialised standard XML created for CryEngine and still exists in Star Citizen today! It can be deserialised to standard XML and then to other formats.
+CryXML is a type of the serialised standard XML created for CryEngine, and still exists in Star Citizen today! It can be deserialised to standard XML and then to other formats.
