@@ -1,9 +1,11 @@
 using unp4k.Components;
 using unp4k.Data;
 
+using UraniumUI.Pages;
+
 namespace unp4k.Pages;
 
-public partial class AboutPage : ContentPage
+public partial class AboutPage : UraniumContentPage
 {
 	public AboutPage()
 	{

@@ -7,9 +7,8 @@ public partial class App : Application
     public App()
     {
         InitializeComponent();
-        // MAUI support is not implemented yet but will soon™️
-        //Initializer.Initialize(false, false);
-        MainPage = new MainPage();
+
+        MainPage = new AppShell();
     }
 
     protected override void OnStart()

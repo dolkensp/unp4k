@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<uranium:UraniumContentPage 
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:local="clr-namespace:unp4k.Pages"
+             xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+             xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+             xmlns:root="clr-namespace:unp4k"
+             xmlns:pages="clr-namespace:unp4k.Pages"
              x:Class="unp4k.Pages.TerminalPage"
-             x:DataType="local:TerminalOutput">
+             x:DataType="pages:TerminalOutput"
+             Title="">
 
     <VerticalStackLayout BackgroundColor="Black" VerticalOptions="FillAndExpand">
         <Border StrokeThickness="0" BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray900}}" Padding="20">
@@ -12,11 +17,11 @@
         <ScrollView Margin="0">
             <CollectionView ItemsSource="{Binding Out}">
                 <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="local:TermOut">
+                    <DataTemplate x:DataType="pages:TermOut">
                         <Label Text="{Binding Output}" TextColor="White" />
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
         </ScrollView>
     </VerticalStackLayout>
-</ContentPage>
+</uranium:UraniumContentPage>

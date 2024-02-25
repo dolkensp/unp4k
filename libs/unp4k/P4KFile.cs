@@ -3,10 +3,10 @@ using ICSharpCode.SharpZipLib.Zip;
 
 namespace unp4k;
 
-public class P4KFile
+public class P4KFile : IDisposable
 {
     internal ZipFile? P4K { get; private set; }
-    public List<ZipEntry> Entries { get; internal set; } = new();
+    public List<ZipEntry> Entries { get; internal set; } = [];
 
     /// <summary>
     /// The amount of entries within the P4K.
@@ -23,7 +23,7 @@ public class P4KFile
         {
             UseZip64 = UseZip64.On
         }; // The Data.p4k must be locked while it is being read to avoid corruption.
-        P4K.KeysRequired += (object sender, KeysRequiredEventArgs e) => e.Key = new byte[] { 0x5E, 0x7A, 0x20, 0x02, 0x30, 0x2E, 0xEB, 0x1A, 0x3B, 0xB6, 0x17, 0xC3, 0x0F, 0xDE, 0x1E, 0x47 };
+        P4K.KeysRequired += (object sender, KeysRequiredEventArgs e) => e.Key = [0x5E, 0x7A, 0x20, 0x02, 0x30, 0x2E, 0xEB, 0x1A, 0x3B, 0xB6, 0x17, 0xC3, 0x0F, 0xDE, 0x1E, 0x47];
         foreach (ZipEntry entry in P4K) Entries.Add(entry);
     }
 
@@ -65,4 +65,10 @@ public class P4KFile
         decompStream.Close();
         fs.Close();
     }
+
+	public void Dispose()
+	{
+        P4K.Close();
+        GC.SuppressFinalize(this);
+	}
 }

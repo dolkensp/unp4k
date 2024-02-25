@@ -15,132 +15,119 @@ public enum Enviroment
 
 public static class Worker
 {
-    private static P4KFile? P4K;
+    public static P4KFile? P4K { private set; get; }
 
     public static class Terminal
     {
-        public static async Task Processp4k()
+        public static bool Processp4k()
         {
             Logger.SetTitle($"unp4k");
-            Processp4kCommon(Enviroment.Terminal);
+            return Processp4kCommon(Enviroment.Terminal);
         }
 
         public static async Task Extract()
         {
             Logger.ClearBuffer();
-            ExtractCommon(Enviroment.Terminal);
+            await ExtractCommon(Enviroment.Terminal);
         }
     }
 
     public static class MAUI
     {
-        public static async Task Processp4k()
-        {
-            Processp4kCommon(Enviroment.MAUI);
-        }
+        public static bool Processp4k() => Processp4kCommon(Enviroment.MAUI);
 
-        public static async Task Extract()
-        {
-            ExtractCommon(Enviroment.MAUI);
-        }
+        public static async Task Extract() => await ExtractCommon(Enviroment.MAUI);
     }
 
-    private static async Task Processp4kCommon(Enviroment env)
+    private static bool Processp4kCommon(Enviroment env)
     {
         int isDecompressableCount = 0;
         int isLockedCount = 0;
         long bytesSize = 0L;
         bool additionalFiles = false;
 
-        if (Globals.P4kFile is not null) // This will never be null but it makes the analyser happy.
-        {
-            P4K = new(Globals.P4kFile);
-            // Setup the stream from the Data.p4k and contain it as an ICSC ZipFile with the appropriate keys then enqueue all zip entries.
-            Logger.RunProgressBarAction("Processing Data.p4k, this may take a moment", () =>
-            {
-                // Filter out zip entries which cannot be decompressed and/or are locked behind a cypher.
-                // Speed up the extraction by a large amount by filtering out the files which already exist and dont need updating.
-                P4K.FilterEntries(entry =>
-                {
-                    if (Globals.Filters.Count == 0 || Globals.Filters.Any(o => entry.Name.Contains(o)))
-                    {
-                        FileInfo f = new(Path.Join(Globals.OutDirectory?.FullName, entry.Name));
-                        bool isDecompressable = entry.CanDecompress;
-                        bool isLocked = entry.IsCrypted;
-                        bool fileExists = f.Exists;
-                        long fileLength = fileExists ? f.Length : 0L;
-                        long entryLength = entry.Size;
-                        if (fileExists && !Globals.ShouldOverwrite && !Globals.ShouldPrintDetailedLogs)
-                        {
-                            additionalFiles = true;
-                            if (bytesSize - fileLength > 0L) bytesSize -= fileLength;
-                            else bytesSize = 0L;
-                        }
-                        else
-                        {
-                            bytesSize += entryLength;
-                            if (!isDecompressable) isDecompressableCount++;
-                            if (isLocked) isLockedCount++;
-                        }
-                        return isDecompressable && !isLocked && (Globals.ShouldOverwrite || Globals.ShouldPrintDetailedLogs || !fileExists || fileLength != entryLength);
-                    }
-                    else return false;
-                });
-                P4K.OrderBy(x => x.Name);
-            });
+		P4K = new(Globals.P4kFile);
+		// Setup the stream from the Data.p4k and contain it as an ICSC ZipFile with the appropriate keys then enqueue all zip entries.
+		Logger.RunProgressBarAction("Processing Data.p4k, this may take a moment", () =>
+		{
+			// Filter out zip entries which cannot be decompressed and/or are locked behind a cypher.
+			// Speed up the extraction by a large amount by filtering out the files which already exist and dont need updating.
+			P4K.FilterEntries(entry =>
+			{
+				if (Globals.Filters.Count == 0 || Globals.Filters.Any(o => entry.Name.Contains(o)))
+				{
+					FileInfo f = new(Path.Join(Globals.OutDirectory?.FullName, entry.Name));
+					bool isDecompressable = entry.CanDecompress;
+					bool isLocked = entry.IsCrypted;
+					bool fileExists = f.Exists;
+					long fileLength = fileExists ? f.Length : 0L;
+					long entryLength = entry.Size;
+					if (fileExists && !Globals.ShouldOverwrite && !Globals.ShouldPrintDetailedLogs)
+					{
+						additionalFiles = true;
+						if (bytesSize - fileLength > 0L) bytesSize -= fileLength;
+						else bytesSize = 0L;
+					}
+					else
+					{
+						bytesSize += entryLength;
+						if (!isDecompressable) isDecompressableCount++;
+						if (isLocked) isLockedCount++;
+					}
+					return isDecompressable && !isLocked && (Globals.ShouldOverwrite || Globals.ShouldPrintDetailedLogs || !fileExists || fileLength != entryLength);
+				}
+				else return false;
+			});
+			P4K.OrderBy(x => x.Name);
+		});
 
-            DriveInfo outputDrive = DriveInfo.GetDrives().First(x => OS.IsWindows ? x.Name == Globals.OutDirectory?.FullName[..3] : new DirectoryInfo(x.Name).Exists);
-            string summary =
-                    @"\" + '\n' +
-                    $" |                      Output Path | {Globals.OutDirectory?.FullName}" + '\n' +
-                    $" |                        Partition | {outputDrive.Name}" + '\n' +
-                    $" |   Partition Available Free Space | {outputDrive.AvailableFreeSpace / 1000000000D:#,##0.000000000} GB" + '\n' +
-                    $" |         Estimated Required Space | {(!Globals.ShouldOverwrite && additionalFiles ? "An Additional " : string.Empty)}" +
-                                                                                    $"{bytesSize / 1000000000D:#,##0.000000000} GB" + '\n' +
-                     " |                                  | " + '\n' +
-                    $" |                       File Count | {P4K.EntryCount:#,##0}" +
-                                                                                    $"{(!Globals.ShouldOverwrite && additionalFiles ? " Additional Files" : string.Empty)}" +
-                                                                                    $"{(Globals.Filters.Count != 0 ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" + '\n' +
-                    $" |               Files Incompatible | {isDecompressableCount:#,##0}" +
-                                                                                    $"{(!Globals.ShouldOverwrite && additionalFiles ? " Additional Files" : string.Empty)}" +
-                                                                                    $"{(Globals.Filters.Count != 0 ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" + '\n' +
-                    $" |                     Files Locked | {isLockedCount:#,##0}" +
-                                                                                    $"{(!Globals.ShouldOverwrite && additionalFiles ? " Additional Files" : string.Empty)}" +
-                                                                                    $"{(Globals.Filters.Count != 0 ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" + '\n' +
-                     " |                                  | " + '\n' +
-                    $" |         Overwrite Existing Files | {Globals.ShouldOverwrite}" + '\n' +
-                    $" |                  Do unforge Pass | {Globals.ShouldUnForge}" + '\n' +
-                     " |                                  | " + '\n' +
-                     " |                                  | These estimates do not including the UnForging process!" + '\n' +
-                     " |                                  | The speed this takes highly depends on your storage drives Random IO (Many small files) speeds." + '\n' +
-                     " |                                  | Tools like CrystalDiskMark call this 4kRnd (4k bytes random read/write)." + '\n' +
-                    @"/";
+		DriveInfo outputDrive = DriveInfo.GetDrives().First(x => OS.IsWindows ? x.Name == Globals.OutDirectory?.FullName[..3] : new DirectoryInfo(x.Name).Exists);
+		string summary =
+				@"\" + '\n' +
+				$" |                      Output Path | {Globals.OutDirectory?.FullName}" + '\n' +
+				$" |                        Partition | {outputDrive.Name}" + '\n' +
+				$" |   Partition Available Free Space | {outputDrive.AvailableFreeSpace / 1000000000D:#,##0.000000000} GB" + '\n' +
+				$" |         Estimated Required Space | {(!Globals.ShouldOverwrite && additionalFiles ? "An Additional " : string.Empty)}" +
+																				$"{bytesSize / 1000000000D:#,##0.000000000} GB" + '\n' +
+				 " |                                  | " + '\n' +
+				$" |                       File Count | {P4K.EntryCount:#,##0}" +
+																				$"{(!Globals.ShouldOverwrite && additionalFiles ? " Additional Files" : string.Empty)}" +
+																				$"{(Globals.Filters.Count != 0 ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" + '\n' +
+				$" |               Files Incompatible | {isDecompressableCount:#,##0}" +
+																				$"{(!Globals.ShouldOverwrite && additionalFiles ? " Additional Files" : string.Empty)}" +
+																				$"{(Globals.Filters.Count != 0 ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" + '\n' +
+				$" |                     Files Locked | {isLockedCount:#,##0}" +
+																				$"{(!Globals.ShouldOverwrite && additionalFiles ? " Additional Files" : string.Empty)}" +
+																				$"{(Globals.Filters.Count != 0 ? $" Filtered From {string.Join(",", Globals.Filters)}" : string.Empty)}" + '\n' +
+				 " |                                  | " + '\n' +
+				$" |         Overwrite Existing Files | {Globals.ShouldOverwrite}" + '\n' +
+				$" |                  Do unforge Pass | {Globals.ShouldUnForge}" + '\n' +
+				 " |                                  | " + '\n' +
+				 " |                                  | These estimates do not including the UnForging process!" + '\n' +
+				 " |                                  | The speed this takes highly depends on your storage drives Random IO (Many small files) speeds." + '\n' +
+				 " |                                  | Tools like CrystalDiskMark call this 4kRnd (4k bytes random read/write)." + '\n' +
+				@"/";
 
-            if (env is Enviroment.Terminal)
-            {
-                // Never allow the extraction to go through if the target storage drive has too little available space.
-                if (outputDrive.AvailableFreeSpace + (Globals.ShouldOverwrite ? Globals.OutDirectory?.GetFiles("*.*", SearchOption.AllDirectories).Sum(x => x.Length) : 0) < bytesSize)
-                {
-                    Logger.Log("The output path you have chosen is on a partition which does not have enough available free space!" + '\n' + summary);
-                    if (!Globals.ShouldAcceptEverything) Console.ReadKey();
-                    Globals.InternalExitTrigger = true;
-                    return;
-                }
-                else Logger.NewLine();
+		if (env is Enviroment.Terminal)
+		{
+			// Never allow the extraction to go through if the target storage drive has too little available space.
+			if (outputDrive.AvailableFreeSpace + (Globals.ShouldOverwrite ? Globals.OutDirectory?.GetFiles("*.*", SearchOption.AllDirectories).Sum(x => x.Length) : 0) < bytesSize)
+			{
+				Logger.Log("The output path you have chosen is on a partition which does not have enough available free space!" + '\n' + summary);
+				if (!Globals.ShouldAcceptEverything) Console.ReadKey();
+				return false;
+			}
+			else Logger.NewLine();
 
-                if (!Globals.ShouldAcceptEverything)
-                {
-                    // Give the user a summary of what unp4k/unforge is about to do and some statistics.
-                    Logger.Log("Pre-Process Summary" + '\n' + summary);
-                    if (!Logger.AskUserInput("Proceed?"))
-                    {
-                        Globals.InternalExitTrigger = true;
-                        return;
-                    }
-                }
-            }
-        }
-    }
+			if (!Globals.ShouldAcceptEverything)
+			{
+				// Give the user a summary of what unp4k/unforge is about to do and some statistics.
+				Logger.Log("Pre-Process Summary" + '\n' + summary);
+				if (!Logger.AskUserInput("Proceed?")) return false;
+			}
+		}
+		return true;
+	}
 
     private static int tasksDone = 0;
     private static async Task ExtractCommon(Enviroment env)

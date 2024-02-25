@@ -9,8 +9,6 @@ public static class Globals
     public static DirectoryInfo? OutForgedDirectory { get; internal set; } = null;
     public static List<string> Filters { get; internal set; } = [];
 
-    public static bool InternalExitTrigger = false;
-
     public static bool ShouldPrintDetailedLogs { get; internal set; } = false;
     public static bool ShouldUnForge { get; internal set; } = false;
     public static bool ShouldConvertToJson { get; internal set; } = false;

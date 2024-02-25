@@ -1,15 +1,16 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace unp4k;
+using UraniumUI;
+using CommunityToolkit.Maui;
 
+namespace unp4k;
 internal static class MauiProgram
 {
     internal static MauiApp CreateMauiApp()
     {
         MauiAppBuilder builder = MauiApp.CreateBuilder();
-        builder.UseMauiApp<App>().ConfigureFonts(fonts =>
+        builder.UseMauiApp<App>().UseUraniumUI().UseUraniumUIMaterial().UseUraniumUIBlurs().ConfigureFonts(fonts =>
         {
-            // Open Sans
             fonts.AddFont("OpenSans_Condensed-Bold.ttf", "OpenSansCondensedBold");
             fonts.AddFont("OpenSans_Condensed-BoldItalic.ttf", "OpenSansCondensedBoldItalic");
             fonts.AddFont("OpenSans_Condensed-ExtraBold.ttf", "OpenSansCondensedExtraBold");
@@ -22,7 +23,6 @@ internal static class MauiProgram
             fonts.AddFont("OpenSans_Condensed-Regular.ttf", "OpenSansCondensed");
             fonts.AddFont("OpenSans_Condensed-SemiBoldItalic.ttf", "OpenSansCondensedSemiBoldItalic");
             fonts.AddFont("OpenSans_Condensed-SemiBold.ttf", "OpenSansCondensedSemiBoldItalic");
-
             fonts.AddFont("OpenSans_SemiCondensed-Bold.ttf", "OpenSansSemiCondensedBold");
             fonts.AddFont("OpenSans_SemiCondensed-BoldItalic.ttf", "OpenSansSemiCondensedBoldItalic");
             fonts.AddFont("OpenSans_SemiCondensed-ExtraBold.ttf", "OpenSansSemiCondensedExtraBold");
@@ -35,7 +35,6 @@ internal static class MauiProgram
             fonts.AddFont("OpenSans_SemiCondensed-Regular.ttf", "OpenSansSemiCondensed");
             fonts.AddFont("OpenSans_SemiCondensed-SemiBoldItalic.ttf", "OpenSansSemiCondensedSemiBoldItalic");
             fonts.AddFont("OpenSans_SemiCondensed-SemiBold.ttf", "OpenSansSemiCondensedSemiBoldItalic");
-
             fonts.AddFont("OpenSans-Bold.ttf", "OpenSansBold");
             fonts.AddFont("OpenSans-BoldItalic.ttf", "OpenSansBoldItalic");
             fonts.AddFont("OpenSans-ExtraBold.ttf", "OpenSansExtraBold");
@@ -48,16 +47,12 @@ internal static class MauiProgram
             fonts.AddFont("OpenSans-Regular.ttf", "OpenSans");
             fonts.AddFont("OpenSans-SemiBoldItalic.ttf", "OpenSansSemiBoldItalic");
             fonts.AddFont("OpenSans-SemiBold.ttf", "OpenSansSemiBoldItalic");
-
-            // Font Awesome
             fonts.AddFont("fa-solid-900.ttf", "FontAwesome");
             fonts.AddFont("fa-brands-400.ttf", "FontAwesomeBrands");
-        });
-
+        }).UseMauiCommunityToolkit();
 #if DEBUG
-		builder.Logging.AddDebug();
+        builder.Logging.AddDebug();
 #endif
-
         return builder.Build();
     }
 }

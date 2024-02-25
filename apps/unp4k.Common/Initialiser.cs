@@ -32,52 +32,41 @@ public static class Initialiser
 
     public static class Terminal
     {
-        public static async Task PreInit()
+        public static async Task<bool> PreInit()
         {
             Logger.ClearBuffer();
             Logger.SetTitle($"unp4k: Pre-Initializing...");
-            await PreInitCommon(Enviroment.Terminal);
+			return await PreInitCommon(Enviroment.Terminal);
         }
 
-        public static async Task Init()
+        public static bool Init()
         {
             Logger.SetTitle($"unp4k: Initializing...");
-            await InitCommon(Enviroment.Terminal);
+			return InitCommon(Enviroment.Terminal);
         }
 
-        public static async Task PostInit()
+        public static bool PostInit()
         {
             Logger.SetTitle($"unp4k: Post-Initializing...");
-            await PostInitCommon(Enviroment.Terminal);
+			return PostInitCommon(Enviroment.Terminal);
         }
     }
 
     public static class MAUI
     {
-        public static async Task PreInit(FileInfo p4kFile)
-        {
-            await PreInitCommon(Enviroment.MAUI, p4kFile);
-        }
-
-        public static async Task Init()
-        {
-            await InitCommon(Enviroment.MAUI);
-        }
-
-        public static async Task PostInit()
-        {
-            await PostInitCommon(Enviroment.MAUI);
-        }
+        public static async Task<bool> PreInit(FileInfo p4kFile) => await PreInitCommon(Enviroment.MAUI, p4kFile);
+        public static bool Init() => InitCommon(Enviroment.MAUI);
+        public static bool PostInit() => PostInitCommon(Enviroment.MAUI);
     }
 
-    private static async Task PreInitCommon(Enviroment env, FileInfo? p4kFile = null)
+    private static async Task<bool> PreInitCommon(Enviroment env, FileInfo? p4kFile = null)
     {
         if (Globals.Arguments is not null || env is Enviroment.MAUI)
         {
             if (env is Enviroment.Terminal)
             {
                 // Parse the arguments and do what they represent
-                for (int i = 0; i < Globals.Arguments.Count; i++)
+                for (int i = 0; i < Globals.Arguments?.Count; i++)
                 {
                     if (Globals.Arguments[i].ToLowerInvariant() is "-i"        || Globals.Arguments[i].ToLowerInvariant() is "--input") Globals.P4kFile                   = new(Globals.Arguments[i + 1]);
                     else if (Globals.Arguments[i].ToLowerInvariant() is "-o"   || Globals.Arguments[i].ToLowerInvariant() is "--output") Globals.OutDirectory             = new(Globals.Arguments[i + 1]);
@@ -114,16 +103,17 @@ public static class Initialiser
                     Logger.ClearBuffer();
                 }
             }
+            return true;
         }
         else
         {
             Logger.LogError("No arguments were set! Exiting...");
             await Task.Delay(TimeSpan.FromSeconds(2.5));
-            Globals.InternalExitTrigger = true;
+            return false;
         }
     }
 
-    private static async Task InitCommon(Enviroment env)
+    private static bool InitCommon(Enviroment env)
     {
         // Default any of the null argument declared variables.
         Globals.P4kFile ??= Defaultp4kFile;
@@ -138,15 +128,16 @@ public static class Initialiser
                     Logger.LogError($"Input path '{Globals.P4kFile.FullName}' does not exist!");
                     Logger.LogError($"Make sure you have the path pointing to a Star Citizen Data.p4k file!");
                     if (!Globals.ShouldAcceptEverything) Console.ReadKey();
-                    Globals.InternalExitTrigger = true;
+                    return false;
                 }
                 if (!Globals.OutDirectory.Exists) Globals.OutDirectory.Create();
                 if (!Globals.OutForgedDirectory.Exists) Globals.OutForgedDirectory.Create();
             }
         }
-    }
+		return true;
+	}
 
-    private static async Task PostInitCommon(Enviroment env)
+    private static bool PostInitCommon(Enviroment env)
     {
         if (!Globals.ShouldAcceptEverything)
         {
@@ -179,12 +170,10 @@ public static class Initialiser
             {
                 if (newLineCheck)
                 {
-                    if (!Logger.AskUserInput("Proceed?"))
-                    {
-                        Globals.InternalExitTrigger = true;
-                    }
+                    if (!Logger.AskUserInput("Proceed?")) return false;
                 }
             }
         }
+        return true;
     }
 }

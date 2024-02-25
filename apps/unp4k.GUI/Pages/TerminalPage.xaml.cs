@@ -1,9 +1,10 @@
 using System.Collections.ObjectModel;
-using System.ComponentModel;
+
+using UraniumUI.Pages;
 
 namespace unp4k.Pages;
 
-public partial class TerminalPage : ContentPage
+public partial class TerminalPage : UraniumContentPage
 {
     public TerminalPage()
 	{

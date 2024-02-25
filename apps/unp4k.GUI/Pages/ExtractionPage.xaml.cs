@@ -1,6 +1,8 @@
+using UraniumUI.Pages;
+
 namespace unp4k.Pages;
 
-public partial class ExtractionPage : ContentPage
+public partial class ExtractionPage : UraniumContentPage
 {
 	public ExtractionPage()
 	{
