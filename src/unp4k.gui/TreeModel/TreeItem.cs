@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Windows.Media;
 using ICSharpCode.TreeView;
 using System.IO;
 using unp4k.gui.Plugins;

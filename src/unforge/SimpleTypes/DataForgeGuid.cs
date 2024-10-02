@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace unforge
 {
-    public class DataForgeGuid : _DataForgeSerializable
+	public class DataForgeGuid : _DataForgeSerializable
     {
         public Guid Value { get; set; }
 

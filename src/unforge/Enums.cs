@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace unforge
+﻿namespace unforge
 {
-    public enum EDataType : ushort
+	public enum EDataType : ushort
     {
         varReference = 0x0310,
         varWeakPointer = 0x0210,

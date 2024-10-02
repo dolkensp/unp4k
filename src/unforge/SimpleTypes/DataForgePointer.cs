@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace unforge
 {
-    public class DataForgePointer : _DataForgeSerializable
+	public class DataForgePointer : _DataForgeSerializable
     {
         public UInt32 StructType { get; set; }
         public UInt32 Index { get; set; }

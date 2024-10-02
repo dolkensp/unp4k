@@ -1,14 +1,7 @@
 ﻿using ICSharpCode.SharpZipLib.Core;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
-using ICSharpCode.SharpZipLib.Zip.Compression;
+using System;
+using System.IO;
 using System.Net.Http;
 
 namespace unp4k

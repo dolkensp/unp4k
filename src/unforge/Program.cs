@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace unforge
 {
-    class Program
+	class Program
     {
 		static void Main(params String[] args)
 		{
@@ -47,9 +44,9 @@ namespace unforge
 
                     try
                     {
-                        Console.WriteLine("Converting {0}", file.Replace(args[0], ""));
+						Console.WriteLine("Converting {0}", file.Replace(args[0], ""));
 
-                        Smelter.Instance.Smelt(file);
+						Smelter.Instance.Smelt(file);
                     }
                     catch (Exception) { }
                 }

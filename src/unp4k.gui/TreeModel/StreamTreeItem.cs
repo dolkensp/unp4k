@@ -1,13 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Media;
-using unp4k.gui.Plugins;
-using unp4k.gui.TreeModel;
 
 namespace unp4k.gui.TreeModel
 {

@@ -1,16 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace unforge
 {
-    public class DataForgeLocale : _DataForgeSerializable
+	public class DataForgeLocale : _DataForgeSerializable
     {
         private UInt32 _value;
-        public String Value { get { return this.DocumentRoot.ValueMap[this._value]; } }
+        public String Value
+		{
+			get
+			{
+				return this.DocumentRoot.BlobMap.ContainsKey(this._value) ?
+					this.DocumentRoot.BlobMap[this._value] :
+					this.DocumentRoot.TextMap[this._value];
+			}
+		}
 
         public DataForgeLocale(DataForge documentRoot)
             : base(documentRoot)

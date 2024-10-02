@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace unforge
 {
-    public class DataForgeStringLookup : _DataForgeSerializable
+	public class DataForgeStringLookup : _DataForgeSerializable
     {
         private UInt32 _value;
-        public String Value { get { return this.DocumentRoot.ValueMap[this._value]; } }
+        public String Value { get { return this.DocumentRoot.TextMap[this._value]; } }
 
         public DataForgeStringLookup(DataForge documentRoot)
             : base(documentRoot)

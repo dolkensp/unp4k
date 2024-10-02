@@ -1,49 +1,38 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 using System.Xml;
-using System.Xml.Serialization;
 using DDRIT = Dolkens.Framework.BinaryExtensions.ExtensionMethods;
-using System.Security.Cryptography;
-using Dolkens.Framework.BinaryExtensions;
-using System.Xml.XPath;
 using unforge;
 using System.Text.RegularExpressions;
 
 namespace Dolkens.Framework.BinaryExtensions
 {
-    /// <summary>
-    /// The MIT License (MIT)
-    /// 
-    /// Copyright (c) 2008 Peter Dolkens
-    /// 
-    /// Permission is hereby granted, free of charge, to any person obtaining a copy
-    /// of this software and associated documentation files (the "Software"), to deal
-    /// in the Software without restriction, including without limitation the rights
-    /// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    /// copies of the Software, and to permit persons to whom the Software is
-    /// furnished to do so, subject to the following conditions:
-    /// 
-    /// The above copyright notice and this permission notice shall be included in
-    /// all copies or substantial portions of the Software.
-    /// 
-    /// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    /// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    /// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    /// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    /// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    /// THE SOFTWARE.
-    /// </summary>
-    public static class ExtensionMethods
+	/// <summary>
+	/// The MIT License (MIT)
+	/// 
+	/// Copyright (c) 2008 Peter Dolkens
+	/// 
+	/// Permission is hereby granted, free of charge, to any person obtaining a copy
+	/// of this software and associated documentation files (the "Software"), to deal
+	/// in the Software without restriction, including without limitation the rights
+	/// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	/// copies of the Software, and to permit persons to whom the Software is
+	/// furnished to do so, subject to the following conditions:
+	/// 
+	/// The above copyright notice and this permission notice shall be included in
+	/// all copies or substantial portions of the Software.
+	/// 
+	/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	/// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+	/// THE SOFTWARE.
+	/// </summary>
+	public static class ExtensionMethods
     {
         #region Stream Extensions
 
@@ -232,7 +221,7 @@ namespace Dolkens.Framework.BinaryExtensions
 
 namespace System
 {
-    public static class _Proxy
+	public static class _Proxy
     {
         /// <summary>
         /// Read a Length-prefixed string from the stream
@@ -261,7 +250,7 @@ namespace System
 
 namespace System.IO
 {
-    public static class _Proxy
+	public static class _Proxy
     {
         public static Byte[] ReadAllBytes(this Stream stream) { return DDRIT.ReadAllBytes(stream); }
         public static Guid? ReadGuid(this BinaryReader reader, Boolean nullable = true) { return DDRIT.ReadGuid(reader, nullable); }
@@ -270,7 +259,7 @@ namespace System.IO
 
 namespace System.Xml
 {
-    public static class _Proxy
+	public static class _Proxy
     {
         public static XmlElement Rename(this XmlElement element, String name) { return DDRIT.Rename(element, name); }
         public static String GetPath(this XmlElement element) { return DDRIT.GetPath(element); }
