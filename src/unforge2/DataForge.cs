@@ -28,7 +28,7 @@ namespace unforge
         internal DataForgeStructDefinition[] StructDefinitionTable { get; set; }
         internal DataForgePropertyDefinition[] PropertyDefinitionTable { get; set; }
         internal DataForgeEnumDefinition[] EnumDefinitionTable { get; set; }
-        internal DataForgeDataMapping[] DataMappingTable { get; set; }
+        internal BinaryDataMappingArray DataMappingTable { get; set; }
         internal DataForgeRecord[] RecordDefinitionTable { get; set; }
         internal DataForgeStringLookup[] EnumOptionTable { get; set; }
 
@@ -126,7 +126,7 @@ namespace unforge
 			this.StructDefinitionTable = this.ReadArray<DataForgeStructDefinition>(structDefinitionCount);
 			this.PropertyDefinitionTable = this.ReadArray<DataForgePropertyDefinition>(propertyDefinitionCount);
 			this.EnumDefinitionTable = this.ReadArray<DataForgeEnumDefinition>(enumDefinitionCount);
-			this.DataMappingTable = this.ReadArray<DataForgeDataMapping>(dataMappingCount);
+                        this.DataMappingTable = new BinaryDataMappingArray(this, dataMappingCount);
 			this.RecordDefinitionTable = this.ReadArray<DataForgeRecord>(recordDefinitionCount);
 
             this.Array_Int8Values = new BinaryArray<DataForgeInt8>(this, int8ValueCount);
@@ -156,8 +156,9 @@ namespace unforge
 
             this.DataMap = new Dictionary<UInt32, BinaryStructArray> { };
 
-            foreach (var dataMapping in this.DataMappingTable)
+            for (int i = 0; i < this.DataMappingTable.Count; i++)
             {
+                var dataMapping = this.DataMappingTable[i];
                 var dataStruct = this.StructDefinitionTable[dataMapping.StructIndex];
                 this.DataMap[dataMapping.StructIndex] = new BinaryStructArray(this, dataStruct, dataMapping.Name, (Int32)dataMapping.StructCount);
             }
