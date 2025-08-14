@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace unforge
 {
-    public class DataForgeString : _DataForgeSerializable
+	public class DataForgeString : _DataForgeSerializable
     {
         public String Value { get; set; }
 

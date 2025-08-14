@@ -3,13 +3,10 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Windows.Media;
-using System.Globalization;
 using System.Diagnostics;
 using unp4k.gui.Extensions;
 using System.Windows.Controls;
 using System.Threading.Tasks;
-using System.IO;
-using unp4k.gui.Plugins;
 
 namespace unp4k.gui.TreeModel
 {

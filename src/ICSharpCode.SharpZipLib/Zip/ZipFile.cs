@@ -1,17 +1,14 @@
+using ICSharpCode.SharpZipLib.Checksum;
+using ICSharpCode.SharpZipLib.Core;
+using ICSharpCode.SharpZipLib.Encryption;
+using ICSharpCode.SharpZipLib.Zip.Compression;
+using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using System;
 using System.Collections;
-using System.Linq;
-using System.IO;
-using System.Text;
-using System.Globalization;
-using System.Security.Cryptography;
-using ICSharpCode.SharpZipLib.Encryption;
-using ICSharpCode.SharpZipLib.Core;
-using ICSharpCode.SharpZipLib.Checksum;
-using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
-using ICSharpCode.SharpZipLib.Zip.Compression;
 using System.Collections.Generic;
-using System.Net.Http;
+using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ICSharpCode.SharpZipLib.Zip
 {

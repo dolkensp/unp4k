@@ -1,5 +1,3 @@
-using System;
-
 namespace ICSharpCode.SharpZipLib.Zip.Compression
 {
 	/// <summary>

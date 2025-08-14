@@ -11,7 +11,6 @@
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 using System.Resources;
-using System.Reflection;
 
 [assembly: System.Runtime.InteropServices.ComVisible(false)]
 [assembly: NeutralResourcesLanguage("en-US")]

@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace unforge
 {
-    public class CryXmlNode
+	public class CryXmlNode
     {
         public Int32 NodeID { get; set; }
         public Int32 NodeNameOffset { get; set; }

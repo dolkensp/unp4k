@@ -1,17 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace unforge
 {
-    public class DataForgeDataMapping : _DataForgeSerializable
+	public class DataForgeDataMapping : _DataForgeSerializable
     {
         public UInt32 StructIndex { get; set; }
         public UInt32 StructCount { get; set; }
         public UInt32 NameOffset { get; set; }
-        public String Name { get { return this.DocumentRoot.ValueMap[this.NameOffset]; } }
+        public String Name { get { return this.DocumentRoot.BlobMap[this.NameOffset]; } }
 
         public DataForgeDataMapping(DataForge documentRoot)
             : base(documentRoot)

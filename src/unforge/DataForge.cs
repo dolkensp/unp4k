@@ -1,23 +1,17 @@
 ﻿#define NONULL
 
-using Microsoft.CSharp;
 using System;
-using System.CodeDom.Compiler;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Xml;
-using System.Xml.XPath;
 
 namespace unforge
 {
-    public class ClassMapping
+	public class ClassMapping
     {
         public XmlNode Node { get; set; }
         public UInt16 StructIndex { get; set; }
@@ -37,7 +31,6 @@ namespace unforge
         internal DataForgeDataMapping[] DataMappingTable { get; set; }
         internal DataForgeRecord[] RecordDefinitionTable { get; set; }
         internal DataForgeStringLookup[] EnumOptionTable { get; set; }
-        internal DataForgeString[] ValueTable { get; set; }
 
         internal DataForgeReference[] Array_ReferenceValues { get; set; }
         internal DataForgeGuid[] Array_GuidValues { get; set; }
@@ -58,13 +51,14 @@ namespace unforge
         internal DataForgePointer[] Array_StrongValues { get; set; }
         internal DataForgePointer[] Array_WeakValues { get; set; }
 
-        internal Dictionary<UInt32, String> ValueMap { get; set; }
+        internal Dictionary<UInt32, String> TextMap { get; set; }
+        internal Dictionary<UInt32, String> BlobMap { get; set; }
+
         internal Dictionary<UInt32, List<XmlElement>> DataMap { get; set; }
         internal List<ClassMapping> Require_ClassMapping { get; set; }
         internal List<ClassMapping> Require_StrongMapping { get; set; }
         internal List<ClassMapping> Require_WeakMapping1 { get; set; }
         internal List<ClassMapping> Require_WeakMapping2 { get; set; }
-        internal List<XmlElement> DataTable { get; set; }
 
         internal U[] ReadArray<U>(Int32 arraySize) where U : _DataForgeSerializable
         {
@@ -127,7 +121,7 @@ namespace unforge
 			var referenceValueCount = this._br.ReadInt32();
 			var enumOptionCount = this._br.ReadInt32();
 			var textLength = this._br.ReadUInt32();
-			var unknown = (this.IsLegacy) ? 0 : this._br.ReadUInt32();
+			var blobLength = (this.IsLegacy) ? 0 : this._br.ReadUInt32();
 
 			this.StructDefinitionTable = this.ReadArray<DataForgeStructDefinition>(structDefinitionCount);
 			this.PropertyDefinitionTable = this.ReadArray<DataForgePropertyDefinition>(propertyDefinitionCount);
@@ -159,18 +153,30 @@ namespace unforge
             var buffer = new List<DataForgeString> { };
             var maxPosition = this._br.BaseStream.Position + textLength;
             var startPosition = this._br.BaseStream.Position;
-            this.ValueMap = new Dictionary<UInt32, String> { };
+            this.TextMap = new Dictionary<UInt32, String> { };
             while (this._br.BaseStream.Position < maxPosition)
             {
                 var offset = this._br.BaseStream.Position - startPosition;
                 var dfString = new DataForgeString(this);
                 buffer.Add(dfString);
-                this.ValueMap[(UInt32)offset] = dfString.Value;
+                this.TextMap[(UInt32)offset] = dfString.Value;
             }
-            this.ValueTable = buffer.ToArray();
 
-            this.DataTable = new List<XmlElement> { };
-            this.DataMap = new Dictionary<UInt32, List<XmlElement>> { };
+			buffer = new List<DataForgeString> { };
+			maxPosition = this._br.BaseStream.Position + blobLength;
+			startPosition = this._br.BaseStream.Position;
+			this.BlobMap = new Dictionary<UInt32, String> { };
+			while (this._br.BaseStream.Position < maxPosition)
+			{
+				var offset = this._br.BaseStream.Position - startPosition;
+				var dfString = new DataForgeString(this);
+				buffer.Add(dfString);
+				this.BlobMap[(UInt32)offset] = dfString.Value;
+			}
+
+			if (this.BlobMap.Count == 0) this.BlobMap = this.TextMap;
+
+			this.DataMap = new Dictionary<UInt32, List<XmlElement>> { };
 
             foreach (var dataMapping in this.DataMappingTable)
             {
@@ -183,7 +189,6 @@ namespace unforge
                     var node = dataStruct.Read(dataMapping.Name);
 
                     this.DataMap[dataMapping.StructIndex].Add(node);
-                    this.DataTable.Add(node);
                 }
             }
 
