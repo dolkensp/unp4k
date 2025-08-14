@@ -51,8 +51,8 @@ namespace unforge
         internal BinaryArray<DataForgePointer> Array_StrongValues { get; set; }
         internal BinaryArray<DataForgePointer> Array_WeakValues { get; set; }
 
-        internal Dictionary<UInt32, String> TextMap { get; set; }
-        internal Dictionary<UInt32, String> BlobMap { get; set; }
+        internal BinaryStringMap TextMap { get; set; }
+        internal BinaryStringMap BlobMap { get; set; }
 
         internal Dictionary<UInt32, List<XmlElement>> DataMap { get; set; }
         internal List<ClassMapping> Require_ClassMapping { get; set; }
@@ -150,33 +150,11 @@ namespace unforge
             this.Array_ReferenceValues = new BinaryArray<DataForgeReference>(this, referenceValueCount);
             this.EnumOptionTable = this.ReadArray<DataForgeStringLookup>(enumOptionCount);
 
-            var buffer = new List<DataForgeString> { };
-            var maxPosition = this._br.BaseStream.Position + textLength;
-            var startPosition = this._br.BaseStream.Position;
-            this.TextMap = new Dictionary<UInt32, String> { };
-            while (this._br.BaseStream.Position < maxPosition)
-            {
-                var offset = this._br.BaseStream.Position - startPosition;
-                var dfString = new DataForgeString(this);
-                buffer.Add(dfString);
-                this.TextMap[(UInt32)offset] = dfString.Value;
-            }
+            this.TextMap = new BinaryStringMap(this._br, textLength);
+            this.BlobMap = new BinaryStringMap(this._br, blobLength);
+            if (blobLength == 0) this.BlobMap = this.TextMap;
 
-			buffer = new List<DataForgeString> { };
-			maxPosition = this._br.BaseStream.Position + blobLength;
-			startPosition = this._br.BaseStream.Position;
-			this.BlobMap = new Dictionary<UInt32, String> { };
-			while (this._br.BaseStream.Position < maxPosition)
-			{
-				var offset = this._br.BaseStream.Position - startPosition;
-				var dfString = new DataForgeString(this);
-				buffer.Add(dfString);
-				this.BlobMap[(UInt32)offset] = dfString.Value;
-			}
-
-			if (this.BlobMap.Count == 0) this.BlobMap = this.TextMap;
-
-			this.DataMap = new Dictionary<UInt32, List<XmlElement>> { };
+            this.DataMap = new Dictionary<UInt32, List<XmlElement>> { };
 
             foreach (var dataMapping in this.DataMappingTable)
             {
