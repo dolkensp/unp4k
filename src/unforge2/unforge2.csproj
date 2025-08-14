@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net481;netstandard2.0;net6.0</TargetFrameworks>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <OutputType>Exe</OutputType>
+    <StartupObject>unforge.Program</StartupObject>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+		<Optimize>False</Optimize>
+	</PropertyGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework)'=='netcoreapp2.0'">
+    <PackageReference Include="Microsoft.NETCore.Portable.Compatibility" Version="1.0.1" />
+  </ItemGroup>
+
+</Project>
