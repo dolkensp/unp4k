@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "unp4k.gui", "src\unp4k.gui\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "unforge", "src\unforge\unforge.csproj", "{273D3D56-F005-4ED5-BABB-FD88FBC3FC63}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "unforge2", "src\unforge2\unforge2.csproj", "{158E382C-2539-40AD-BD20-2E791D3D5788}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ICSharpCode.TreeView", "src\ICSharpCode.TreeView\ICSharpCode.TreeView.csproj", "{721ECDCD-A6BA-4F20-A727-3175842CAD49}"
 EndProject
 Global
@@ -47,11 +49,15 @@ Global
 		{A8EDECDB-B8B6-437B-9381-8AA02139B7E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A8EDECDB-B8B6-437B-9381-8AA02139B7E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A8EDECDB-B8B6-437B-9381-8AA02139B7E0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{273D3D56-F005-4ED5-BABB-FD88FBC3FC63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{273D3D56-F005-4ED5-BABB-FD88FBC3FC63}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{273D3D56-F005-4ED5-BABB-FD88FBC3FC63}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{273D3D56-F005-4ED5-BABB-FD88FBC3FC63}.Release|Any CPU.Build.0 = Release|Any CPU
-		{721ECDCD-A6BA-4F20-A727-3175842CAD49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+                {273D3D56-F005-4ED5-BABB-FD88FBC3FC63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+                {273D3D56-F005-4ED5-BABB-FD88FBC3FC63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+                {273D3D56-F005-4ED5-BABB-FD88FBC3FC63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+                {273D3D56-F005-4ED5-BABB-FD88FBC3FC63}.Release|Any CPU.Build.0 = Release|Any CPU
+                {158E382C-2539-40AD-BD20-2E791D3D5788}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+                {158E382C-2539-40AD-BD20-2E791D3D5788}.Debug|Any CPU.Build.0 = Debug|Any CPU
+                {158E382C-2539-40AD-BD20-2E791D3D5788}.Release|Any CPU.ActiveCfg = Release|Any CPU
+                {158E382C-2539-40AD-BD20-2E791D3D5788}.Release|Any CPU.Build.0 = Release|Any CPU
+                {721ECDCD-A6BA-4F20-A727-3175842CAD49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{721ECDCD-A6BA-4F20-A727-3175842CAD49}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{721ECDCD-A6BA-4F20-A727-3175842CAD49}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{721ECDCD-A6BA-4F20-A727-3175842CAD49}.Release|Any CPU.Build.0 = Release|Any CPU
