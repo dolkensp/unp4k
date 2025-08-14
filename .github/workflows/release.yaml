@@ -53,12 +53,12 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: unforge-v${{ env.UNP4K_VERSION }}
-        path: src/unforge/bin/Release/net47/win-x64
+        path: src/unforge/bin/Release/net481
 
     - uses: actions/upload-artifact@v4
       with:
         name: unp4k-v${{ env.UNP4K_VERSION }}
-        path: src/unp4k/bin/Release/net47/win-x64
+        path: src/unp4k/bin/Release/net481
 
   release:
     needs: build
