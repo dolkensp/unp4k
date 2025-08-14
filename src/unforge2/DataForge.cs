@@ -54,7 +54,7 @@ namespace unforge
         internal BinaryStringMap TextMap { get; set; }
         internal BinaryStringMap BlobMap { get; set; }
 
-        internal Dictionary<UInt32, List<XmlElement>> DataMap { get; set; }
+        internal Dictionary<UInt32, BinaryStructArray> DataMap { get; set; }
         internal List<ClassMapping> Require_ClassMapping { get; set; }
         internal List<ClassMapping> Require_StrongMapping { get; set; }
         internal List<ClassMapping> Require_WeakMapping1 { get; set; }
@@ -154,53 +154,12 @@ namespace unforge
             this.BlobMap = new BinaryStringMap(this._br, blobLength);
             if (blobLength == 0) this.BlobMap = this.TextMap;
 
-            this.DataMap = new Dictionary<UInt32, List<XmlElement>> { };
+            this.DataMap = new Dictionary<UInt32, BinaryStructArray> { };
 
             foreach (var dataMapping in this.DataMappingTable)
             {
-                this.DataMap[dataMapping.StructIndex] = new List<XmlElement> { };
-
                 var dataStruct = this.StructDefinitionTable[dataMapping.StructIndex];
-
-                for (Int32 i = 0; i < dataMapping.StructCount; i++)
-                {
-                    var node = dataStruct.Read(dataMapping.Name);
-
-                    this.DataMap[dataMapping.StructIndex].Add(node);
-                }
-            }
-
-            foreach (var dataMapping in this.Require_ClassMapping)
-            {
-                if (dataMapping.StructIndex == 0xFFFF)
-                {
-#if NONULL
-                    dataMapping.Node.ParentNode.RemoveChild(dataMapping.Node);
-#else
-                    dataMapping.Item1.ParentNode.ReplaceChild(
-                        this._xmlDocument.CreateElement("null"),
-                        dataMapping.Item1);
-#endif
-                }
-                else if (this.DataMap.ContainsKey(dataMapping.StructIndex) && this.DataMap[dataMapping.StructIndex].Count > dataMapping.RecordIndex)
-                {
-                    dataMapping.Node.ParentNode.ReplaceChild(
-                        this.DataMap[dataMapping.StructIndex][dataMapping.RecordIndex],
-                        dataMapping.Node);
-                }
-                else
-                {
-                    var bugged = this._xmlDocument.CreateElement("bugged");
-                    var __class = this._xmlDocument.CreateAttribute("__class");
-                    var __index = this._xmlDocument.CreateAttribute("__index");
-                    __class.Value = $"{dataMapping.StructIndex:X8}";
-                    __index.Value = $"{dataMapping.RecordIndex:X8}";
-                    bugged.Attributes.Append(__class);
-                    bugged.Attributes.Append(__index);
-                    dataMapping.Node.ParentNode.ReplaceChild(
-                        bugged,
-                        dataMapping.Node);
-                }
+                this.DataMap[dataMapping.StructIndex] = new BinaryStructArray(this, dataStruct, dataMapping.Name, (Int32)dataMapping.StructCount);
             }
         }
 
@@ -245,109 +204,142 @@ namespace unforge
 
 		internal void Compile()
 		{
-			var root = this._xmlDocument.CreateElement("DataForge");
-			this._xmlDocument.AppendChild(root);
+                        var root = this._xmlDocument.CreateElement("DataForge");
+                        this._xmlDocument.AppendChild(root);
 
-			foreach (var dataMapping in this.Require_StrongMapping)
-			{
-				var strong = this.Array_StrongValues[dataMapping.RecordIndex];
+                        var i = 0;
+                        foreach (var record in this.RecordDefinitionTable)
+                        {
+                                var fileReference = record.FileName;
 
-				if (strong.Index == 0xFFFFFFFF)
-				{
+                                if (fileReference.Split('/').Length == 2)
+                                {
+                                        fileReference = fileReference.Split('/')[1];
+                                }
+
+                                if (!record.FileName.ToLowerInvariant().Contains(record.Name.ToLowerInvariant()) &&
+                                        !record.FileName.ToLowerInvariant().Contains(record.Name.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries).Last().ToLowerInvariant()))
+                                {
+                                        Console.WriteLine("Warning {0} doesn't match {1}", record.Name, record.FileName);
+                                }
+
+                                if (String.IsNullOrWhiteSpace(fileReference))
+                                {
+                                        fileReference = String.Format(@"Dump\{0}_{1}.xml", record.Name, i++);
+                                }
+
+                                if (record.Hash.HasValue && record.Hash != Guid.Empty)
+                                {
+                                        var hash = this.CreateAttribute("__ref");
+                                        hash.Value = $"{record.Hash}";
+                                        this.DataMap[record.StructIndex][record.VariantIndex].Attributes.Append(hash);
+                                }
+
+                                if (!String.IsNullOrWhiteSpace(record.FileName))
+                                {
+                                        var path = this.CreateAttribute("__path");
+                                        path.Value = $"{record.FileName}";
+                                        this.DataMap[record.StructIndex][record.VariantIndex].Attributes.Append(path);
+                                }
+
+                                this.DataMap[record.StructIndex][record.VariantIndex] = this.DataMap[record.StructIndex][record.VariantIndex].Rename(record.Name);
+                                root.AppendChild(this.DataMap[record.StructIndex][record.VariantIndex]);
+                        }
+
+                        foreach (var dataMapping in this.Require_ClassMapping)
+                        {
+                                if (dataMapping.StructIndex == 0xFFFF)
+                                {
 #if NONULL
-					dataMapping.Node.ParentNode.RemoveChild(dataMapping.Node);
+                                        dataMapping.Node.ParentNode.RemoveChild(dataMapping.Node);
 #else
                     dataMapping.Item1.ParentNode.ReplaceChild(
                         this._xmlDocument.CreateElement("null"),
                         dataMapping.Item1);
 #endif
-				}
-				else
-				{
-					dataMapping.Node.ParentNode.ReplaceChild(
-						this.DataMap[strong.StructType][(Int32)strong.Index],
-						dataMapping.Node);
-				}
-			}
+                                }
+                                else if (this.DataMap.ContainsKey(dataMapping.StructIndex) && this.DataMap[dataMapping.StructIndex].Count > dataMapping.RecordIndex)
+                                {
+                                        dataMapping.Node.ParentNode.ReplaceChild(
+                                                this.DataMap[dataMapping.StructIndex][dataMapping.RecordIndex],
+                                                dataMapping.Node);
+                                }
+                                else
+                                {
+                                        var bugged = this._xmlDocument.CreateElement("bugged");
+                                        var __class = this._xmlDocument.CreateAttribute("__class");
+                                        var __index = this._xmlDocument.CreateAttribute("__index");
+                                        __class.Value = $"{dataMapping.StructIndex:X8}";
+                                        __index.Value = $"{dataMapping.RecordIndex:X8}";
+                                        bugged.Attributes.Append(__class);
+                                        bugged.Attributes.Append(__index);
+                                        dataMapping.Node.ParentNode.ReplaceChild(
+                                                bugged,
+                                                dataMapping.Node);
+                                }
+                        }
 
-			foreach (var dataMapping in this.Require_WeakMapping1)
-			{
-				var weak = this.Array_WeakValues[dataMapping.RecordIndex];
+                        foreach (var dataMapping in this.Require_StrongMapping)
+                        {
+                                var strong = this.Array_StrongValues[dataMapping.RecordIndex];
 
-				var weakAttribute = dataMapping.Node;
+                                if (strong.Index == 0xFFFFFFFF)
+                                {
+#if NONULL
+                                        dataMapping.Node.ParentNode.RemoveChild(dataMapping.Node);
+#else
+                    dataMapping.Item1.ParentNode.ReplaceChild(
+                        this._xmlDocument.CreateElement("null"),
+                        dataMapping.Item1);
+#endif
+                                }
+                                else
+                                {
+                                        dataMapping.Node.ParentNode.ReplaceChild(
+                                                this.DataMap[strong.StructType][(Int32)strong.Index],
+                                                dataMapping.Node);
+                                }
+                        }
 
-				if (weak.Index == 0xFFFFFFFF)
-				{
-					weakAttribute.Value = String.Format("0");
-				}
-				else
-				{
-					var targetElement = this.DataMap[weak.StructType][(Int32)weak.Index];
+                        foreach (var dataMapping in this.Require_WeakMapping1)
+                        {
+                                var weak = this.Array_WeakValues[dataMapping.RecordIndex];
 
-					weakAttribute.Value = targetElement.GetPath();
-				}
-			}
+                                var weakAttribute = dataMapping.Node;
 
-			foreach (var dataMapping in this.Require_WeakMapping2)
-			{
-				var weakAttribute = dataMapping.Node;
+                                if (weak.Index == 0xFFFFFFFF)
+                                {
+                                        weakAttribute.Value = String.Format("0");
+                                }
+                                else
+                                {
+                                        var targetElement = this.DataMap[weak.StructType][(Int32)weak.Index];
 
-				if (dataMapping.StructIndex == 0xFFFF)
-				{
-					weakAttribute.Value = "null";
-				}
-				else if (dataMapping.RecordIndex == -1)
-				{
-					var targetElement = this.DataMap[dataMapping.StructIndex];
+                                        weakAttribute.Value = targetElement.GetPath();
+                                }
+                        }
 
-					weakAttribute.Value = targetElement.FirstOrDefault()?.GetPath();
-				}
-				else
-				{
-					var targetElement = this.DataMap[dataMapping.StructIndex][dataMapping.RecordIndex];
+                        foreach (var dataMapping in this.Require_WeakMapping2)
+                        {
+                                var weakAttribute = dataMapping.Node;
 
-					weakAttribute.Value = targetElement.GetPath();
-				}
-			}
+                                if (dataMapping.StructIndex == 0xFFFF)
+                                {
+                                        weakAttribute.Value = "null";
+                                }
+                                else if (dataMapping.RecordIndex == -1)
+                                {
+                                        var targetElement = this.DataMap[dataMapping.StructIndex];
 
-			var i = 0;
-			foreach (var record in this.RecordDefinitionTable)
-			{
-				var fileReference = record.FileName;
+                                        weakAttribute.Value = targetElement.FirstOrDefault()?.GetPath();
+                                }
+                                else
+                                {
+                                        var targetElement = this.DataMap[dataMapping.StructIndex][dataMapping.RecordIndex];
 
-				if (fileReference.Split('/').Length == 2)
-				{
-					fileReference = fileReference.Split('/')[1];
-				}
-
-				if (!record.FileName.ToLowerInvariant().Contains(record.Name.ToLowerInvariant()) &&
-					!record.FileName.ToLowerInvariant().Contains(record.Name.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries).Last().ToLowerInvariant()))
-				{
-					Console.WriteLine("Warning {0} doesn't match {1}", record.Name, record.FileName);
-				}
-
-				if (String.IsNullOrWhiteSpace(fileReference))
-				{
-					fileReference = String.Format(@"Dump\{0}_{1}.xml", record.Name, i++);
-				}
-
-				if (record.Hash.HasValue && record.Hash != Guid.Empty)
-				{
-					var hash = this.CreateAttribute("__ref");
-					hash.Value = $"{record.Hash}";
-					this.DataMap[record.StructIndex][record.VariantIndex].Attributes.Append(hash);
-				}
-
-				if (!String.IsNullOrWhiteSpace(record.FileName))
-				{
-					var path = this.CreateAttribute("__path");
-					path.Value = $"{record.FileName}";
-					this.DataMap[record.StructIndex][record.VariantIndex].Attributes.Append(path);
-				}
-				
-				this.DataMap[record.StructIndex][record.VariantIndex] = this.DataMap[record.StructIndex][record.VariantIndex].Rename(record.Name);
-				root.AppendChild(this.DataMap[record.StructIndex][record.VariantIndex]);
-			}
+                                        weakAttribute.Value = targetElement.GetPath();
+                                }
+                        }
 		}
 
 		public Stream GetStream()

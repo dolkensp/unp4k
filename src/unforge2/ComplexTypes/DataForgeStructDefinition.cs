@@ -98,65 +98,66 @@ namespace unforge
 
                     for (var i = 0; i < arrayCount; i++)
                     {
+                        var idx = (Int32)(firstIndex + i);
                         switch (node.DataType)
                         {
                             case EDataType.varBoolean:
-                                child.AppendChild(this.DocumentRoot.Array_BooleanValues[firstIndex + i].Read());
+                                child.AppendChild(this.DocumentRoot.Array_BooleanValues[idx].Read());
                                 break;
                             case EDataType.varDouble:
-                                child.AppendChild(this.DocumentRoot.Array_DoubleValues[firstIndex + i].Read());
+                                child.AppendChild(this.DocumentRoot.Array_DoubleValues[idx].Read());
                                 break;
                             case EDataType.varEnum:
-                                child.AppendChild(this.DocumentRoot.Array_EnumValues[firstIndex + i].Read());
+                                child.AppendChild(this.DocumentRoot.Array_EnumValues[idx].Read());
                                 break;
                             case EDataType.varGuid:
-                                child.AppendChild(this.DocumentRoot.Array_GuidValues[firstIndex + i].Read());
+                                child.AppendChild(this.DocumentRoot.Array_GuidValues[idx].Read());
                                 break;
                             case EDataType.varInt16:
-                                child.AppendChild(this.DocumentRoot.Array_Int16Values[firstIndex + i].Read());
+                                child.AppendChild(this.DocumentRoot.Array_Int16Values[idx].Read());
                                 break;
                             case EDataType.varInt32:
-                                child.AppendChild(this.DocumentRoot.Array_Int32Values[firstIndex + i].Read());
+                                child.AppendChild(this.DocumentRoot.Array_Int32Values[idx].Read());
                                 break;
                             case EDataType.varInt64:
-                                child.AppendChild(this.DocumentRoot.Array_Int64Values[firstIndex + i].Read());
+                                child.AppendChild(this.DocumentRoot.Array_Int64Values[idx].Read());
                                 break;
                             case EDataType.varSByte:
-                                child.AppendChild(this.DocumentRoot.Array_Int8Values[firstIndex + i].Read());
+                                child.AppendChild(this.DocumentRoot.Array_Int8Values[idx].Read());
                                 break;
                             case EDataType.varLocale:
-                                child.AppendChild(this.DocumentRoot.Array_LocaleValues[firstIndex + i].Read());
+                                child.AppendChild(this.DocumentRoot.Array_LocaleValues[idx].Read());
                                 break;
                             case EDataType.varReference:
-                                child.AppendChild(this.DocumentRoot.Array_ReferenceValues[firstIndex + i].Read());
+                                child.AppendChild(this.DocumentRoot.Array_ReferenceValues[idx].Read());
                                 break;
                             case EDataType.varSingle:
-                                child.AppendChild(this.DocumentRoot.Array_SingleValues[firstIndex + i].Read());
+                                child.AppendChild(this.DocumentRoot.Array_SingleValues[idx].Read());
                                 break;
                             case EDataType.varString:
-                                child.AppendChild(this.DocumentRoot.Array_StringValues[firstIndex + i].Read());
+                                child.AppendChild(this.DocumentRoot.Array_StringValues[idx].Read());
                                 break;
                             case EDataType.varUInt16:
-                                child.AppendChild(this.DocumentRoot.Array_UInt16Values[firstIndex + i].Read());
+                                child.AppendChild(this.DocumentRoot.Array_UInt16Values[idx].Read());
                                 break;
                             case EDataType.varUInt32:
-                                child.AppendChild(this.DocumentRoot.Array_UInt32Values[firstIndex + i].Read());
+                                child.AppendChild(this.DocumentRoot.Array_UInt32Values[idx].Read());
                                 break;
                             case EDataType.varUInt64:
-                                child.AppendChild(this.DocumentRoot.Array_UInt64Values[firstIndex + i].Read());
+                                child.AppendChild(this.DocumentRoot.Array_UInt64Values[idx].Read());
                                 break;
                             case EDataType.varByte:
-                                child.AppendChild(this.DocumentRoot.Array_UInt8Values[firstIndex + i].Read());
+                                child.AppendChild(this.DocumentRoot.Array_UInt8Values[idx].Read());
                                 break;
                             case EDataType.varClass:
                                 var emptyC = this.DocumentRoot.CreateElement(String.Format("{0}", node.DataType));
                                 child.AppendChild(emptyC);
-                                this.DocumentRoot.Require_ClassMapping.Add(new ClassMapping { Node = emptyC, StructIndex = node.StructIndex, RecordIndex = (Int32)(firstIndex + i) });
+                                this.DocumentRoot.Require_ClassMapping.Add(new ClassMapping { Node = emptyC, StructIndex = node.StructIndex, RecordIndex = idx });
                                 break;
                             case EDataType.varStrongPointer:
                                 var emptySP = this.DocumentRoot.CreateElement(String.Format("{0}", node.DataType));
                                 child.AppendChild(emptySP);
-                                this.DocumentRoot.Require_StrongMapping.Add(new ClassMapping { Node = emptySP, StructIndex = node.StructIndex, RecordIndex = (Int32)(firstIndex + i) });
+                                this.DocumentRoot.Require_StrongMapping.Add(new ClassMapping { Node = emptySP, StructIndex = node.StructIndex, RecordIndex = idx });
                                 break;
                             case EDataType.varWeakPointer:
                                 var weakPointerElement = this.DocumentRoot.CreateElement("WeakPointer");
@@ -165,7 +166,7 @@ namespace unforge
                                 weakPointerElement.Attributes.Append(weakPointerAttribute);
                                 child.AppendChild(weakPointerElement);
 
-                                this.DocumentRoot.Require_WeakMapping1.Add(new ClassMapping { Node = weakPointerAttribute, StructIndex = node.StructIndex, RecordIndex = (Int32)(firstIndex + i) });
+                                this.DocumentRoot.Require_WeakMapping1.Add(new ClassMapping { Node = weakPointerAttribute, StructIndex = node.StructIndex, RecordIndex = idx });
                                 break;
                             default:
                                 throw new NotImplementedException();
@@ -198,6 +199,68 @@ namespace unforge
             }
 
             return element;
+        }
+
+        public void Skip()
+        {
+            var baseStruct = this;
+            var properties = new List<DataForgePropertyDefinition> { };
+
+            properties.InsertRange(0,
+                from index in Enumerable.Range(this.FirstAttributeIndex, this.AttributeCount)
+                let property = this.DocumentRoot.PropertyDefinitionTable[index]
+                select property);
+
+            while (baseStruct.ParentTypeIndex != 0xFFFFFFFF)
+            {
+                baseStruct = this.DocumentRoot.StructDefinitionTable[baseStruct.ParentTypeIndex];
+
+                properties.InsertRange(0,
+                    from index in Enumerable.Range(baseStruct.FirstAttributeIndex, baseStruct.AttributeCount)
+                    let property = this.DocumentRoot.PropertyDefinitionTable[index]
+                    select property);
+            }
+
+            foreach (var node in properties)
+            {
+                node.ConversionType = (EConversionType)((Int32)node.ConversionType & 0xFF);
+
+                if (node.ConversionType == EConversionType.varAttribute)
+                {
+                    if (node.DataType == EDataType.varClass)
+                    {
+                        var childStruct = this.DocumentRoot.StructDefinitionTable[node.StructIndex];
+                        childStruct.Skip();
+                    }
+                    else if (node.DataType == EDataType.varStrongPointer)
+                    {
+                        this._br.ReadUInt32();
+                        this._br.ReadUInt32();
+                    }
+                    else
+                    {
+                        node.Skip();
+                    }
+                }
+                else
+                {
+                    var arrayCount = this._br.ReadUInt32();
+                    var firstIndex = this._br.ReadUInt32();
+
+                    if (node.DataType == EDataType.varClass)
+                    {
+                        var childStruct = this.DocumentRoot.StructDefinitionTable[node.StructIndex];
+                        for (var i = 0; i < arrayCount; i++)
+                        {
+                            childStruct.Skip();
+                        }
+                    }
+                    else
+                    {
+                        // other array types reference value tables; nothing to skip beyond count/index
+                    }
+                }
+            }
         }
 
         public String Export(String assemblyName = "HoloXPLOR.Data.DataForge")

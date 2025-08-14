@@ -95,6 +95,63 @@ namespace unforge
             return attribute;
         }
 
+        public void Skip()
+        {
+            switch (this.DataType)
+            {
+                case EDataType.varReference:
+                    this._br.ReadUInt32();
+                    this._br.ReadGuid(false);
+                    break;
+                case EDataType.varLocale:
+                case EDataType.varString:
+                case EDataType.varEnum:
+                    this._br.ReadUInt32();
+                    break;
+                case EDataType.varStrongPointer:
+                case EDataType.varWeakPointer:
+                    this._br.ReadUInt32();
+                    this._br.ReadUInt32();
+                    break;
+                case EDataType.varBoolean:
+                case EDataType.varByte:
+                    this._br.ReadByte();
+                    break;
+                case EDataType.varSByte:
+                    this._br.ReadSByte();
+                    break;
+                case EDataType.varInt16:
+                    this._br.ReadInt16();
+                    break;
+                case EDataType.varUInt16:
+                    this._br.ReadUInt16();
+                    break;
+                case EDataType.varInt32:
+                    this._br.ReadInt32();
+                    break;
+                case EDataType.varUInt32:
+                    this._br.ReadUInt32();
+                    break;
+                case EDataType.varInt64:
+                    this._br.ReadInt64();
+                    break;
+                case EDataType.varUInt64:
+                    this._br.ReadUInt64();
+                    break;
+                case EDataType.varSingle:
+                    this._br.ReadSingle();
+                    break;
+                case EDataType.varDouble:
+                    this._br.ReadDouble();
+                    break;
+                case EDataType.varGuid:
+                    this._br.ReadGuid(false);
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
         public override String ToString()
         {
             return String.Format("<{0} />", this.Name);
