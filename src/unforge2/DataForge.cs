@@ -262,7 +262,7 @@ namespace unforge
                                 else if (this.DataMap.ContainsKey(dataMapping.StructIndex) && this.DataMap[dataMapping.StructIndex].Count > dataMapping.RecordIndex)
                                 {
                                         dataMapping.Node.ParentNode.ReplaceChild(
-                                                this.DataMap[dataMapping.StructIndex][dataMapping.RecordIndex],
+                                                (XmlElement)this.DataMap[dataMapping.StructIndex][dataMapping.RecordIndex].CloneNode(true),
                                                 dataMapping.Node);
                                 }
                                 else
@@ -297,7 +297,7 @@ namespace unforge
                                 else
                                 {
                                         dataMapping.Node.ParentNode.ReplaceChild(
-                                                this.DataMap[strong.StructType][(Int32)strong.Index],
+                                                (XmlElement)this.DataMap[strong.StructType][(Int32)strong.Index].CloneNode(true),
                                                 dataMapping.Node);
                                 }
                         }
