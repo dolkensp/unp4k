@@ -244,21 +244,10 @@ namespace unforge
                 }
                 else
                 {
-                    var arrayCount = this._br.ReadUInt32();
-                    var firstIndex = this._br.ReadUInt32();
-
-                    if (node.DataType == EDataType.varClass)
-                    {
-                        var childStruct = this.DocumentRoot.StructDefinitionTable[node.StructIndex];
-                        for (var i = 0; i < arrayCount; i++)
-                        {
-                            childStruct.Skip();
-                        }
-                    }
-                    else
-                    {
-                        // other array types reference value tables; nothing to skip beyond count/index
-                    }
+                    // Array property: read count and first index but no inline data is stored.
+                    // Elements reference external value tables or the DataMap.
+                    this._br.ReadUInt32(); // arrayCount
+                    this._br.ReadUInt32(); // firstIndex
                 }
             }
         }
