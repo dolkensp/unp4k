@@ -22,11 +22,11 @@
   </PropertyGroup>
   
   <ItemGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
-    <PackageReference Include="System.Net.Http" Version="4.3.0" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework)'=='net47'">
-    <PackageReference Include="System.Net.Http" Version="4.0.0" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
 
   <ItemGroup>
