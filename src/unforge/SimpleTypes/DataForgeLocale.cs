@@ -12,7 +12,9 @@ namespace unforge
 			{
 				return this.DocumentRoot.BlobMap.ContainsKey(this._value) ?
 					this.DocumentRoot.BlobMap[this._value] :
-					this.DocumentRoot.TextMap[this._value];
+					this.DocumentRoot.TextMap.ContainsKey(this._value) ?
+					this.DocumentRoot.TextMap[this._value] :
+					"[MISSING]";
 			}
 		}
 
@@ -31,7 +33,7 @@ namespace unforge
         {
             var element = this.DocumentRoot.CreateElement("LocID");
             var attribute = this.DocumentRoot.CreateAttribute("value");
-            attribute.Value = this.Value.ToString();
+            attribute.Value = this.Value;
             // TODO: More work here
             element.Attributes.Append(attribute);
             return element;
