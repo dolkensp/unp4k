@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace unforge
 {
-    public class DataForgeInt64 : _DataForgeSerializable
+	public class DataForgeInt64 : _DataForgeSerializable
     {
         public Int64 Value { get; set; }
 

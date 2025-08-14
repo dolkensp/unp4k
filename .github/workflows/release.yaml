@@ -3,10 +3,10 @@ name: Release
 on:
   push:
     branches:
-        - master
+        - main
   pull_request:
       branches:
-          - master
+        - main
 env:
   UNP4K_VERSION: 3.13.${{ github.run_number }}
 
@@ -15,16 +15,16 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Setup Nuget
-      uses: nuget/setup-nuget@v1
+      uses: nuget/setup-nuget@v2
       with:
         nuget-version: '5.x'
 
     - name: Setup MSBuild
       id: setup_msbuild
-      uses: microsoft/setup-msbuild@v1.0.2
+      uses: microsoft/setup-msbuild@v2
 
     - name: Restore dependencies
       run: nuget restore
@@ -45,17 +45,17 @@ jobs:
         erase System.IO.dll /s
         erase System.Security.*.dll /s
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: unp4k-suite-v${{ env.UNP4K_VERSION }}
         path: src/unp4k.gui/bin/Release
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: unforge-v${{ env.UNP4K_VERSION }}
         path: src/unforge/bin/Release/net47/win-x64
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: unp4k-v${{ env.UNP4K_VERSION }}
         path: src/unp4k/bin/Release/net47/win-x64
@@ -68,7 +68,7 @@ jobs:
       id: ${{ steps.create_release.outputs.id }}
       upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     
     - name: Load README
       run: |
@@ -98,7 +98,7 @@ jobs:
         artifact: [ unp4k, unp4k-suite, unforge ]
     steps:
     - name: Load Artifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: ${{ matrix.artifact }}-v${{ env.UNP4K_VERSION }}
         path: ${{ matrix.artifact }}

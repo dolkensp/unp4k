@@ -1,17 +1,14 @@
 ﻿using System;
 using System.IO;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace unforge
 {
-    public class DataForgePropertyDefinition : _DataForgeSerializable
+	public class DataForgePropertyDefinition : _DataForgeSerializable
     {
         public UInt32 NameOffset { get; set; }
-        public String Name { get { return this.DocumentRoot.ValueMap[this.NameOffset]; } }
+        public String Name { get { return this.DocumentRoot.BlobMap[this.NameOffset]; } }
         public UInt16 StructIndex { get; set; }
         public EDataType DataType { get; set; }
         public EConversionType ConversionType { get; set; }
@@ -37,7 +34,7 @@ namespace unforge
                     attribute.Value = String.Format("{2}", this.DataType, this._br.ReadUInt32(), this._br.ReadGuid(false));
                     break;
                 case EDataType.varLocale:
-                    attribute.Value = String.Format("{1}", this.DataType, this.DocumentRoot.ValueMap[this._br.ReadUInt32()]);
+                    attribute.Value = String.Format("{1}", this.DataType, this.DocumentRoot.TextMap[this._br.ReadUInt32()]);
                     break;
                 case EDataType.varStrongPointer:
                     attribute.Value = String.Format("{0}:{1:X8} {2:X8}", this.DataType, this._br.ReadUInt32(), this._br.ReadUInt32());
@@ -49,7 +46,7 @@ namespace unforge
                     this.DocumentRoot.Require_WeakMapping2.Add(new ClassMapping { Node = attribute, StructIndex = (UInt16)structIndex, RecordIndex = (Int32)itemIndex });
                     break;
                 case EDataType.varString:
-                    attribute.Value = String.Format("{1}", this.DataType, this.DocumentRoot.ValueMap[this._br.ReadUInt32()]);
+                    attribute.Value = String.Format("{1}", this.DataType, this.DocumentRoot.TextMap[this._br.ReadUInt32()]);
                     break;
                 case EDataType.varBoolean:
                     attribute.Value = String.Format("{1}", this.DataType, this._br.ReadByte());
@@ -89,7 +86,7 @@ namespace unforge
                     break;
                 case EDataType.varEnum:
                     var enumDefinition = this.DocumentRoot.EnumDefinitionTable[this.StructIndex];
-                    attribute.Value = String.Format("{1}", enumDefinition.Name, this.DocumentRoot.ValueMap[this._br.ReadUInt32()]);
+                    attribute.Value = String.Format("{1}", enumDefinition.Name, this.DocumentRoot.TextMap[this._br.ReadUInt32()]);
                     break;
                 default:
                     throw new NotImplementedException();

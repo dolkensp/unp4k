@@ -1,7 +1,5 @@
-﻿using ICSharpCode.SharpZipLib.Zip;
-using System;
+﻿using System;
 using System.Linq;
-using System.Collections.Generic;
 using System.Windows.Media;
 
 namespace unp4k.gui.TreeModel

@@ -1,15 +1,10 @@
 ﻿using ICSharpCode.TreeView;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Data;
 
 namespace unp4k.gui.Extensions
 {
-    public static class SharpTreeViewExtensions
+	public static class SharpTreeViewExtensions
     {
 		public static void ClearSort(this SharpTreeView treeView)
 		{

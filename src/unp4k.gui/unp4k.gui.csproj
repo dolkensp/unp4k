@@ -8,11 +8,12 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>unp4k.gui</RootNamespace>
     <AssemblyName>unp4k.gui</AssemblyName>
-    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -128,6 +129,10 @@
     <ProjectReference Include="..\unforge\unforge.csproj">
       <Project>{273d3d56-f005-4ed5-babb-fd88fbc3fc63}</Project>
       <Name>unforge</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\unp4k\unp4k.csproj">
+      <Project>{45633789-1db1-44b9-b343-0b2da2c1f71f}</Project>
+      <Name>unp4k</Name>
     </ProjectReference>
     <ProjectReference Include="..\Zstd.Net\Zstd.Net.csproj">
       <Project>{5922d4ec-8478-4b0d-8f92-7532f4f2cf81}</Project>

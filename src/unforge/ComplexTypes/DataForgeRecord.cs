@@ -1,19 +1,14 @@
 ﻿using System;
 using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
 
 namespace unforge
 {
-    public class DataForgeRecord : _DataForgeSerializable
+	public class DataForgeRecord : _DataForgeSerializable
     {
         public UInt32 NameOffset { get; set; }
-        public String Name { get { return this.DocumentRoot.ValueMap[this.NameOffset]; } }
+        public String Name { get { return this.DocumentRoot.BlobMap[this.NameOffset]; } }
 
-        public String FileName { get { return this.DocumentRoot.ValueMap[this.FileNameOffset]; } }
+        public String FileName { get { return this.DocumentRoot.TextMap[this.FileNameOffset]; } }
         public UInt32 FileNameOffset { get; set; }
 
         public String __structIndex { get { return String.Format("{0:X4}", this.StructIndex); } }

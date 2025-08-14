@@ -1,14 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using ICSharpCode.SharpZipLib.Zip;
-using unp4k.gui.Plugins;
 using unp4k.gui.Extensions;
-using System.Windows.Media;
 using System.Windows.Controls;
 using System.Diagnostics;
 

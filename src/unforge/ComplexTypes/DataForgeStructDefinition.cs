@@ -2,15 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace unforge
 {
-    public class DataForgeStructDefinition : _DataForgeSerializable
+	public class DataForgeStructDefinition : _DataForgeSerializable
     {
         public UInt32 NameOffset { get; set; }
-        public String Name { get { return this.DocumentRoot.ValueMap[this.NameOffset]; } }
+        public String Name { get { return this.DocumentRoot.BlobMap[this.NameOffset]; } }
 
         public String __parentTypeIndex { get { return String.Format("{0:X4}", this.ParentTypeIndex); } }
         public UInt32 ParentTypeIndex { get; set; }

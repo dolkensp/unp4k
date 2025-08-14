@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace unforge
 {
-    public class DataForgeDouble : _DataForgeSerializable
+	public class DataForgeDouble : _DataForgeSerializable
     {
         public Double Value { get; set; }
 
