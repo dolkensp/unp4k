@@ -3,9 +3,11 @@ using System.Text;
 
 namespace unforge
 {
-	public class DataForgeEnumDefinition : _DataForgeSerializable
+	public class	DataForgeEnumDefinition : _DataForgeSerializable
     {
-        public UInt32 NameOffset { get; set; }
+		public static Int32 RecordSizeInBytes = 8;
+
+		public UInt32 NameOffset { get; set; }
         public String Name { get { return this.DocumentRoot.BlobMap[this.NameOffset]; } }
         public UInt16 ValueCount { get; set; }
         public UInt16 FirstValueIndex { get; set; }

@@ -5,7 +5,9 @@ namespace unforge
 {
 	public class DataForgeLocale : _DataForgeSerializable
     {
-        private UInt32 _value;
+		public static Int32 RecordSizeInBytes = 4;
+
+		private UInt32 _value;
         public String Value
 		{
 			get

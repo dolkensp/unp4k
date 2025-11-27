@@ -12,5 +12,8 @@ namespace unforge
             this.DocumentRoot = documentRoot;
             this._br = documentRoot._br;
         }
-    }
+
+		protected _DataForgeSerializable() { }
+
+	}
 }

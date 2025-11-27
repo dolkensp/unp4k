@@ -6,7 +6,9 @@ namespace unforge
 {
 	public class DataForgeReference : _DataForgeSerializable
     {
-        public UInt32 Item1 { get; set; }
+		public static Int32 RecordSizeInBytes = 20;
+
+		public UInt32 Item1 { get; set; }
         public Guid Value { get; set; }
 
         public DataForgeReference(DataForge documentRoot)

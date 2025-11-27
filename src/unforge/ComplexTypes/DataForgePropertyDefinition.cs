@@ -7,7 +7,9 @@ namespace unforge
 {
 	public class DataForgePropertyDefinition : _DataForgeSerializable
     {
-        public UInt32 NameOffset { get; set; }
+		public static Int32 RecordSizeInBytes = 12;
+
+		public UInt32 NameOffset { get; set; }
         public String Name { get { return this.DocumentRoot.BlobMap[this.NameOffset]; } }
         public UInt16 StructIndex { get; set; }
         public EDataType DataType { get; set; }

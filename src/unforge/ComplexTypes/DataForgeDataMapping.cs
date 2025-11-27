@@ -4,7 +4,10 @@ namespace unforge
 {
 	public class DataForgeDataMapping : _DataForgeSerializable
     {
-        public UInt32 StructIndex { get; set; }
+		public static Int32 RecordSizeInBytes = 4;
+		public static Int32 RecordSizeInBytesV6 = 8;
+
+		public UInt32 StructIndex { get; set; }
         public UInt32 StructCount { get; set; }
         public UInt32 NameOffset { get; set; }
         public String Name { get { return this.DocumentRoot.BlobMap[this.NameOffset]; } }

@@ -5,7 +5,9 @@ namespace unforge
 {
 	public class DataForgeEnum : _DataForgeSerializable
     {
-        private UInt32 _value;
+		public static Int32 RecordSizeInBytes = 4;
+
+		private UInt32 _value;
         public String Value { get { return this.DocumentRoot.TextMap[this._value]; } }
 
         public DataForgeEnum(DataForge documentRoot)
