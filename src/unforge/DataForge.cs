@@ -67,10 +67,9 @@ namespace unforge
                 return null;
             }
 
-            return (from i in Enumerable.Range(0, arraySize)
-                    let data = (U)Activator.CreateInstance(typeof(U), this)
-                    // let hack = data._index = i
-                    select data).ToArray();
+			return Enumerable.Range(0, arraySize)
+				.Select(i => (U)Activator.CreateInstance(typeof(U), this))
+				.ToArray();
         }
 
 		public DataForge(BinaryReader br, Boolean legacy = false)
@@ -91,6 +90,7 @@ namespace unforge
 				var atemp2 = this._br.ReadUInt16();
 				var atemp3 = this._br.ReadUInt16();
 				var atemp4 = this._br.ReadUInt16();
+				Console.WriteLine($"{temp00} {atemp1} {atemp2} {atemp3} {atemp4}");
 			}
 
 			var structDefinitionCount = this._br.ReadInt32();
@@ -123,34 +123,60 @@ namespace unforge
 			var textLength = this._br.ReadUInt32();
 			var blobLength = (this.IsLegacy) ? 0 : this._br.ReadUInt32();
 
+
+			Console.WriteLine($"StructDefinitionTable: {this._br.BaseStream.Position}");
 			this.StructDefinitionTable = this.ReadArray<DataForgeStructDefinition>(structDefinitionCount);
+			Console.WriteLine($"PropertyDefinitionTable: {this._br.BaseStream.Position}");
 			this.PropertyDefinitionTable = this.ReadArray<DataForgePropertyDefinition>(propertyDefinitionCount);
+			Console.WriteLine($"EnumDefinitionTable: {this._br.BaseStream.Position}");
 			this.EnumDefinitionTable = this.ReadArray<DataForgeEnumDefinition>(enumDefinitionCount);
+			Console.WriteLine($"DataMappingTable: {this._br.BaseStream.Position}");
 			this.DataMappingTable = this.ReadArray<DataForgeDataMapping>(dataMappingCount);
+			Console.WriteLine($"RecordDefinitionTable: {this._br.BaseStream.Position}");
 			this.RecordDefinitionTable = this.ReadArray<DataForgeRecord>(recordDefinitionCount);
 
-            this.Array_Int8Values = this.ReadArray<DataForgeInt8>(int8ValueCount);
+			Console.WriteLine($"Array_Int8Values: {this._br.BaseStream.Position}");
+			this.Array_Int8Values = this.ReadArray<DataForgeInt8>(int8ValueCount);
+			Console.WriteLine($"Array_Int16Values: {this._br.BaseStream.Position}");
             this.Array_Int16Values = this.ReadArray<DataForgeInt16>(int16ValueCount);
+			Console.WriteLine($"Array_Int32Values: {this._br.BaseStream.Position}");
             this.Array_Int32Values = this.ReadArray<DataForgeInt32>(int32ValueCount);
+			Console.WriteLine($"Array_Int64Values: {this._br.BaseStream.Position}");
             this.Array_Int64Values = this.ReadArray<DataForgeInt64>(int64ValueCount);
+			Console.WriteLine($"Array_UInt8Values: {this._br.BaseStream.Position}");
             this.Array_UInt8Values = this.ReadArray<DataForgeUInt8>(uint8ValueCount);
+			Console.WriteLine($"Array_UInt16Values: {this._br.BaseStream.Position}");
             this.Array_UInt16Values = this.ReadArray<DataForgeUInt16>(uint16ValueCount);
+			Console.WriteLine($"Array_UInt32Values: {this._br.BaseStream.Position}");
             this.Array_UInt32Values = this.ReadArray<DataForgeUInt32>(uint32ValueCount);
+			Console.WriteLine($"Array_UInt64Values: {this._br.BaseStream.Position}");
             this.Array_UInt64Values = this.ReadArray<DataForgeUInt64>(uint64ValueCount);
+			Console.WriteLine($"Array_BooleanValues: {this._br.BaseStream.Position}");
             this.Array_BooleanValues = this.ReadArray<DataForgeBoolean>(booleanValueCount);
+			Console.WriteLine($"Array_SingleValues: {this._br.BaseStream.Position}");
             this.Array_SingleValues = this.ReadArray<DataForgeSingle>(singleValueCount);
+			Console.WriteLine($"Array_DoubleValues: {this._br.BaseStream.Position}");
             this.Array_DoubleValues = this.ReadArray<DataForgeDouble>(doubleValueCount);
+			Console.WriteLine($"Array_GuidValues: {this._br.BaseStream.Position}");
             this.Array_GuidValues = this.ReadArray<DataForgeGuid>(guidValueCount);
+			Console.WriteLine($"Array_StringValues: {this._br.BaseStream.Position}");
             this.Array_StringValues = this.ReadArray<DataForgeStringLookup>(stringValueCount);
+			Console.WriteLine($"Array_LocaleValues: {this._br.BaseStream.Position}");
             this.Array_LocaleValues = this.ReadArray<DataForgeLocale>(localeValueCount);
+			Console.WriteLine($"Array_EnumValues: {this._br.BaseStream.Position}");
             this.Array_EnumValues = this.ReadArray<DataForgeEnum>(enumValueCount);
+			Console.WriteLine($"Array_StrongValues: {this._br.BaseStream.Position}");
             this.Array_StrongValues = this.ReadArray<DataForgePointer>(strongValueCount);
+			Console.WriteLine($"Array_WeakValues: {this._br.BaseStream.Position}");
             this.Array_WeakValues = this.ReadArray<DataForgePointer>(weakValueCount);
 
+			Console.WriteLine($"Array_ReferenceValues: {this._br.BaseStream.Position}");
             this.Array_ReferenceValues = this.ReadArray<DataForgeReference>(referenceValueCount);
+			Console.WriteLine($"EnumOptionTable: {this._br.BaseStream.Position}");
             this.EnumOptionTable = this.ReadArray<DataForgeStringLookup>(enumOptionCount);
+			Console.WriteLine($"TextMap: {this._br.BaseStream.Position}");
 
-            var buffer = new List<DataForgeString> { };
+			var buffer = new List<DataForgeString> { };
             var maxPosition = this._br.BaseStream.Position + textLength;
             var startPosition = this._br.BaseStream.Position;
             this.TextMap = new Dictionary<UInt32, String> { };
@@ -161,6 +187,7 @@ namespace unforge
                 buffer.Add(dfString);
                 this.TextMap[(UInt32)offset] = dfString.Value;
             }
+			Console.WriteLine($"BlobMap: {this._br.BaseStream.Position}");
 
 			buffer = new List<DataForgeString> { };
 			maxPosition = this._br.BaseStream.Position + blobLength;

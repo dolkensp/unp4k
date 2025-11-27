@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11222.15 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Configuration", "Solution Configuration", "{F1097E98-4DEB-4A0A-81EE-5CEC667EBDF0}"
 	ProjectSection(SolutionItems) = preProject
@@ -19,7 +19,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "unp4k.gui", "src\unp4k.gui\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "unforge", "src\unforge\unforge.csproj", "{273D3D56-F005-4ED5-BABB-FD88FBC3FC63}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ICSharpCode.TreeView", "src\ICSharpCode.TreeView\ICSharpCode.TreeView.csproj", "{721ECDCD-A6BA-4F20-A727-3175842CAD49}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ICSharpCode.TreeView", "src\ICSharpCode.TreeView\ICSharpCode.TreeView.csproj", "{721ECDCD-A6BA-4F20-A727-3175842CAD49}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "unp4k.maui", "src\unp4k.maui\unp4k.maui.csproj", "{8A896C53-12FC-4AE9-9686-59466E63B4D5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "unp4k.fs", "src\unp4k.fs\unp4k.fs.csproj", "{9E2307F5-6B12-4E87-92C7-46F680283602}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,10 +47,6 @@ Global
 		{0F47C85F-B0C2-4E2B-A032-DBC4763B957A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F47C85F-B0C2-4E2B-A032-DBC4763B957A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0F47C85F-B0C2-4E2B-A032-DBC4763B957A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A8EDECDB-B8B6-437B-9381-8AA02139B7E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A8EDECDB-B8B6-437B-9381-8AA02139B7E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A8EDECDB-B8B6-437B-9381-8AA02139B7E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A8EDECDB-B8B6-437B-9381-8AA02139B7E0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{273D3D56-F005-4ED5-BABB-FD88FBC3FC63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{273D3D56-F005-4ED5-BABB-FD88FBC3FC63}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{273D3D56-F005-4ED5-BABB-FD88FBC3FC63}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -55,6 +55,16 @@ Global
 		{721ECDCD-A6BA-4F20-A727-3175842CAD49}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{721ECDCD-A6BA-4F20-A727-3175842CAD49}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{721ECDCD-A6BA-4F20-A727-3175842CAD49}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A896C53-12FC-4AE9-9686-59466E63B4D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A896C53-12FC-4AE9-9686-59466E63B4D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A896C53-12FC-4AE9-9686-59466E63B4D5}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{8A896C53-12FC-4AE9-9686-59466E63B4D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A896C53-12FC-4AE9-9686-59466E63B4D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A896C53-12FC-4AE9-9686-59466E63B4D5}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{9E2307F5-6B12-4E87-92C7-46F680283602}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E2307F5-6B12-4E87-92C7-46F680283602}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E2307F5-6B12-4E87-92C7-46F680283602}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E2307F5-6B12-4E87-92C7-46F680283602}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
