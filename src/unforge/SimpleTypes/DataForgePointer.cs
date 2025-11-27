@@ -5,7 +5,8 @@ namespace unforge
 {
 	public class DataForgePointer : _DataForgeSerializable
     {
-        public UInt32 StructType { get; set; }
+		public static Int32 RecordSizeInBytes = 8;
+		public UInt32 StructType { get; set; }
         public UInt32 Index { get; set; }
 
         public DataForgePointer(DataForge documentRoot)

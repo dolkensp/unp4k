@@ -34,6 +34,16 @@ namespace Dolkens.Framework.BinaryExtensions
 	/// </summary>
 	public static class ExtensionMethods
     {
+		public static XmlElement AddAttribute(this XmlElement self, String name, Object value)
+		{
+			if (value == null) return self;
+
+			var attr = self.OwnerDocument.CreateAttribute(name);
+			attr.Value = $"{value}";
+			self.Attributes.Append(attr);
+			return self;
+		}
+
         #region Stream Extensions
 
         /// <summary>
@@ -263,7 +273,8 @@ namespace System.Xml
     {
         public static XmlElement Rename(this XmlElement element, String name) { return DDRIT.Rename(element, name); }
         public static String GetPath(this XmlElement element) { return DDRIT.GetPath(element); }
-    }
+		public static XmlElement AddAttribute(this XmlElement self, String name, Object value) => DDRIT.AddAttribute(self, name, value);
+	}
 }
 
 #endregion

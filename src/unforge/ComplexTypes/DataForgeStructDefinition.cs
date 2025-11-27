@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
@@ -8,10 +10,19 @@ namespace unforge
 {
 	public class DataForgeStructDefinition : _DataForgeSerializable
     {
-        public UInt32 NameOffset { get; set; }
-        public String Name { get { return this.DocumentRoot.BlobMap[this.NameOffset]; } }
+		public static Int32 RecordSizeInBytes = 16;
 
-        public String __parentTypeIndex { get { return String.Format("{0:X4}", this.ParentTypeIndex); } }
+        public UInt32 NameOffset { get; set; }
+		public String Name
+		{
+			get
+			{
+				if (this._br is DataForgeStream br) return br.ReadBlobAtOffset(this.NameOffset);
+				return this.DocumentRoot.BlobMap[this.NameOffset];
+			}
+		}
+
+		public String __parentTypeIndex { get { return String.Format("{0:X4}", this.ParentTypeIndex); } }
         public UInt32 ParentTypeIndex { get; set; }
 
         public String __attributeCount { get { return String.Format("{0:X4}", this.AttributeCount); } }
@@ -23,17 +34,23 @@ namespace unforge
         public String __nodeType { get { return String.Format("{0:X4}", this.NodeType); } }
         public UInt32 NodeType { get; set; }
 
-        public DataForgeStructDefinition(DataForge documentRoot)
-            : base(documentRoot)
-        {
-            this.NameOffset = this._br.ReadUInt32();
-            this.ParentTypeIndex = this._br.ReadUInt32();
-            this.AttributeCount = this._br.ReadUInt16();
-            this.FirstAttributeIndex = this._br.ReadUInt16();
-            this.NodeType = this._br.ReadUInt32();
-        }
+		public DataForgeStructDefinition(DataForge documentRoot)
+			: this(documentRoot._br, documentRoot.IsLegacy) { }
 
-        public XmlElement Read(String name = null)
+		protected DataForgeStructDefinition(BinaryReader br, Boolean isLegacy)
+		{
+			this._br = br;
+
+			this.NameOffset = br.ReadUInt32();
+			this.ParentTypeIndex = br.ReadUInt32();
+			this.AttributeCount = br.ReadUInt16();
+			this.FirstAttributeIndex = br.ReadUInt16();
+			this.NodeType = br.ReadUInt32();
+		}
+
+		public static DataForgeStructDefinition Read(BinaryReader br, Boolean isLegacy) => new DataForgeStructDefinition(br, isLegacy);
+
+		public XmlElement Read(String name = null)
         {
             XmlAttribute attribute;
 

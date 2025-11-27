@@ -5,7 +5,9 @@ namespace unforge
 {
 	public class DataForgeDouble : _DataForgeSerializable
     {
-        public Double Value { get; set; }
+		public static Int32 RecordSizeInBytes = 8;
+
+		public Double Value { get; set; }
 
         public DataForgeDouble(DataForge documentRoot)
             : base(documentRoot)

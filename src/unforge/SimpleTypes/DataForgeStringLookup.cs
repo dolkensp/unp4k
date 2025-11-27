@@ -5,7 +5,9 @@ namespace unforge
 {
 	public class DataForgeStringLookup : _DataForgeSerializable
     {
-        private UInt32 _value;
+		public static Int32 RecordSizeInBytes = 4;
+
+		private UInt32 _value;
         public String Value { get { return this.DocumentRoot.TextMap[this._value]; } }
 
         public DataForgeStringLookup(DataForge documentRoot)

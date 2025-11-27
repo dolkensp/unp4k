@@ -5,7 +5,9 @@ namespace unforge
 {
 	public class DataForgeBoolean : _DataForgeSerializable
     {
-        public Boolean Value { get; set; }
+		public static Int32 RecordSizeInBytes = 1;
+
+		public Boolean Value { get; set; }
 
         public DataForgeBoolean(DataForge documentRoot)
             : base(documentRoot)
