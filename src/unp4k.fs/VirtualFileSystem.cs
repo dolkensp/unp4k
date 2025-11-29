@@ -1,9 +1,13 @@
 ﻿using DokanNet;
 using LTRData.Extensions.Native.Memory;
+using System.Data;
 using System.IO.Enumeration;
 using System.Runtime.Caching;
 using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text;
+using System.Xml;
+using System.Xml.Linq;
 using unforge;
 
 namespace unp4k.fs
@@ -16,24 +20,35 @@ namespace unp4k.fs
 	internal class VirtualFileNode : VirtualNode
 	{
 		public Int64? Length { get; set; }
+		public override string ToString()
+		{
+			return $"{this.Path} (File)";
+		}
 	}
 
 	internal class VirtualDirectoryNode : VirtualNode
 	{
 		public Dictionary<string, VirtualNode> Children { get; } = new Dictionary<string, VirtualNode>(StringComparer.OrdinalIgnoreCase);
+
+		public override string ToString()
+		{
+			return $"{this.Path} (Directory[{this.Children.Count}])";
+		}
 	}
 
 	internal class VirtualFileSystem : IDokanOperations2
 	{
 		public int DirectoryListingTimeoutResetIntervalMs => 30000;
 
-		private DataForgeStream _dataForge;
+		private DataForge _dataForge;
 		private VirtualNode _fileTree;
+		private DateTime _timestamp;
 
-		public VirtualFileSystem(DataForgeStream dataForge)
+		public VirtualFileSystem(DataForge dataForge, DateTime timestamp)
 		{
+			this._timestamp = timestamp;
 			this._dataForge = dataForge;
-			this._fileTree = this.BuildFileTree(dataForge.RecordMap.Keys.ToArray());
+			this._fileTree = this.BuildFileTree(dataForge.PathToRecordMap.Keys.ToArray());
 		}
 
 		private VirtualNode BuildFileTree(IEnumerable<String> paths)
@@ -43,6 +58,7 @@ namespace unp4k.fs
 			{
 				var segments = path.Split(new[] { '\\', '/' }, StringSplitOptions.RemoveEmptyEntries);
 				var currentNode = root;
+
 				for (int i = 0; i < segments.Length; i++)
 				{
 					var segment = segments[i];
@@ -61,7 +77,7 @@ namespace unp4k.fs
 						{
 							nextNode = new VirtualDirectoryNode
 							{
-								Path = path
+								Path = String.Join('/', segments.Take(i + 1))
 							};
 							currentNode.Children[segment] = nextNode;
 						}
@@ -74,21 +90,69 @@ namespace unp4k.fs
 
 		public void Cleanup(ReadOnlyNativeMemory<char> fileNamePtr, ref DokanFileInfo info)
 		{
+
 		}
 
 		public void CloseFile(ReadOnlyNativeMemory<char> fileNamePtr, ref DokanFileInfo info)
 		{
-
+			
 		}
 
 		public NtStatus CreateFile(ReadOnlyNativeMemory<char> fileNamePtr, DokanNet.FileAccess access, FileShare share, FileMode mode, FileOptions options, FileAttributes attributes, ref DokanFileInfo info)
 		{
-			if (access.HasFlag(DokanNet.FileAccess.WriteData)) return NtStatus.AccessDenied;
-			if (access.HasFlag(DokanNet.FileAccess.AppendData)) return NtStatus.AccessDenied;
-			if (access.HasFlag(DokanNet.FileAccess.WriteAttributes)) return NtStatus.AccessDenied;
-			if (access.HasFlag(DokanNet.FileAccess.WriteExtendedAttributes)) return NtStatus.AccessDenied;
-			if (access.HasFlag(DokanNet.FileAccess.GenericWrite)) return NtStatus.AccessDenied;
 
+			String path = new String(fileNamePtr.Span);
+			String trimmedPath = path.Trim('\\', '/');
+
+			// Root
+			if (String.IsNullOrEmpty(trimmedPath))
+			{
+				info.IsDirectory = true;
+				info.Context = this._fileTree; // root node
+				return NtStatus.Success;
+			}
+
+			// First see if it's a directory
+			VirtualDirectoryNode? dirNode = this.GetDirectoryNode(trimmedPath);
+			if (dirNode != null)
+			{
+				info.IsDirectory = true;
+				info.Context = dirNode;
+
+				// For a read-only FS, we still allow opens for directories with any access;
+				// we just never allow modifications elsewhere.
+				return NtStatus.Success;
+			}
+
+			// Then see if it's a file
+			VirtualFileNode? fileNode = this.GetFileNode(trimmedPath);
+			if (fileNode == null)
+			{
+				// No such entry
+				// On a read-only filesystem, don't allow creation.
+				if (mode == FileMode.Open || mode == FileMode.OpenOrCreate)
+				{
+					return NtStatus.ObjectNameNotFound;
+				}
+
+				return NtStatus.AccessDenied;
+			}
+
+			info.IsDirectory = false;
+			info.Context = fileNode;
+
+			// Deny actual create/truncate operations on a read-only FS
+			if (mode == FileMode.Create ||
+				mode == FileMode.CreateNew ||
+				mode == FileMode.Truncate ||
+				mode == FileMode.Append)
+			{
+				return NtStatus.AccessDenied;
+			}
+
+			// IMPORTANT:
+			// Do NOT reject opens just because write access is requested.
+			// Let the handle be created and simply fail WriteFile/SetEndOfFile/etc.
 			return NtStatus.Success;
 		}
 
@@ -101,12 +165,49 @@ namespace unp4k.fs
 		{
 			return NtStatus.Success;
 		}
-
-		public NtStatus FindFiles(ReadOnlyNativeMemory<char> fileNamePtr, out IEnumerable<FindFileInformation> files, ref DokanFileInfo info)
+		public NtStatus FindFiles(
+			ReadOnlyNativeMemory<char> fileNamePtr,
+			out IEnumerable<FindFileInformation> files,
+			ref DokanFileInfo info)
 		{
-			files = Array.Empty<FindFileInformation>();
+			String path = new String(fileNamePtr.Span);
+			String trimmedPath = path.Trim('\\', '/');
 
-			return NtStatus.NotImplemented;
+			VirtualDirectoryNode? directory = this.GetDirectoryNode(trimmedPath);
+			if (directory == null)
+			{
+				files = Enumerable.Empty<FindFileInformation>();
+				return NtStatus.ObjectNameNotFound;
+			}
+
+			var list = new List<FindFileInformation>(directory.Children.Count);
+
+			foreach (KeyValuePair<String, VirtualNode> child in directory.Children)
+			{
+				String name = child.Key;
+
+				if (child.Value is VirtualDirectoryNode)
+				{
+					list.Add(new FindFileInformation
+					{
+						FileName = name.AsMemory(),
+						Attributes = FileAttributes.Directory | FileAttributes.ReadOnly,
+						Length = 0
+					});
+				}
+				else if (child.Value is VirtualFileNode fileNode)
+				{
+					list.Add(new FindFileInformation
+					{
+						FileName = name.AsMemory(),
+						Attributes = FileAttributes.ReadOnly,
+						Length = fileNode.Length ?? 0
+					});
+				}
+			}
+
+			files = list;
+			return NtStatus.Success;
 		}
 
 		private VirtualDirectoryNode? GetDirectoryNode(String path)
@@ -258,39 +359,94 @@ namespace unp4k.fs
 			return NtStatus.Success;
 		}
 
-		public NtStatus GetFileInformation(ReadOnlyNativeMemory<char> fileNamePtr, out ByHandleFileInformation fileInfo, ref DokanFileInfo info)
+		public NtStatus GetFileInformation(
+			ReadOnlyNativeMemory<char> fileNamePtr,
+			out ByHandleFileInformation fileInfo,
+			ref DokanFileInfo info)
 		{
-			fileInfo = new ByHandleFileInformation { };
+			fileInfo = new ByHandleFileInformation();
 
 			String path = new String(fileNamePtr.Span);
-
-			// Normalise root: Dokan usually passes "\" or "\\"
 			String trimmedPath = path.Trim('\\', '/');
 
-			var fileNode = this.GetFileNode(trimmedPath);
+			// Root dir
+			if (String.IsNullOrEmpty(trimmedPath))
+			{
+				fileInfo.Attributes = FileAttributes.Directory | FileAttributes.ReadOnly;
+				fileInfo.Length = 0;
+				fileInfo.CreationTime = this._timestamp;
+				fileInfo.LastAccessTime = this._timestamp;
+				fileInfo.LastWriteTime = this._timestamp;
+				return NtStatus.Success;
+			}
 
+			// Directory?
+			VirtualDirectoryNode? dirNode = this.GetDirectoryNode(trimmedPath);
+			if (dirNode != null)
+			{
+				fileInfo.Attributes = FileAttributes.Directory | FileAttributes.ReadOnly;
+				fileInfo.Length = 0;
+				fileInfo.CreationTime = this._timestamp;
+				fileInfo.LastAccessTime = this._timestamp;
+				fileInfo.LastWriteTime = this._timestamp;
+				return NtStatus.Success;
+			}
+
+			// File?
+			VirtualFileNode? fileNode = this.GetFileNode(trimmedPath);
 			if (fileNode == null)
 			{
 				return NtStatus.ObjectNameNotFound;
 			}
 
-			if (fileNode.Length.HasValue) fileInfo.Length = fileNode.Length.Value;
-			else
+			if (!fileNode.Length.HasValue)
 			{
-				var xmlBlob = this.ReadXmlRecordAsBlob(fileNode);
-
-				fileNode.Length = xmlBlob.Length;
-				fileInfo.Length = xmlBlob.Length;
+				var content = this.ReadCachedContent(fileNode);
+				fileNode.Length = content.Length;
 			}
+
+			fileInfo.Length = fileNode.Length.Value;
+			fileInfo.Attributes = FileAttributes.ReadOnly | FileAttributes.Archive;
+
+			fileInfo.CreationTime = this._timestamp;
+			fileInfo.LastAccessTime = this._timestamp;
+			fileInfo.LastWriteTime = this._timestamp;
 
 			return NtStatus.Success;
 		}
 
 		public NtStatus GetFileSecurity(ReadOnlyNativeMemory<char> fileNamePtr, out FileSystemSecurity? security, AccessControlSections sections, ref DokanFileInfo info)
 		{
-			security = null;
+			var everyoneSid = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
+			
+			if (info.IsDirectory)
+			{
+				var rule = new FileSystemAccessRule(
+					everyoneSid,
+					FileSystemRights.Read,
+					InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
+					PropagationFlags.None,
+					AccessControlType.Allow);
 
-			return NtStatus.Success;
+				security = new DirectorySecurity();
+
+				security.AddAccessRule(rule);
+			}
+			else
+			{
+				var rule = new FileSystemAccessRule(
+					everyoneSid,
+					FileSystemRights.Read,
+					InheritanceFlags.None,
+					PropagationFlags.None,
+					AccessControlType.Allow);
+
+				security = new FileSecurity();
+				security.AddAccessRule(rule);
+			}
+
+
+			return NtStatus.NotImplemented;
 		}
 
 		public NtStatus GetVolumeInformation(NativeMemory<char> volumeLabel, out FileSystemFeatures features, NativeMemory<char> fileSystemName, out uint maximumComponentLength, ref uint volumeSerialNumber, ref DokanFileInfo info)
@@ -298,8 +454,8 @@ namespace unp4k.fs
 			NativeMemoryHelper.SetString(volumeLabel, "Star Citizen");
 	        NativeMemoryHelper.SetString(fileSystemName, $"DataForge {this._dataForge.FileVersion}");
 
-			features = FileSystemFeatures.CasePreservedNames | FileSystemFeatures.CaseSensitiveSearch | FileSystemFeatures.UnicodeOnDisk;
-			maximumComponentLength = 255;
+			features = FileSystemFeatures.ReadOnlyVolume;
+			maximumComponentLength = 1024;
 
 			return NtStatus.Success;
 		}
@@ -331,55 +487,71 @@ namespace unp4k.fs
 			if (fileNode == null)
 			{
 				bytesRead = 0;
-				return NtStatus.ObjectNameNotFound;
+
+				return NtStatus.Success;
 			}
 
-			var xmlBlob = this.ReadXmlRecordAsBlob(fileNode);
+			var payload = this.ReadCachedContent(fileNode);
 
-			this.WritePayloadToBuffer(xmlBlob, buffer, offset, out bytesRead);
+			this.WritePayloadToBuffer(payload, buffer, offset, out bytesRead);
 
 			return NtStatus.Success;
 		}
 
-		private String ReadXmlRecordAsBlob(VirtualFileNode fileNode)
+		private XmlWriterSettings _xmlSettings = new XmlWriterSettings
 		{
+			OmitXmlDeclaration = true,
+			Encoding = new UTF8Encoding(false), // UTF-8, no BOM
+			Indent = true,
+			IndentChars = "  ",
+			NewLineChars = "\n",
+			NewLineHandling = NewLineHandling.Replace,
+			ConformanceLevel = ConformanceLevel.Document,
+			CheckCharacters = false
+		};
 
-			var xmlBlob = MemoryCache.Default.Get(fileNode.Path) as String;
+		private Byte[] ReadCachedContent(VirtualFileNode fileNode)
+		{
+			var content = MemoryCache.Default.Get(fileNode.Path) as Byte[];
 
-			if (String.IsNullOrWhiteSpace(xmlBlob))
+			if (content != null) return content;
+
+			var node = this._dataForge.ReadRecordByPathAsXml(fileNode.Path);
+
+			using (MemoryStream ms = new MemoryStream())
+			using (XmlWriter writer = XmlWriter.Create(ms, _xmlSettings))
 			{
-				var xmlElement = this._dataForge.ReadXmlRecord(this._dataForge.RecordMap[fileNode.Path]);
+				node.WriteTo(writer);
+				writer.Flush();
 
-				xmlBlob = xmlElement.OuterXml;
-
-				MemoryCache.Default.Set(fileNode.Path, xmlBlob, new CacheItemPolicy
+				content = ms.ToArray();
+				MemoryCache.Default.Set(fileNode.Path, content, new CacheItemPolicy
 				{
 					SlidingExpiration = TimeSpan.FromSeconds(30)
 				});
+
+				return content;
 			}
-
-			return xmlBlob;
 		}
-
-		private void WritePayloadToBuffer(String payload, NativeMemory<Byte> buffer, Int64 offset, out Int32 bytesRead)
+		private void WritePayloadToBuffer(
+			Byte[] data,
+			NativeMemory<Byte> buffer,
+			Int64 offset,
+			out Int32 bytesRead)
 		{
-			// 1. Serialize the payload to a UTF-8 byte array
-			Byte[] data = Encoding.UTF8.GetBytes(payload);
-
-			// 2. Handle offsets beyond EOF
-			Int64 totalLength = data.LongLength;
-			if (offset >= totalLength || offset < 0)
+			// Handle offsets beyond EOF
+			if (offset >= data.Length || offset < 0)
 			{
 				bytesRead = 0;
 				return;
 			}
 
-			// 3. Compute how many bytes we can actually copy
-			Int64 remaining = totalLength - offset;
-			Int32 maxToCopy = buffer.Length; // NativeMemory<T>.Length is Int32
+			// Compute how many bytes we can actually copy
+			Int64 remaining = data.Length - offset;
+			Int32 maxToCopy = buffer.Length;
 			Int32 toCopy = (Int32)Math.Min(remaining, maxToCopy);
 
-			// 4. Copy the slice [offset, offset + toCopy) into the provided buffer
+			// Copy slice [offset, offset + toCopy) to target buffer
 			ReadOnlySpan<Byte> sourceSpan = new ReadOnlySpan<Byte>(data, (Int32)offset, toCopy);
 			Span<Byte> targetSpan = buffer.Span;
 
@@ -387,32 +559,6 @@ namespace unp4k.fs
 
 			bytesRead = toCopy;
 		}
-
-		//		/// <summary>
-		//		/// Read from file using unmanaged buffers.
-		//		/// </summary>
-		//		public override NtStatus ReadFile(ReadOnlyNativeMemory<char> fileName, NativeMemory<byte> buffer, out int bytesRead, long offset, ref DokanFileInfo info)
-		//		{
-		//			if (info.Context is not FileStream stream) // memory mapped read
-		//			{
-		//				using (stream = new FileStream(GetPath(fileName), FileMode.Open, System.IO.FileAccess.Read))
-		//				{
-		//					DoRead(stream.SafeFileHandle, buffer.Address, buffer.Length, out bytesRead, offset);
-		//				}
-		//			}
-		//			else // normal read
-		//			{
-		//#pragma warning disable CA2002
-		//				lock (stream) //Protect from overlapped read
-		//#pragma warning restore CA2002
-		//				{
-		//					DoRead(stream.SafeFileHandle, buffer.Address, buffer.Length, out bytesRead, offset);
-		//				}
-		//			}
-
-		//			return Trace($"Unsafe{nameof(ReadFile)}", fileName, info, DokanResult.Success, "out " + bytesRead.ToString(),
-		//				offset.ToString(CultureInfo.InvariantCulture));
-		//		}
 
 		public NtStatus SetAllocationSize(ReadOnlyNativeMemory<char> fileNamePtr, long length, ref DokanFileInfo info)
 		{

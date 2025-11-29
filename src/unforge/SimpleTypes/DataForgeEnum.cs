@@ -1,33 +1,25 @@
 ﻿using System;
-using System.Xml;
 
 namespace unforge
 {
-	public class DataForgeEnum : _DataForgeSerializable
+	public class DataForgeEnum : DataForgeTypeReader
     {
 		public static Int32 RecordSizeInBytes = 4;
 
-		private UInt32 _value;
-        public String Value { get { return this.DocumentRoot.TextMap[this._value]; } }
+		public UInt32 ValueOffset { get; }
+        public String Value { get => this.StreamReader.ReadTextAtOffset(this.ValueOffset); }
+		// { get { return this.DocumentRoot.TextMap[this._value]; } }
 
-        public DataForgeEnum(DataForge documentRoot)
-            : base(documentRoot)
+		public static DataForgeEnum ReadFromStream(DataForge baseStream) => new DataForgeEnum(baseStream);
+
+		private DataForgeEnum(DataForge stream) : base(stream)
         {
-            this._value = this._br.ReadUInt32();
+            this.ValueOffset = this.StreamReader.ReadUInt32();
         }
 
         public override String ToString()
         {
             return this.Value;
-        }
-
-        public XmlElement Read()
-        {
-            var element = this.DocumentRoot.CreateElement("Enum");
-            var attribute = this.DocumentRoot.CreateAttribute("value");
-            attribute.Value = this.Value;
-            element.Attributes.Append(attribute);
-            return element;
         }
     }
 }

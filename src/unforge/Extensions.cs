@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Xml;
-using DDRIT = Dolkens.Framework.BinaryExtensions.ExtensionMethods;
-using unforge;
 using System.Text.RegularExpressions;
+using System.Xml;
+using System.Xml.Linq;
+using unforge;
+using DDRIT = Dolkens.Framework.BinaryExtensions.ExtensionMethods;
 
 namespace Dolkens.Framework.BinaryExtensions
 {
@@ -33,8 +34,8 @@ namespace Dolkens.Framework.BinaryExtensions
 	/// THE SOFTWARE.
 	/// </summary>
 	public static class ExtensionMethods
-    {
-		public static XmlElement AddAttribute(this XmlElement self, String name, Object value)
+	{
+		public static XmlNode AddAttribute(this XmlNode self, String name, Object value)
 		{
 			if (value == null) return self;
 
@@ -44,15 +45,15 @@ namespace Dolkens.Framework.BinaryExtensions
 			return self;
 		}
 
-        #region Stream Extensions
+		#region Stream Extensions
 
-        /// <summary>
-        /// Read a Length-prefixed string from the stream
-        /// </summary>
-        /// <param name="binaryReader"></param>
-        /// <param name="byteLength">Size of the Length representation</param>
-        /// <returns></returns>
-        public static String ReadPString(this BinaryReader binaryReader, StringSizeEnum byteLength = StringSizeEnum.Int32)
+		/// <summary>
+		/// Read a Length-prefixed string from the stream
+		/// </summary>
+		/// <param name="binaryReader"></param>
+		/// <param name="byteLength">Size of the Length representation</param>
+		/// <returns></returns>
+		public static String ReadPString(this BinaryReader binaryReader, StringSizeEnum byteLength = StringSizeEnum.Int32)
         {
             Int32 stringLength = 0;
 
@@ -172,7 +173,32 @@ namespace Dolkens.Framework.BinaryExtensions
 
 		private static Regex cleanString = new Regex("[^a-zA-Z0-9.]");
 
-        public static XmlElement Rename(this XmlElement element, String name)
+		public static XmlElement CreateElementWithValue(this XmlNode xmlNode, Object name, Object value)
+		{
+			XmlElement element;
+
+			if (xmlNode is XmlDocument xmlDoc) element = xmlDoc.CreateElement($"{name}");
+			else element = xmlNode.OwnerDocument.CreateElement($"{name}");
+			
+			if (value is XmlElement xmlElement) element.AppendChild(xmlElement);
+			else element.AddAttribute("value", value);
+
+			if (String.IsNullOrEmpty($"{value}")) return null;
+
+			return element;
+		}
+
+		public static XmlAttribute CreateAttributeWithValue(this XmlNode xmlNode, Object name, Object value)
+		{
+			var attribute = xmlNode.OwnerDocument.CreateAttribute($"{name}");
+			attribute.Value = $"{value}";
+
+			if (String.IsNullOrEmpty(attribute.Value)) return null;
+
+			return attribute;
+		}
+
+		public static XmlElement Rename(this XmlElement element, String name)
         {
             var buffer = element.OwnerDocument.CreateElement(cleanString.Replace(name, "_"));
 
@@ -273,7 +299,7 @@ namespace System.Xml
     {
         public static XmlElement Rename(this XmlElement element, String name) { return DDRIT.Rename(element, name); }
         public static String GetPath(this XmlElement element) { return DDRIT.GetPath(element); }
-		public static XmlElement AddAttribute(this XmlElement self, String name, Object value) => DDRIT.AddAttribute(self, name, value);
+		public static XmlNode AddAttribute(this XmlNode self, String name, Object value) => DDRIT.AddAttribute(self, name, value);
 	}
 }
 
