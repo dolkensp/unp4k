@@ -2,17 +2,18 @@
 
 namespace unforge
 {
-	public class DataForgeString : _DataForgeSerializable
+	public class DataForgeString : DataForgeTypeReader
     {
-        public String Value { get; set; }
+        public String Value { get; }
 
-        public DataForgeString(DataForge documentRoot)
-            : base(documentRoot)
+		public static DataForgeString ReadFromStream(DataForge baseStream) => new DataForgeString(baseStream);
+
+		private DataForgeString(DataForge reader) : base(reader)
         {
-            this.Value = this._br.ReadCString();
+            this.Value = this.StreamReader.ReadCString();
         }
 
-        public override String ToString()
+		public override String ToString()
         {
             return this.Value;
         }

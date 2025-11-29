@@ -5,6 +5,7 @@
     <TargetFramework>net10.0</TargetFramework>
 		<TargetPlatformIdentifier>windows</TargetPlatformIdentifier>
 		<ImplicitUsings>enable</ImplicitUsings>
+		<DefineConstants>DEBUG</DefineConstants>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 

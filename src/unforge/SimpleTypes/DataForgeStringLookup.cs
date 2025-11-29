@@ -1,33 +1,21 @@
 ﻿using System;
-using System.Xml;
 
 namespace unforge
 {
-	public class DataForgeStringLookup : _DataForgeSerializable
+	public class DataForgeStringLookup : DataForgeTypeReader
     {
 		public static Int32 RecordSizeInBytes = 4;
 
-		private UInt32 _value;
-        public String Value { get { return this.DocumentRoot.TextMap[this._value]; } }
+		private UInt32 ValueOffset { get; }
+		public String Value { get => this.StreamReader.ReadTextAtOffset(this.ValueOffset); }
 
-        public DataForgeStringLookup(DataForge documentRoot)
-            : base(documentRoot)
+		public static DataForgeStringLookup ReadFromStream(DataForge baseStream) => new DataForgeStringLookup(baseStream);
+
+		private DataForgeStringLookup(DataForge baseStream) : base(baseStream)
         {
-            this._value = this._br.ReadUInt32();
+            this.ValueOffset = this.StreamReader.ReadUInt32();
         }
 
-        public override String ToString()
-        {
-            return this.Value;
-        }
-
-        public XmlElement Read()
-        {
-            var element = this.DocumentRoot.CreateElement("String");
-            var attribute = this.DocumentRoot.CreateAttribute("value");
-            attribute.Value = this.Value;
-            element.Attributes.Append(attribute);
-            return element;
-        }
+		public override String ToString() => this.Value;
     }
 }

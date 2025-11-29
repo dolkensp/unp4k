@@ -1,32 +1,23 @@
 ﻿using System;
-using System.Xml;
 
 namespace unforge
 {
-	public class DataForgeUInt64 : _DataForgeSerializable
+	public class DataForgeUInt64 : DataForgeTypeReader
     {
 		public static Int32 RecordSizeInBytes = 8;
 
-		public UInt64 Value { get; set; }
+		public UInt64 Value { get; }
 
-        public DataForgeUInt64(DataForge documentRoot)
-            : base(documentRoot)
+		public static DataForgeUInt64 ReadFromStream(DataForge baseStream) => new DataForgeUInt64(baseStream);
+
+		private DataForgeUInt64(DataForge reader) : base(reader)
         {
-            this.Value = this._br.ReadUInt64();
+            this.Value = this.StreamReader.ReadUInt64();
         }
 
         public override String ToString()
         {
             return String.Format("{0}", this.Value);
-        }
-
-        public XmlElement Read()
-        {
-            var element = this.DocumentRoot.CreateElement("UInt64");
-            var attribute = this.DocumentRoot.CreateAttribute("value");
-            attribute.Value = this.Value.ToString();
-            element.Attributes.Append(attribute);
-            return element;
         }
     }
 }

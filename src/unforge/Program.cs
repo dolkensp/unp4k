@@ -78,9 +78,9 @@ namespace unforge
 						{
 							var legacy = new FileInfo(path).Length < 0x0e2e00;
 
-							var df = new DataForge(br, legacy);
-
-							df.Save(Path.ChangeExtension(path, "xml"));
+							// var df = new DataForge(br, legacy);
+							// 
+							// df.Save(Path.ChangeExtension(path, "xml"));
 						}
 					}
 					else

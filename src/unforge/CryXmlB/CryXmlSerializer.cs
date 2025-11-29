@@ -29,10 +29,9 @@ namespace unforge
                 br.ReadByte(),
             };
 
-            if (byteOrder == ByteOrderEnum.LittleEndian)
-                bytes = bytes.Reverse().ToArray();
+			if (byteOrder == ByteOrderEnum.LittleEndian) Array.Reverse(bytes);
 
-            return BitConverter.ToInt64(bytes, 0);
+			return BitConverter.ToInt64(bytes, 0);
         }
 
         public static Int32 ReadInt32(this BinaryReader br, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian)
@@ -44,10 +43,9 @@ namespace unforge
                 br.ReadByte(),
             };
 
-            if (byteOrder == ByteOrderEnum.LittleEndian)
-                bytes = bytes.Reverse().ToArray();
+			if (byteOrder == ByteOrderEnum.LittleEndian) Array.Reverse(bytes);
 
-            return BitConverter.ToInt32(bytes, 0);
+			return BitConverter.ToInt32(bytes, 0);
         }
 
         public static Int16 ReadInt16(this BinaryReader br, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian)
@@ -57,10 +55,9 @@ namespace unforge
                 br.ReadByte(),
             };
 
-            if (byteOrder == ByteOrderEnum.LittleEndian)
-                bytes = bytes.Reverse().ToArray();
+			if (byteOrder == ByteOrderEnum.LittleEndian) Array.Reverse(bytes);
 
-            return BitConverter.ToInt16(bytes, 0);
+			return BitConverter.ToInt16(bytes, 0);
         }
 
         public static UInt64 ReadUInt64(this BinaryReader br, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian)
@@ -76,10 +73,9 @@ namespace unforge
                 br.ReadByte(),
             };
 
-            if (byteOrder == ByteOrderEnum.LittleEndian)
-                bytes = bytes.Reverse().ToArray();
+			if (byteOrder == ByteOrderEnum.LittleEndian) Array.Reverse(bytes);
 
-            return BitConverter.ToUInt64(bytes, 0);
+			return BitConverter.ToUInt64(bytes, 0);
         }
 
         public static UInt32 ReadUInt32(this BinaryReader br, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian)
@@ -91,10 +87,9 @@ namespace unforge
                 br.ReadByte(),
             };
 
-            if (byteOrder == ByteOrderEnum.LittleEndian)
-                bytes = bytes.Reverse().ToArray();
+			if (byteOrder == ByteOrderEnum.LittleEndian) Array.Reverse(bytes);
 
-            return BitConverter.ToUInt32(bytes, 0);
+			return BitConverter.ToUInt32(bytes, 0);
         }
 
         public static UInt16 ReadUInt16(this BinaryReader br, ByteOrderEnum byteOrder = ByteOrderEnum.BigEndian)
@@ -104,10 +99,9 @@ namespace unforge
                 br.ReadByte(),
             };
 
-            if (byteOrder == ByteOrderEnum.LittleEndian)
-                bytes = bytes.Reverse().ToArray();
+			if (byteOrder == ByteOrderEnum.LittleEndian) Array.Reverse(bytes);
 
-            return BitConverter.ToUInt16(bytes, 0);
+			return BitConverter.ToUInt16(bytes, 0);
         }
 
         public static XmlDocument ReadFile(String inFile, ByteOrderEnum byteOrder = ByteOrderEnum.AutoDetect, Boolean writeLog = false)

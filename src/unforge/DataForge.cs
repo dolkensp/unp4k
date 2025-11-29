@@ -1,626 +1,830 @@
-﻿#define NONULL
-
+﻿using Dolkens.Framework.BinaryExtensions;
 using System;
-using System.Collections;
+using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
+using System.Reflection;
 using System.Xml;
 
 namespace unforge
 {
-	public class ClassMapping
-    {
-        public XmlNode Node { get; set; }
-        public UInt16 StructIndex { get; set; }
-        public Int32 RecordIndex { get; set; }
-    }
-
-    public class DataForge : IEnumerable
+	public class DataForge : BinaryReader
 	{
-        internal BinaryReader _br;
+		public Boolean IsLegacy;
+		public Boolean FollowReferences { get => this.MaxReferenceDepth > 0; }
+		public Boolean FollowWeakPointers { get; } = false;
+		public Boolean FollowStrongPointers { get => this.MaxPointerDepth > 0; }
 
-        internal Boolean IsLegacy { get; set; }
-        internal Int32 FileVersion { get; set; }
+		public Int32 MaxReferenceDepth { get; } = 0;
+		public Int32 MaxPointerDepth { get; } = 10;
+		public Int32 MaxNodes { get; } = 10000;
 
-        internal DataForgeStructDefinition[] StructDefinitionTable { get; set; }
-        internal DataForgePropertyDefinition[] PropertyDefinitionTable { get; set; }
-        internal DataForgeEnumDefinition[] EnumDefinitionTable { get; set; }
-        internal DataForgeDataMapping[] DataMappingTable { get; set; }
-        internal DataForgeRecord[] RecordDefinitionTable { get; set; }
-        internal DataForgeStringLookup[] EnumOptionTable { get; set; }
-
-        internal DataForgeReference[] Array_ReferenceValues { get; set; }
-        internal DataForgeGuid[] Array_GuidValues { get; set; }
-        internal DataForgeStringLookup[] Array_StringValues { get; set; }
-        internal DataForgeLocale[] Array_LocaleValues { get; set; }
-        internal DataForgeEnum[] Array_EnumValues { get; set; }
-        internal DataForgeInt8[] Array_Int8Values { get; set; }
-        internal DataForgeInt16[] Array_Int16Values { get; set; }
-        internal DataForgeInt32[] Array_Int32Values { get; set; }
-        internal DataForgeInt64[] Array_Int64Values { get; set; }
-        internal DataForgeUInt8[] Array_UInt8Values { get; set; }
-        internal DataForgeUInt16[] Array_UInt16Values { get; set; }
-        internal DataForgeUInt32[] Array_UInt32Values { get; set; }
-        internal DataForgeUInt64[] Array_UInt64Values { get; set; }
-        internal DataForgeBoolean[] Array_BooleanValues { get; set; }
-        internal DataForgeSingle[] Array_SingleValues { get; set; }
-        internal DataForgeDouble[] Array_DoubleValues { get; set; }
-        internal DataForgePointer[] Array_StrongValues { get; set; }
-        internal DataForgePointer[] Array_WeakValues { get; set; }
-
-        internal Dictionary<UInt32, String> TextMap { get; set; }
-        internal Dictionary<UInt32, String> BlobMap { get; set; }
-
-        internal Dictionary<UInt32, List<XmlElement>> DataMap { get; set; }
-        internal List<ClassMapping> Require_ClassMapping { get; set; }
-        internal List<ClassMapping> Require_StrongMapping { get; set; }
-        internal List<ClassMapping> Require_WeakMapping1 { get; set; }
-        internal List<ClassMapping> Require_WeakMapping2 { get; set; }
-
-        internal U[] ReadArray<U>(Int32 arraySize) where U : _DataForgeSerializable
-        {
-            if (arraySize == -1)
-            {
-                return null;
-            }
-
-			return Enumerable.Range(0, arraySize)
-				.Select(i => (U)Activator.CreateInstance(typeof(U), this))
-				.ToArray();
-        }
-
-		public DataForge(BinaryReader br, Boolean legacy = false)
+		public Int32 FileVersion { get; }
+		public Int64 Length { get => this.BaseStream.Length; }
+		public Int64 Position
 		{
-			this._br = br;
-			var temp00 = this._br.ReadInt32();
-			this.FileVersion = this._br.ReadInt32();
-			this.IsLegacy = legacy;
+			get => this.BaseStream.Position;
+			set => this.BaseStream.Position = value;
+		}
 
-			this.Require_ClassMapping = new List<ClassMapping> { };
-			this.Require_StrongMapping = new List<ClassMapping> { };
-			this.Require_WeakMapping1 = new List<ClassMapping> { };
-			this.Require_WeakMapping2 = new List<ClassMapping> { };
+		public Int32 StructDefinitionCount { get; }
+		public Int32 PropertyDefinitionCount { get; }
+		public Int32 EnumDefinitionCount { get; }
+		public Int32 DataMappingCount { get; }
+		public Int32 RecordDefinitionCount { get; }
+
+		public Int32 BooleanValueCount { get; }
+		public Int32 Int8ValueCount { get; }
+		public Int32 Int16ValueCount { get; }
+		public Int32 Int32ValueCount { get; }
+		public Int32 Int64ValueCount { get; }
+		public Int32 UInt8ValueCount { get; }
+		public Int32 UInt16ValueCount { get; }
+		public Int32 UInt32ValueCount { get; }
+		public Int32 UInt64ValueCount { get; }
+
+		public Int32 SingleValueCount { get; }
+		public Int32 DoubleValueCount { get; }
+		public Int32 GuidValueCount { get; }
+		public Int32 StringValueCount { get; }
+		public Int32 LocaleValueCount { get; }
+		public Int32 EnumValueCount { get; }
+		public Int32 StrongValueCount { get; }
+		public Int32 WeakValueCount { get; }
+
+		public Int32 ReferenceValueCount { get; }
+		public Int32 EnumOptionCount { get; }
+		public UInt32 TextLength { get; }
+		public UInt32 BlobLength { get; }
+
+		private Int64 StructDefinitionOffset { get => this.IsLegacy ? 0x74 : 0x78; }
+		public Int64 PropertyDefinitionOffset { get => this.StructDefinitionOffset + this.StructDefinitionCount * DataForgeStructDefinition.RecordSizeInBytes; }
+		public Int64 EnumDefinitionOffset { get => this.PropertyDefinitionOffset + this.PropertyDefinitionCount * DataForgePropertyDefinition.RecordSizeInBytes; }
+		public Int64 DataMappingOffset { get => this.EnumDefinitionOffset + this.EnumDefinitionCount * DataForgeEnumDefinition.RecordSizeInBytes; }
+		public Int64 RecordDefinitionOffset { get => this.DataMappingOffset + this.DataMappingCount * (this.IsLegacy ? DataForgeDataMapping.RecordSizeInBytes : DataForgeDataMapping.RecordSizeInBytesV6); }
+		public Int64 Int8ValueOffset { get => this.RecordDefinitionOffset + this.RecordDefinitionCount * DataForgeRecordDefinition.RecordSizeInBytes; }
+		public Int64 Int16ValueOffset { get => this.Int8ValueOffset + this.Int8ValueCount * DataForgeInt8.RecordSizeInBytes; }
+		public Int64 Int32ValueOffset { get => this.Int16ValueOffset + this.Int16ValueCount * DataForgeInt16.RecordSizeInBytes; }
+		public Int64 Int64ValueOffset { get => this.Int32ValueOffset + this.Int32ValueCount * DataForgeInt32.RecordSizeInBytes; }
+		public Int64 UInt8ValueOffset { get => this.Int64ValueOffset + this.Int64ValueCount * DataForgeInt64.RecordSizeInBytes; }
+		public Int64 UInt16ValueOffset { get => this.UInt8ValueOffset + this.UInt8ValueCount * DataForgeUInt8.RecordSizeInBytes; }
+		public Int64 UInt32ValueOffset { get => this.UInt16ValueOffset + this.UInt16ValueCount * DataForgeUInt16.RecordSizeInBytes; }
+		public Int64 UInt64ValueOffset { get => this.UInt32ValueOffset + this.UInt32ValueCount * DataForgeUInt32.RecordSizeInBytes; }
+		public Int64 BooleanValueOffset { get => this.UInt64ValueOffset + this.UInt64ValueCount * DataForgeUInt64.RecordSizeInBytes; }
+		public Int64 SingleValueOffset { get => this.BooleanValueOffset + this.BooleanValueCount * DataForgeBoolean.RecordSizeInBytes; }
+		public Int64 DoubleValueOffset { get => this.SingleValueOffset + this.SingleValueCount * DataForgeSingle.RecordSizeInBytes; }
+		public Int64 GuidValueOffset { get => this.DoubleValueOffset + this.DoubleValueCount * DataForgeDouble.RecordSizeInBytes; }
+		public Int64 StringValueOffset { get => this.GuidValueOffset + this.GuidValueCount * DataForgeGuid.RecordSizeInBytes; }
+		public Int64 LocaleValueOffset { get => this.StringValueOffset + this.StringValueCount * DataForgeStringLookup.RecordSizeInBytes; }
+		public Int64 EnumValueOffset { get => this.LocaleValueOffset + this.LocaleValueCount * DataForgeLocale.RecordSizeInBytes; }
+		public Int64 StrongValueOffset { get => this.EnumValueOffset + this.EnumValueCount * DataForgeEnum.RecordSizeInBytes; }
+		public Int64 WeakValueOffset { get => this.StrongValueOffset + this.StrongValueCount * DataForgePointer.RecordSizeInBytes; }
+		public Int64 ReferenceValueOffset { get => this.WeakValueOffset + this.WeakValueCount * DataForgePointer.RecordSizeInBytes; }
+		public Int64 EnumOptionOffset { get => this.ReferenceValueOffset + this.ReferenceValueCount * DataForgeReference.RecordSizeInBytes; }
+		public Int64 TextOffset { get => this.EnumOptionOffset + this.EnumOptionCount * DataForgeStringLookup.RecordSizeInBytes; }
+		public Int64 BlobOffset { get => this.TextOffset + this.TextLength; }
+		public Int64 DataOffset { get => this.BlobOffset + this.BlobLength; }
+
+		public DataForge(Stream stream, Boolean isLegacy = false) : base(stream)
+		{
+			this.IsLegacy = isLegacy;
+
+			this.BaseStream.Seek(0, SeekOrigin.Begin);
+
+			_ = this.ReadUInt16();
+			_ = this.ReadUInt16();
+
+			this.FileVersion = this.ReadInt32();
 
 			if (!this.IsLegacy)
 			{
-				var atemp1 = this._br.ReadUInt16();
-				var atemp2 = this._br.ReadUInt16();
-				var atemp3 = this._br.ReadUInt16();
-				var atemp4 = this._br.ReadUInt16();
-				Console.WriteLine($"{temp00} {atemp1} {atemp2} {atemp3} {atemp4}");
+				_ = this.ReadUInt16();
+				_ = this.ReadUInt16();
+				_ = this.ReadUInt16();
+				_ = this.ReadUInt16();
 			}
 
-			var structDefinitionCount = this._br.ReadInt32();
-			var propertyDefinitionCount = this._br.ReadInt32();
-			var enumDefinitionCount = this._br.ReadInt32();
-			var dataMappingCount = this._br.ReadInt32();
-			var recordDefinitionCount = this._br.ReadInt32();
+			this.StructDefinitionCount = this.ReadInt32();
+			this.PropertyDefinitionCount = this.ReadInt32();
+			this.EnumDefinitionCount = this.ReadInt32();
+			this.DataMappingCount = this.ReadInt32();
+			this.RecordDefinitionCount = this.ReadInt32();
+			this.BooleanValueCount = this.ReadInt32();
+			this.Int8ValueCount = this.ReadInt32();
+			this.Int16ValueCount = this.ReadInt32();
+			this.Int32ValueCount = this.ReadInt32();
+			this.Int64ValueCount = this.ReadInt32();
+			this.UInt8ValueCount = this.ReadInt32();
+			this.UInt16ValueCount = this.ReadInt32();
+			this.UInt32ValueCount = this.ReadInt32();
+			this.UInt64ValueCount = this.ReadInt32();
+			this.SingleValueCount = this.ReadInt32();
+			this.DoubleValueCount = this.ReadInt32();
+			this.GuidValueCount = this.ReadInt32();
+			this.StringValueCount = this.ReadInt32();
+			this.LocaleValueCount = this.ReadInt32();
+			this.EnumValueCount = this.ReadInt32();
+			this.StrongValueCount = this.ReadInt32();
+			this.WeakValueCount = this.ReadInt32();
+			this.ReferenceValueCount = this.ReadInt32();
+			this.EnumOptionCount = this.ReadInt32();
 
-			var booleanValueCount = this._br.ReadInt32();
-			var int8ValueCount = this._br.ReadInt32();
-			var int16ValueCount = this._br.ReadInt32();
-			var int32ValueCount = this._br.ReadInt32();
-			var int64ValueCount = this._br.ReadInt32();
-			var uint8ValueCount = this._br.ReadInt32();
-			var uint16ValueCount = this._br.ReadInt32();
-			var uint32ValueCount = this._br.ReadInt32();
-			var uint64ValueCount = this._br.ReadInt32();
+			this.TextLength = this.ReadUInt32();
+			this.BlobLength = this.IsLegacy ? 0 : this.ReadUInt32();
 
-			var singleValueCount = this._br.ReadInt32();
-			var doubleValueCount = this._br.ReadInt32();
-			var guidValueCount = this._br.ReadInt32();
-			var stringValueCount = this._br.ReadInt32();
-			var localeValueCount = this._br.ReadInt32();
-			var enumValueCount = this._br.ReadInt32();
-			var strongValueCount = this._br.ReadInt32();
-			var weakValueCount = this._br.ReadInt32();
+			this.PathToRecordMap = new Dictionary<String, Int32> { };
+			this.ReferenceToRecordMap = new Dictionary<Guid, Int32> { };
 
-			var referenceValueCount = this._br.ReadInt32();
-			var enumOptionCount = this._br.ReadInt32();
-			var textLength = this._br.ReadUInt32();
-			var blobLength = (this.IsLegacy) ? 0 : this._br.ReadUInt32();
+			// this.ReportOffsets();
 
-
-			Console.WriteLine($"StructDefinitionTable: {this._br.BaseStream.Position}");
-			this.StructDefinitionTable = this.ReadArray<DataForgeStructDefinition>(structDefinitionCount);
-			Console.WriteLine($"PropertyDefinitionTable: {this._br.BaseStream.Position}");
-			this.PropertyDefinitionTable = this.ReadArray<DataForgePropertyDefinition>(propertyDefinitionCount);
-			Console.WriteLine($"EnumDefinitionTable: {this._br.BaseStream.Position}");
-			this.EnumDefinitionTable = this.ReadArray<DataForgeEnumDefinition>(enumDefinitionCount);
-			Console.WriteLine($"DataMappingTable: {this._br.BaseStream.Position}");
-			this.DataMappingTable = this.ReadArray<DataForgeDataMapping>(dataMappingCount);
-			Console.WriteLine($"RecordDefinitionTable: {this._br.BaseStream.Position}");
-			this.RecordDefinitionTable = this.ReadArray<DataForgeRecord>(recordDefinitionCount);
-
-			Console.WriteLine($"Array_Int8Values: {this._br.BaseStream.Position}");
-			this.Array_Int8Values = this.ReadArray<DataForgeInt8>(int8ValueCount);
-			Console.WriteLine($"Array_Int16Values: {this._br.BaseStream.Position}");
-            this.Array_Int16Values = this.ReadArray<DataForgeInt16>(int16ValueCount);
-			Console.WriteLine($"Array_Int32Values: {this._br.BaseStream.Position}");
-            this.Array_Int32Values = this.ReadArray<DataForgeInt32>(int32ValueCount);
-			Console.WriteLine($"Array_Int64Values: {this._br.BaseStream.Position}");
-            this.Array_Int64Values = this.ReadArray<DataForgeInt64>(int64ValueCount);
-			Console.WriteLine($"Array_UInt8Values: {this._br.BaseStream.Position}");
-            this.Array_UInt8Values = this.ReadArray<DataForgeUInt8>(uint8ValueCount);
-			Console.WriteLine($"Array_UInt16Values: {this._br.BaseStream.Position}");
-            this.Array_UInt16Values = this.ReadArray<DataForgeUInt16>(uint16ValueCount);
-			Console.WriteLine($"Array_UInt32Values: {this._br.BaseStream.Position}");
-            this.Array_UInt32Values = this.ReadArray<DataForgeUInt32>(uint32ValueCount);
-			Console.WriteLine($"Array_UInt64Values: {this._br.BaseStream.Position}");
-            this.Array_UInt64Values = this.ReadArray<DataForgeUInt64>(uint64ValueCount);
-			Console.WriteLine($"Array_BooleanValues: {this._br.BaseStream.Position}");
-            this.Array_BooleanValues = this.ReadArray<DataForgeBoolean>(booleanValueCount);
-			Console.WriteLine($"Array_SingleValues: {this._br.BaseStream.Position}");
-            this.Array_SingleValues = this.ReadArray<DataForgeSingle>(singleValueCount);
-			Console.WriteLine($"Array_DoubleValues: {this._br.BaseStream.Position}");
-            this.Array_DoubleValues = this.ReadArray<DataForgeDouble>(doubleValueCount);
-			Console.WriteLine($"Array_GuidValues: {this._br.BaseStream.Position}");
-            this.Array_GuidValues = this.ReadArray<DataForgeGuid>(guidValueCount);
-			Console.WriteLine($"Array_StringValues: {this._br.BaseStream.Position}");
-            this.Array_StringValues = this.ReadArray<DataForgeStringLookup>(stringValueCount);
-			Console.WriteLine($"Array_LocaleValues: {this._br.BaseStream.Position}");
-            this.Array_LocaleValues = this.ReadArray<DataForgeLocale>(localeValueCount);
-			Console.WriteLine($"Array_EnumValues: {this._br.BaseStream.Position}");
-            this.Array_EnumValues = this.ReadArray<DataForgeEnum>(enumValueCount);
-			Console.WriteLine($"Array_StrongValues: {this._br.BaseStream.Position}");
-            this.Array_StrongValues = this.ReadArray<DataForgePointer>(strongValueCount);
-			Console.WriteLine($"Array_WeakValues: {this._br.BaseStream.Position}");
-            this.Array_WeakValues = this.ReadArray<DataForgePointer>(weakValueCount);
-
-			Console.WriteLine($"Array_ReferenceValues: {this._br.BaseStream.Position}");
-            this.Array_ReferenceValues = this.ReadArray<DataForgeReference>(referenceValueCount);
-			Console.WriteLine($"EnumOptionTable: {this._br.BaseStream.Position}");
-            this.EnumOptionTable = this.ReadArray<DataForgeStringLookup>(enumOptionCount);
-			Console.WriteLine($"TextMap: {this._br.BaseStream.Position}");
-
-			var buffer = new List<DataForgeString> { };
-            var maxPosition = this._br.BaseStream.Position + textLength;
-            var startPosition = this._br.BaseStream.Position;
-            this.TextMap = new Dictionary<UInt32, String> { };
-            while (this._br.BaseStream.Position < maxPosition)
-            {
-                var offset = this._br.BaseStream.Position - startPosition;
-                var dfString = new DataForgeString(this);
-                buffer.Add(dfString);
-                this.TextMap[(UInt32)offset] = dfString.Value;
-            }
-			Console.WriteLine($"BlobMap: {this._br.BaseStream.Position}");
-
-			buffer = new List<DataForgeString> { };
-			maxPosition = this._br.BaseStream.Position + blobLength;
-			startPosition = this._br.BaseStream.Position;
-			this.BlobMap = new Dictionary<UInt32, String> { };
-			while (this._br.BaseStream.Position < maxPosition)
+			foreach (var recordIndex in Enumerable.Range(0, this.RecordDefinitionCount))
 			{
-				var offset = this._br.BaseStream.Position - startPosition;
-				var dfString = new DataForgeString(this);
-				buffer.Add(dfString);
-				this.BlobMap[(UInt32)offset] = dfString.Value;
+				this.Position = this.RecordDefinitionOffset + recordIndex * DataForgeRecordDefinition.RecordSizeInBytes;
+				var record = DataForgeRecordDefinition.ReadFromStream(this);
+
+				var filename = record.FileName;
+				var extension = Path.GetExtension(filename);
+				this.PathToRecordMap[filename] = recordIndex;
+				this.ReferenceToRecordMap[record.Hash] = recordIndex;
 			}
 
-			if (this.BlobMap.Count == 0) this.BlobMap = this.TextMap;
+			var lastOffset = 0;
 
-			this.DataMap = new Dictionary<UInt32, List<XmlElement>> { };
+			this.StructToDataOffsetMap = new Dictionary<UInt32, Int64> { };
+			foreach (var dataMappingIndex in Enumerable.Range(0, this.DataMappingCount))
+			{
+				var dataMapping = this.ReadDataMappingAtIndex(dataMappingIndex);
+				var dataStruct = this.ReadStructDefinitionAtIndex(dataMappingIndex);
 
-            foreach (var dataMapping in this.DataMappingTable)
-            {
-                this.DataMap[dataMapping.StructIndex] = new List<XmlElement> { };
+				if (!this.StructToDataOffsetMap.ContainsKey(dataMapping.StructIndex)) this.StructToDataOffsetMap[dataMapping.StructIndex] = lastOffset;
+				lastOffset += (Int32)(dataMapping.StructCount * dataStruct.RecordSize);
+			}
 
-                var dataStruct = this.StructDefinitionTable[dataMapping.StructIndex];
+			Debug.Assert((this.DataOffset + lastOffset) == this.BaseStream.Length, "Data / Stream length mismatch");
+		}
 
-                for (Int32 i = 0; i < dataMapping.StructCount; i++)
-                {
-                    var node = dataStruct.Read(dataMapping.Name);
+		/// <summary>
+		/// Converts Paths to RecordIndexes
+		/// </summary>
+		public Dictionary<String, Int32> PathToRecordMap { get; }
 
-                    this.DataMap[dataMapping.StructIndex].Add(node);
-                }
-            }
+		/// <summary>
+		/// Converts References to RecordIndexes
+		/// </summary>
+		public Dictionary<Guid, Int32> ReferenceToRecordMap { get; }
 
-            foreach (var dataMapping in this.Require_ClassMapping)
-            {
-                if (dataMapping.StructIndex == 0xFFFF)
-                {
-#if NONULL
-                    dataMapping.Node.ParentNode.RemoveChild(dataMapping.Node);
-#else
-                    dataMapping.Item1.ParentNode.ReplaceChild(
-                        this._xmlDocument.CreateElement("null"),
-                        dataMapping.Item1);
-#endif
-                }
-                else if (this.DataMap.ContainsKey(dataMapping.StructIndex) && this.DataMap[dataMapping.StructIndex].Count > dataMapping.RecordIndex)
-                {
-                    dataMapping.Node.ParentNode.ReplaceChild(
-                        this.DataMap[dataMapping.StructIndex][dataMapping.RecordIndex],
-                        dataMapping.Node);
-                }
-                else
-                {
-                    var bugged = this._xmlDocument.CreateElement("bugged");
-                    var __class = this._xmlDocument.CreateAttribute("__class");
-                    var __index = this._xmlDocument.CreateAttribute("__index");
-                    __class.Value = $"{dataMapping.StructIndex:X8}";
-                    __index.Value = $"{dataMapping.RecordIndex:X8}";
-                    bugged.Attributes.Append(__class);
-                    bugged.Attributes.Append(__index);
-                    dataMapping.Node.ParentNode.ReplaceChild(
-                        bugged,
-                        dataMapping.Node);
-                }
-            }
-        }
+		/// <summary>
+		/// Converts StructIndex and VariantIndex to dataOffsets
+		/// </summary>
+		public Dictionary<UInt32, Int64> StructToDataOffsetMap { get; }
 
-        private XmlDocument _xmlDocument = new XmlDocument();
+		internal String ReadEnumAtOffset(UInt32 enumValueOffset) => this.ReadTextAtOffset(enumValueOffset);
 
-		internal XmlElement CreateElement(String name) { return this._xmlDocument.CreateElement(name); }
-        internal XmlAttribute CreateAttribute(String name) { return this._xmlDocument.CreateAttribute(name); }
-
-        public String OuterXML
+		internal String ReadTextAtOffset(Int64 offset)
 		{
-			get
+			if (offset > this.TextLength) throw new IndexOutOfRangeException($"Offset {offset} is out of range for Text values (length: {this.TextLength})");
+
+			var position = this.Position;
+
+			try
 			{
-				if (String.IsNullOrWhiteSpace(this._xmlDocument?.InnerXml)) this.Compile();
-				return this._xmlDocument.OuterXml;
+				this.Position = this.TextOffset + offset;
+
+				return this.ReadCString();
+			}
+			finally
+			{
+				this.Position = position;
 			}
 		}
 
-        public void Save(String filename)
-        {
-			if (String.IsNullOrWhiteSpace(this._xmlDocument?.InnerXml)) this.Compile();
-			
-			var i = 0;
-			foreach (var record in this.RecordDefinitionTable)
-			{
-				var fileReference = record.FileName;
-
-				if (fileReference.Split('/').Length == 2) fileReference = fileReference.Split('/')[1];
-
-				if (String.IsNullOrWhiteSpace(fileReference)) fileReference = String.Format(@"Dump\{0}_{1}.xml", record.Name, i++);
-
-				var newPath = Path.Combine(Path.GetDirectoryName(filename), fileReference);
-
-				if (!Directory.Exists(Path.GetDirectoryName(newPath))) Directory.CreateDirectory(Path.GetDirectoryName(newPath));
-
-				XmlDocument doc = new XmlDocument { };
-				doc.LoadXml(this.DataMap[record.StructIndex][record.VariantIndex].OuterXml);
-				doc.Save(newPath);
-			}
-
-			this._xmlDocument.Save(filename);
-        }
-
-		internal void Compile()
+		internal String ReadBlobAtOffset(Int64 offset)
 		{
-			var root = this._xmlDocument.CreateElement("DataForge");
-			this._xmlDocument.AppendChild(root);
+			if (this.FileVersion < 6) return this.ReadTextAtOffset(offset);
 
-			foreach (var dataMapping in this.Require_StrongMapping)
+			if (offset > this.BlobLength) throw new IndexOutOfRangeException($"Offset {offset} is out of range for Blob values (length: {this.TextLength})");
+
+			var position = this.Position;
+
+			try
 			{
-				var strong = this.Array_StrongValues[dataMapping.RecordIndex];
+				this.Position = this.BlobOffset + offset;
 
-				if (strong.Index == 0xFFFFFFFF)
+				return this.ReadCString();
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
+
+		internal DataForgeDataMapping ReadDataMappingAtIndex(Int64 index)
+		{
+			if (index > this.DataMappingCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Data Mapping values (count: {this.DataMappingCount})");
+
+			var position = this.Position;
+
+			try
+			{
+				this.Position = this.DataMappingOffset + index * (this.IsLegacy ? DataForgeDataMapping.RecordSizeInBytes : DataForgeDataMapping.RecordSizeInBytesV6);
+
+				return DataForgeDataMapping.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
+
+		internal DataForgeRecordDefinition ReadRecordDefinitionAtIndex(Int64 index)
+		{
+			if (index > this.RecordDefinitionCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Record Definition values (count: {this.RecordDefinitionCount})");
+
+			var position = this.Position;
+
+			try
+			{
+				this.Position = this.RecordDefinitionOffset + index * DataForgeRecordDefinition.RecordSizeInBytes;
+
+				return DataForgeRecordDefinition.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
+
+		public List<(UInt32, UInt32)> StructStack { get; set; } = new List<(UInt32, UInt32)> { };
+
+		public XmlElement ReadStructAtIndexAsXml(XmlElement xmlNode, UInt32 structIndex, UInt32 variantIndex)
+		{
+			var position = this.Position;
+
+			if (this.StructStack.Count > this.MaxPointerDepth || this.StructStack.Contains((structIndex, variantIndex))) return null;
+
+			try
+			{
+				this.StructStack.Add((structIndex, variantIndex));
+
+				var dataStruct = this.ReadStructDefinitionAtIndex(structIndex);
+				var dataMapping = this.ReadDataMappingAtIndex(structIndex);
+
+				if (dataMapping.StructCount < variantIndex) throw new IndexOutOfRangeException($"Variant Index {variantIndex} is out of range for struct {dataStruct.Name} with count {dataMapping.StructCount}");
+
+				if (this.StructToDataOffsetMap.TryGetValue(structIndex, out long value))
 				{
-#if NONULL
-					dataMapping.Node.ParentNode.RemoveChild(dataMapping.Node);
-#else
-                    dataMapping.Item1.ParentNode.ReplaceChild(
-                        this._xmlDocument.CreateElement("null"),
-                        dataMapping.Item1);
-#endif
+					this.Position = this.DataOffset + value + (dataStruct.RecordSize * variantIndex);
 				}
 				else
 				{
-					dataMapping.Node.ParentNode.ReplaceChild(
-						this.DataMap[strong.StructType][(Int32)strong.Index],
-						dataMapping.Node);
+					throw new KeyNotFoundException($"Struct Index {structIndex} not found in Struct to Data Offset Map");
+					// this.Position = this.DataOffset;
 				}
+
+				return this.ReadStructAsXml(xmlNode, dataStruct);
 			}
-
-			foreach (var dataMapping in this.Require_WeakMapping1)
+			finally
 			{
-				var weak = this.Array_WeakValues[dataMapping.RecordIndex];
+				this.Position = position;
 
-				var weakAttribute = dataMapping.Node;
-
-				if (weak.Index == 0xFFFFFFFF)
-				{
-					weakAttribute.Value = String.Format("0");
-				}
-				else
-				{
-					var targetElement = this.DataMap[weak.StructType][(Int32)weak.Index];
-
-					weakAttribute.Value = targetElement.GetPath();
-				}
-			}
-
-			foreach (var dataMapping in this.Require_WeakMapping2)
-			{
-				var weakAttribute = dataMapping.Node;
-
-				if (dataMapping.StructIndex == 0xFFFF)
-				{
-					weakAttribute.Value = "null";
-				}
-				else if (dataMapping.RecordIndex == -1)
-				{
-					var targetElement = this.DataMap[dataMapping.StructIndex];
-
-					weakAttribute.Value = targetElement.FirstOrDefault()?.GetPath();
-				}
-				else
-				{
-					var targetElement = this.DataMap[dataMapping.StructIndex][dataMapping.RecordIndex];
-
-					weakAttribute.Value = targetElement.GetPath();
-				}
-			}
-
-			var i = 0;
-			foreach (var record in this.RecordDefinitionTable)
-			{
-				var fileReference = record.FileName;
-
-				if (fileReference.Split('/').Length == 2)
-				{
-					fileReference = fileReference.Split('/')[1];
-				}
-
-				if (!record.FileName.ToLowerInvariant().Contains(record.Name.ToLowerInvariant()) &&
-					!record.FileName.ToLowerInvariant().Contains(record.Name.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries).Last().ToLowerInvariant()))
-				{
-					Console.WriteLine("Warning {0} doesn't match {1}", record.Name, record.FileName);
-				}
-
-				if (String.IsNullOrWhiteSpace(fileReference))
-				{
-					fileReference = String.Format(@"Dump\{0}_{1}.xml", record.Name, i++);
-				}
-
-				if (record.Hash.HasValue && record.Hash != Guid.Empty)
-				{
-					var hash = this.CreateAttribute("__ref");
-					hash.Value = $"{record.Hash}";
-					this.DataMap[record.StructIndex][record.VariantIndex].Attributes.Append(hash);
-				}
-
-				if (!String.IsNullOrWhiteSpace(record.FileName))
-				{
-					var path = this.CreateAttribute("__path");
-					path.Value = $"{record.FileName}";
-					this.DataMap[record.StructIndex][record.VariantIndex].Attributes.Append(path);
-				}
-				
-				this.DataMap[record.StructIndex][record.VariantIndex] = this.DataMap[record.StructIndex][record.VariantIndex].Rename(record.Name);
-				root.AppendChild(this.DataMap[record.StructIndex][record.VariantIndex]);
+				this.StructStack.Remove((structIndex, variantIndex));
 			}
 		}
 
-		public Stream GetStream()
+		public XmlElement ReadStructAsXml(XmlElement xmlNode, DataForgeStructDefinition dataStruct)
 		{
-			if (String.IsNullOrWhiteSpace(this._xmlDocument?.InnerXml)) this.Compile();
-
-			var outStream = new MemoryStream();
-
-			this._xmlDocument.Save(outStream);
-
-			return outStream;
-		}
-
-		public void GenerateSerializationClasses(String path = "AutoGen", String assemblyName = "HoloXPLOR.Data.DataForge")
-        {
-            path = new DirectoryInfo(path).FullName;
-
-            if (Directory.Exists(path) && path != new DirectoryInfo(".").FullName)
-            {
-                Directory.Delete(path, true);
-                while (Directory.Exists(path))
-                {
-                    Thread.Sleep(100);
-                }
-            }
-
-            Directory.CreateDirectory(path);
-            while (!Directory.Exists(path))
-            {
-                Thread.Sleep(100);
-            }
-
-            var sb = new StringBuilder();
-
-            sb.AppendLine(@"using System.Xml.Serialization;");
-            sb.AppendLine();
-            sb.AppendFormat(@"namespace {0}", assemblyName);
-            sb.AppendLine();
-            sb.AppendLine(@"{");
-            foreach (var enumDefinition in this.EnumDefinitionTable)
-            {
-                sb.Append(enumDefinition.Export());
-            }
-            sb.AppendLine(@"}");
-
-            File.WriteAllText(Path.Combine(path, "Enums.cs"), sb.ToString());
-
-            sb = new StringBuilder();
-
-            sb.AppendLine(@"using System;");
-            sb.AppendLine(@"using System.Xml.Serialization;");
-            sb.AppendLine();
-            sb.AppendFormat(@"namespace {0}", assemblyName);
-            sb.AppendLine();
-            sb.AppendLine(@"{");
-            foreach (EDataType typeDefinition in Enum.GetValues(typeof(EDataType)))
-            {
-                var typeName = typeDefinition.ToString().Replace("var", "");
-                switch (typeDefinition)
-                {
-                    case EDataType.varStrongPointer:
-                    case EDataType.varClass: break;
-                    case EDataType.varLocale:
-                    case EDataType.varWeakPointer:
-                        sb.AppendFormat(@"    public class _{0}", typeName);
-                        sb.AppendLine();
-                        sb.AppendLine(@"    {");
-                        sb.AppendLine(@"        public String Value { get; set; }");
-                        sb.AppendLine(@"    }");
-                        break;
-                    case EDataType.varReference:
-                        sb.AppendFormat(@"    public class _{0}", typeName);
-                        sb.AppendLine();
-                        sb.AppendLine(@"    {");
-                        sb.AppendLine(@"        public Guid Value { get; set; }");
-                        sb.AppendLine(@"    }");
-                        break;
-                    default:
-                        sb.AppendFormat(@"    public class _{0}", typeName);
-                        sb.AppendLine();
-                        sb.AppendLine(@"    {");
-                        sb.AppendFormat(@"        public {0} Value {{ get; set; }}", typeName);
-                        sb.AppendLine();
-                        sb.AppendLine(@"    }");
-                        break;
-                }
-            }
-            sb.AppendLine(@"}");
-
-            File.WriteAllText(Path.Combine(path, "Arrays.cs"), sb.ToString());
-
-            foreach (var structDefinition in this.StructDefinitionTable)
-            {
-                var code = structDefinition.Export(assemblyName);
-                File.WriteAllText(Path.Combine(path, String.Format("{0}.cs", structDefinition.Name)), code);
-            }
-        }
-
-		public IEnumerator GetEnumerator()
-		{
-			if (String.IsNullOrWhiteSpace(this._xmlDocument?.InnerXml)) this.Compile();
-
 			var i = 0;
 
-			foreach (var record in this.RecordDefinitionTable)
+			foreach (var childNode in dataStruct.ReadAsXml(xmlNode).Where(x => x != null))
 			{
-				var fileReference = record.FileName;
+				if (childNode is XmlAttribute attribute) xmlNode.Attributes.Append(attribute);
+				else if (childNode is XmlElement element) xmlNode.AppendChild(element);
 
-				if (fileReference.Split('/').Length == 2) fileReference = fileReference.Split('/')[1];
+				if (i++ > this.MaxNodes) break;
+			}
 
-				if (String.IsNullOrWhiteSpace(fileReference)) fileReference = String.Format(@"Dump\{0}_{1}.xml", record.Name, i++);
+			if (xmlNode.ChildNodes.Count == 0 && xmlNode.Attributes.Count == 0) return null;
 
-				var newPath = fileReference;
+			return xmlNode;
+		}
 
-				if (!Directory.Exists(Path.GetDirectoryName(newPath))) Directory.CreateDirectory(Path.GetDirectoryName(newPath));
 
-				XmlDocument doc = new XmlDocument { };
-				doc.LoadXml(this.DataMap[record.StructIndex][record.VariantIndex].OuterXml);
+		internal DataForgeStructDefinition ReadStructDefinitionAtIndex(Int64 index)
+		{
+			if (index > this.StructDefinitionCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Struct Definition values (count: {this.StructDefinitionCount})");
 
-				yield return (FileName: newPath, XmlDocument: doc);
+			var position = this.Position;
+
+			try
+			{
+				this.Position = this.StructDefinitionOffset + index * DataForgeStructDefinition.RecordSizeInBytes;
+
+				return DataForgeStructDefinition.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
 			}
 		}
 
-		public Int32 Length => this.RecordDefinitionTable.Length;
+		internal DataForgePropertyDefinition ReadPropertyDefinitionAtIndex(Int64 index)
+		{
+			if (index > this.PropertyDefinitionCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Property Definition values (count: {this.PropertyDefinitionCount})");
 
-#if NET20 || NET35 || NET40 || NET45 || NET451 || NET452 || NET46 || NET461 || NET462 || NET47 || NET471 || NET472
-		public void CompileSerializationAssembly(String assemblyName = "HoloXPLOR.Data.DataForge")
-        {
-            CSharpCodeProvider provider = new CSharpCodeProvider();
-            CompilerParameters parameters = new CompilerParameters
-            {
-                GenerateExecutable = false,
-                GenerateInMemory = false,
-                OutputAssembly = String.Format("{0}.dll", assemblyName),
-            };
+			var position = this.Position;
 
-            parameters.ReferencedAssemblies.Add("System.dll");
-            parameters.ReferencedAssemblies.Add("System.Xml.dll");
+			try
+			{
+				this.Position = this.PropertyDefinitionOffset + index * DataForgePropertyDefinition.RecordSizeInBytes;
 
-            List<String> source = new List<String> { };
+				return DataForgePropertyDefinition.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
 
-            var sb = new StringBuilder();
+		internal DataForgeBoolean ReadBooleanAtIndex(Int64 index)
+		{
+			if (index > this.BooleanValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Boolean values (count: {this.BooleanValueCount})");
 
-            sb.AppendLine(@"using System.Xml.Serialization;");
-            sb.AppendLine();
-            sb.AppendFormat(@"namespace {0}", assemblyName);
-            sb.AppendLine();
-            sb.AppendLine(@"{");
-            foreach (var enumDefinition in this.EnumDefinitionTable)
-            {
-                sb.Append(enumDefinition.Export());
-            }
-            sb.AppendLine(@"}");
+			var position = this.Position;
 
-            source.Add(sb.ToString());
+			try
+			{
+				this.Position = this.BooleanValueOffset + index * DataForgeBoolean.RecordSizeInBytes;
 
-            sb = new StringBuilder();
+				return DataForgeBoolean.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
 
-            sb.AppendLine(@"using System;");
-            sb.AppendLine(@"using System.Xml.Serialization;");
-            sb.AppendLine();
-            sb.AppendFormat(@"namespace {0}", assemblyName);
-            sb.AppendLine();
-            sb.AppendLine(@"{");
-            foreach (EDataType typeDefinition in Enum.GetValues(typeof(EDataType)))
-            {
-                var typeName = typeDefinition.ToString().Replace("var", "");
-                switch (typeDefinition)
-                {
-                    case EDataType.varStrongPointer:
-                    case EDataType.varClass: break;
-                    case EDataType.varByte:
-                        typeName = "UInt8";
-                        sb.AppendFormat(@"    public class _{0}", typeName);
-                        sb.AppendLine();
-                        sb.AppendLine(@"    {");
-                        sb.AppendLine(@"        public Byte Value { get; set; }");
-                        sb.AppendLine(@"    }");
-                        break;
-                    case EDataType.varSByte:
-                        typeName = "Int8";
-                        sb.AppendFormat(@"    public class _{0}", typeName);
-                        sb.AppendLine();
-                        sb.AppendLine(@"    {");
-                        sb.AppendLine(@"        public SByte Value { get; set; }");
-                        sb.AppendLine(@"    }");
-                        break;
-                    case EDataType.varLocale:
-                    case EDataType.varWeakPointer:
-                        sb.AppendFormat(@"    public class _{0}", typeName);
-                        sb.AppendLine();
-                        sb.AppendLine(@"    {");
-                        sb.AppendLine(@"        public String Value { get; set; }");
-                        sb.AppendLine(@"    }");
-                        break;
-                    case EDataType.varReference:
-                        sb.AppendFormat(@"    public class _{0}", typeName);
-                        sb.AppendLine();
-                        sb.AppendLine(@"    {");
-                        sb.AppendLine(@"        public Guid Value { get; set; }");
-                        sb.AppendLine(@"    }");
-                        break;
-                    default:
-                        sb.AppendFormat(@"    public class _{0}", typeName);
-                        sb.AppendLine();
-                        sb.AppendLine(@"    {");
-                        sb.AppendFormat(@"        public {0} Value {{ get; set; }}", typeName);
-                        sb.AppendLine();
-                        sb.AppendLine(@"    }");
-                        break;
-                }
-            }
-            sb.AppendLine(@"}");
+		internal DataForgeDouble ReadDoubleAtIndex(Int64 index)
+		{
+			if (index > this.DoubleValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Double values (count: {this.DoubleValueCount})");
 
-            source.Add(sb.ToString());
+			var position = this.Position;
 
-            foreach (var structDefinition in this.StructDefinitionTable)
-            {
-                var code = structDefinition.Export(assemblyName);
-                source.Add(code);
-            }
+			try
+			{
+				this.Position = this.DoubleValueOffset + index * DataForgeDouble.RecordSizeInBytes;
 
-            var result = provider.CompileAssemblyFromSource(parameters, source.ToArray());
-        }
-#endif
+				return DataForgeDouble.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
+
+		internal DataForgeEnum ReadEnumOptionAtIndex(Int64 index)
+		{
+			if (index > this.EnumValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Enum values (count: {this.EnumOptionCount})");
+
+			var position = this.Position;
+
+			try
+			{
+				this.Position = this.EnumOptionOffset + index * DataForgeEnum.RecordSizeInBytes;
+
+				return DataForgeEnum.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
+
+		internal DataForgeEnumDefinition ReadEnumDefinitionAtIndex(Int64 index)
+		{
+			if (index > this.EnumValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Enum values (count: {this.EnumDefinitionCount})");
+
+			var position = this.Position;
+
+			try
+			{
+				this.Position = this.EnumDefinitionOffset + index * DataForgeEnumDefinition.RecordSizeInBytes;
+
+				return DataForgeEnumDefinition.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
+
+		internal DataForgeEnum ReadEnumValueAtIndex(Int64 index)
+		{
+			if (index > this.EnumValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Enum values (count: {this.EnumValueCount})");
+
+			var position = this.Position;
+
+			try
+			{
+				this.Position = this.EnumValueOffset + index * DataForgeEnum.RecordSizeInBytes;
+
+				return DataForgeEnum.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
+
+		internal DataForgeGuid ReadGuidAtIndex(Int64 index)
+		{
+			if (index > this.GuidValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Guid values (count: {this.GuidValueCount})");
+
+			var position = this.Position;
+
+			try
+			{
+				this.Position = this.GuidValueOffset + index * DataForgeGuid.RecordSizeInBytes;
+
+				return DataForgeGuid.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
+
+		internal DataForgeInt16 ReadInt16AtIndex(Int64 index)
+		{
+			if (index > this.Int16ValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Int16 values (count: {this.Int16ValueCount})");
+
+			var position = this.Position;
+
+			try
+			{
+				this.Position = this.Int16ValueOffset + index * DataForgeInt16.RecordSizeInBytes;
+
+				return DataForgeInt16.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
+
+		internal DataForgeInt32 ReadInt32AtIndex(Int64 index)
+		{
+			if (index > this.Int32ValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Int32 values (count: {this.Int32ValueCount})");
+
+			var position = this.Position;
+
+			try
+			{
+				this.Position = this.Int32ValueOffset + index * DataForgeInt32.RecordSizeInBytes;
+
+				return DataForgeInt32.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
+
+		internal DataForgeInt64 ReadInt64AtIndex(Int64 index)
+		{
+			if (index > this.Int64ValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Int64 values (count: {this.Int64ValueCount})");
+
+			var position = this.Position;
+
+			try
+			{
+				this.Position = this.Int64ValueOffset + index * DataForgeInt64.RecordSizeInBytes;
+
+				return DataForgeInt64.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
+
+		internal DataForgeInt8 ReadInt8AtIndex(Int64 index)
+		{
+			if (index > this.Int8ValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Int8 values (count: {this.Int8ValueCount})");
+
+			var position = this.Position;
+
+			try
+			{
+				this.Position = this.Int8ValueOffset + index * DataForgeInt8.RecordSizeInBytes;
+
+				return DataForgeInt8.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
+
+		internal DataForgeLocale ReadLocaleAtIndex(Int64 index)
+		{
+			if (index > this.LocaleValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Locale values (count: {this.LocaleValueCount})");
+
+			var position = this.Position;
+
+			try
+			{
+				this.Position = this.LocaleValueOffset + index * DataForgeLocale.RecordSizeInBytes;
+
+				return DataForgeLocale.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
+
+		internal DataForgeReference ReadReferenceAtIndex(Int64 index)
+		{
+			if (index > this.ReferenceValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Reference values (count: {this.ReferenceValueCount})");
+
+			var position = this.Position;
+
+			try
+			{
+				this.Position = this.ReferenceValueOffset + index * DataForgeReference.RecordSizeInBytes;
+
+				return DataForgeReference.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
+
+		internal DataForgeSingle ReadSingleAtIndex(Int64 index)
+		{
+			if (index > this.SingleValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Single values (count: {this.SingleValueCount})");
+
+			var position = this.Position;
+
+			try
+			{
+				this.Position = this.SingleValueOffset + index * DataForgeSingle.RecordSizeInBytes;
+
+				return DataForgeSingle.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
+
+		internal DataForgeStringLookup ReadStringAtIndex(Int64 index)
+		{
+			if (index > this.StringValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for String values (count: {this.StringValueCount})");
+
+			var position = this.Position;
+
+			try
+			{
+				this.Position = this.StringValueOffset + index * DataForgeStringLookup.RecordSizeInBytes;
+
+				return DataForgeStringLookup.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
+
+		internal DataForgeUInt16 ReadUInt16AtIndex(Int64 index)
+		{
+			if (index > this.UInt16ValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for UInt16 values (count: {this.UInt16ValueCount})");
+
+			var position = this.Position;
+
+			try
+			{
+				this.Position = this.UInt16ValueOffset + index * DataForgeUInt16.RecordSizeInBytes;
+
+				return DataForgeUInt16.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
+
+		internal DataForgeUInt32 ReadUInt32AtIndex(Int64 index)
+		{
+			if (index > this.UInt32ValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for UInt32 values (count: {this.UInt32ValueCount})");
+
+			var position = this.Position;
+
+			try
+			{
+				this.Position = this.UInt32ValueOffset + index * DataForgeUInt32.RecordSizeInBytes;
+
+				return DataForgeUInt32.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
+
+		internal DataForgeUInt64 ReadUInt64AtIndex(Int64 index)
+		{
+			if (index > this.UInt64ValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for UInt64 values (count: {this.UInt64ValueCount})");
+
+			var position = this.Position;
+
+			try
+			{
+				this.Position = this.UInt64ValueOffset + index * DataForgeUInt64.RecordSizeInBytes;
+
+				return DataForgeUInt64.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
+
+		internal DataForgeUInt8 ReadUInt8AtIndex(Int64 index)
+		{
+			if (index > this.UInt8ValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for UInt8 values (count: {this.UInt8ValueCount})");
+
+			var position = this.Position;
+
+			try
+			{
+				this.Position = this.UInt8ValueOffset + index * DataForgeUInt8.RecordSizeInBytes;
+
+				return DataForgeUInt8.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
+
+		internal DataForgePointer ReadWeakPointerAtIndex(Int64 index)
+		{
+			if (index > this.WeakValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Weak Pointer values (count: {this.WeakValueCount})");
+
+			var position = this.Position;
+
+			try
+			{
+				this.Position = this.WeakValueOffset + index * DataForgePointer.RecordSizeInBytes;
+
+				return DataForgePointer.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
+
+		internal DataForgePointer ReadStrongPointerAtIndex(Int64 index)
+		{
+			if (index > this.StrongValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Strong Pointer values (count: {this.StrongValueCount})");
+
+			var position = this.Position;
+
+			try
+			{
+				this.Position = this.StrongValueOffset + index * DataForgePointer.RecordSizeInBytes;
+
+				return DataForgePointer.ReadFromStream(this);
+			}
+			finally
+			{
+				this.Position = position;
+			}
+		}
+
+		private String ReadCString()
+		{
+			// Small, fast stack buffer for typical strings
+			Span<Char> initialBuffer = stackalloc Char[256];
+			Span<Char> buffer = initialBuffer;
+
+			Char[] rented = null;
+			Int32 length = 0;
+
+			try
+			{
+				Int32 value;
+				while ((value = this.BaseStream.ReadByte()) != -1 && value != 0)
+				{
+					// Need more space? Rent a bigger buffer.
+					if (length == buffer.Length)
+					{
+						Int32 newSize = buffer.Length * 2;
+
+						Char[] newRented = ArrayPool<Char>.Shared.Rent(newSize);
+						buffer.CopyTo(newRented);
+
+						rented = newRented;
+						buffer = rented;
+					}
+
+					buffer[length++] = (Char)value;
+				}
+
+				// One String allocation from the final span slice
+				return new String(buffer.Slice(0, length));
+			}
+			finally
+			{
+				if (rented != null)
+				{
+					ArrayPool<Char>.Shared.Return(rented);
+				}
+			}
+		}
+
+		public XmlNode ReadRecordByPathAsXml(String path)
+		{
+			if (!this.PathToRecordMap.TryGetValue(path, out var recordIndex)) throw new FileNotFoundException();
+
+			var xml = new XmlDocument();
+
+			lock (this.BaseStream)
+			{
+				return this.ReadRecordAtIndexAsXml(xml, recordIndex);
+			}
+		}
+
+		public XmlNode ReadRecordByReferenceAsXml(XmlNode xmlNode, Guid reference)
+		{
+			if (!this.ReferenceToRecordMap.TryGetValue(reference, out var recordIndex)) throw new FileNotFoundException();
+
+			return this.ReadRecordAtIndexAsXml(xmlNode, recordIndex);
+		}
+
+		public List<Int32> RecordStack { get; set; } = new List<Int32> { };
+
+		public XmlNode ReadRecordAtIndexAsXml(XmlNode xmlNode, Int32 recordIndex)
+		{
+			var position = this.Position;
+
+			if (this.RecordStack.Count > this.MaxReferenceDepth || this.RecordStack.Contains(recordIndex)) return null;
+
+			try
+			{
+				this.RecordStack.Add(recordIndex);
+
+				var record = this.ReadRecordDefinitionAtIndex(recordIndex);
+
+				return record.ReadAsXml(xmlNode);
+			}
+			catch (Exception ex)
+			{
+				return xmlNode.CreateElementWithValue("Error", ex.Message);
+			}
+			finally
+			{
+				this.Position = position;
+
+				this.RecordStack.Remove(recordIndex);
+			}
+		}
+
+		private void ReportOffsets()
+		{
+			Console.WriteLine($"StructDefinitionOffset:   {this.StructDefinitionOffset:X8}\t{this.StructDefinitionCount:X6}");
+			Console.WriteLine($"PropertyDefinitionOffset: {this.PropertyDefinitionOffset:X8}\t{this.PropertyDefinitionCount:X6}");
+			Console.WriteLine($"EnumDefinitionOffset:     {this.EnumDefinitionOffset:X8}\t{this.EnumDefinitionCount:X6}");
+			Console.WriteLine($"DataMappingOffset:        {this.DataMappingOffset:X8}\t{this.DataMappingCount:X6}");
+			Console.WriteLine($"RecordDefinitionOffset:   {this.RecordDefinitionOffset:X8}\t{this.RecordDefinitionCount:X6}");
+			Console.WriteLine($"Int8ValueOffset:          {this.Int8ValueOffset:X8}\t{this.Int8ValueCount:X6}");
+			Console.WriteLine($"Int16ValueOffset:         {this.Int16ValueOffset:X8}\t{this.Int16ValueCount:X6}");
+			Console.WriteLine($"Int32ValueOffset:         {this.Int32ValueOffset:X8}\t{this.Int32ValueCount:X6}");
+			Console.WriteLine($"Int64ValueOffset:         {this.Int64ValueOffset:X8}\t{this.Int64ValueCount:X6}");
+			Console.WriteLine($"UInt8ValueOffset:         {this.UInt8ValueOffset:X8}\t{this.UInt8ValueCount:X6}");
+			Console.WriteLine($"UInt16ValueOffset:        {this.UInt16ValueOffset:X8}\t{this.UInt16ValueCount:X6}");
+			Console.WriteLine($"UInt32ValueOffset:        {this.UInt32ValueOffset:X8}\t{this.UInt32ValueCount:X6}");
+			Console.WriteLine($"UInt64ValueOffset:        {this.UInt64ValueOffset:X8}\t{this.UInt64ValueCount:X6}");
+			Console.WriteLine($"BooleanValueOffset:       {this.BooleanValueOffset:X8}\t{this.BooleanValueCount:X6}");
+			Console.WriteLine($"SingleValueOffset:        {this.SingleValueOffset:X8}\t{this.SingleValueCount:X6}");
+			Console.WriteLine($"DoubleValueOffset:        {this.DoubleValueOffset:X8}\t{this.DoubleValueCount:X6}");
+			Console.WriteLine($"GuidValueOffset:          {this.GuidValueOffset:X8}\t{this.GuidValueCount:X6}");
+			Console.WriteLine($"StringValueOffset:        {this.StringValueOffset:X8}\t{this.StringValueCount:X6}");
+			Console.WriteLine($"LocaleValueOffset:        {this.LocaleValueOffset:X8}\t{this.LocaleValueCount:X6}");
+			Console.WriteLine($"EnumValueOffset:          {this.EnumValueOffset:X8}\t{this.EnumValueCount:X6}");
+			Console.WriteLine($"StrongValueOffset:        {this.StrongValueOffset:X8}\t{this.StringValueCount:X6}");
+			Console.WriteLine($"WeakValueOffset:          {this.WeakValueOffset:X8}\t{this.WeakValueCount:X6}");
+			Console.WriteLine($"ReferenceValueOffset:     {this.ReferenceValueOffset:X8}\t{this.ReferenceValueCount:X6}");
+			Console.WriteLine($"EnumOptionOffset:         {this.EnumOptionOffset:X8}\t{this.EnumOptionCount:X6}");
+			Console.WriteLine($"TextOffset:               {this.TextOffset:X8}");
+			Console.WriteLine($"BlobOffset:               {this.BlobOffset:X8}");
+			Console.WriteLine($"DataOffset:               {this.DataOffset:X8}");
+			Console.WriteLine($"Length:                   {this.Length:X8}");
+		}
 	}
 }

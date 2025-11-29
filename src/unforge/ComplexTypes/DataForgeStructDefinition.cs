@@ -1,375 +1,285 @@
-﻿using System;
+﻿using Dolkens.Framework.BinaryExtensions;
+using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
+using System.Reflection;
+using System.Reflection.Metadata;
+using System.Windows.Markup;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace unforge
 {
-	public class DataForgeStructDefinition : _DataForgeSerializable
-    {
+	public class DataForgeStructDefinition : DataForgeTypeReader
+	{
 		public static Int32 RecordSizeInBytes = 16;
 
-        public UInt32 NameOffset { get; set; }
-		public String Name
+		public UInt32 NameOffset { get; }
+		public String Name { get => this.StreamReader.ReadBlobAtOffset(this.NameOffset); }
+
+        public UInt32 ParentTypeIndex { get; }
+
+		public DataForgeStructDefinition ParentType
 		{
 			get
 			{
-				if (this._br is DataForgeStream br) return br.ReadBlobAtOffset(this.NameOffset);
-				return this.DocumentRoot.BlobMap[this.NameOffset];
+				if (this.ParentTypeIndex == 0xFFFFFFFF) return null;
+				
+				return this.StreamReader.ReadStructDefinitionAtIndex(this.ParentTypeIndex);
 			}
 		}
 
-		public String __parentTypeIndex { get { return String.Format("{0:X4}", this.ParentTypeIndex); } }
-        public UInt32 ParentTypeIndex { get; set; }
 
-        public String __attributeCount { get { return String.Format("{0:X4}", this.AttributeCount); } }
-        public UInt16 AttributeCount { get; set; }
+        public UInt16 PropertyCount { get; }
 
-        public String __firstAttributeIndex { get { return String.Format("{0:X4}", this.FirstAttributeIndex); } }
-        public UInt16 FirstAttributeIndex { get; set; }
+        public UInt16 FirstPropertyIndex { get; }
 
-        public String __nodeType { get { return String.Format("{0:X4}", this.NodeType); } }
-        public UInt32 NodeType { get; set; }
+        public UInt32 RecordSize { get; }
+		
 
-		public DataForgeStructDefinition(DataForge documentRoot)
-			: this(documentRoot._br, documentRoot.IsLegacy) { }
+		public static DataForgeStructDefinition ReadFromStream(DataForge baseStream) => new DataForgeStructDefinition(baseStream);
 
-		protected DataForgeStructDefinition(BinaryReader br, Boolean isLegacy)
+		private DataForgeStructDefinition(DataForge reader) : base(reader)
 		{
-			this._br = br;
-
-			this.NameOffset = br.ReadUInt32();
-			this.ParentTypeIndex = br.ReadUInt32();
-			this.AttributeCount = br.ReadUInt16();
-			this.FirstAttributeIndex = br.ReadUInt16();
-			this.NodeType = br.ReadUInt32();
+			this.NameOffset = reader.ReadUInt32();
+			this.ParentTypeIndex = reader.ReadUInt32();
+			this.PropertyCount = reader.ReadUInt16();
+			this.FirstPropertyIndex = reader.ReadUInt16();
+			this.RecordSize = reader.ReadUInt32();
 		}
 
-		public static DataForgeStructDefinition Read(BinaryReader br, Boolean isLegacy) => new DataForgeStructDefinition(br, isLegacy);
+		public IEnumerable<DataForgeStructDefinition> Hierarchy
+		{
+			get
+			{
+				if (this.ParentTypeIndex != 0xFFFFFFFF)
+					foreach (var parent in this.ParentType.Hierarchy)
+						yield return parent;
 
-		public XmlElement Read(String name = null)
-        {
-            XmlAttribute attribute;
+				yield return this;
+			}
+		}
 
-            var baseStruct = this;
-            var properties = new List<DataForgePropertyDefinition> { };
+		public IEnumerable<DataForgePropertyDefinition> PropertyDefinitions
+		{
+			get
+			{
+				foreach (var dataStruct in this.Hierarchy)
+				{
+					for (var propertyIndex = dataStruct.FirstPropertyIndex; propertyIndex < dataStruct.FirstPropertyIndex + dataStruct.PropertyCount; propertyIndex++)
+					{
+						yield return this.StreamReader.ReadPropertyDefinitionAtIndex(propertyIndex);
+					}
+				}
+			}
+		}
 
-            // TODO: Do we need to handle property overrides
+		public IEnumerable<XmlNode> ReadAsXml(XmlNode parentNode)
+		{
+			foreach (var propertyDefinition in this.PropertyDefinitions)
+			{
+				if (propertyDefinition.ConversionType == EConversionType.varAttribute) yield return this.ReadValueAsXml(parentNode, propertyDefinition);
+				else
+				{
+					var xmlNode = parentNode.OwnerDocument.CreateElement(propertyDefinition.Name);
+					
+					foreach (var childNode in this.ReadArrayAsXml(xmlNode, propertyDefinition).Where(x => x != null))
+					{
+						xmlNode.AppendChild(childNode);
+					}
 
-            properties.InsertRange(0,
-                from index in Enumerable.Range(this.FirstAttributeIndex, this.AttributeCount)
-                let property = this.DocumentRoot.PropertyDefinitionTable[index]
-                // where !properties.Select(p => p.Name).Contains(property.Name)
-                select property);
+					if (xmlNode.ChildNodes.Count == 0 && xmlNode.Attributes.Count == 0) continue;
 
-            while (baseStruct.ParentTypeIndex != 0xFFFFFFFF)
-            {
-                baseStruct = this.DocumentRoot.StructDefinitionTable[baseStruct.ParentTypeIndex];
+					yield return xmlNode;
+				}
+			}
+		}
 
-                properties.InsertRange(0,
-                    from index in Enumerable.Range(baseStruct.FirstAttributeIndex, baseStruct.AttributeCount)
-                    let property = this.DocumentRoot.PropertyDefinitionTable[index]
-                    // where !properties.Contains(property)
-                    select property);
-            }
+		public XmlNode ReadValueAsXml(XmlNode parentNode, DataForgePropertyDefinition propertyDefinition, String nameOverride = null)
+		{
+			try
+			{
+				switch (propertyDefinition.DataType)
+				{
+					case EDataType.varClass:
+						{
+							var dataStruct = this.StreamReader.ReadStructDefinitionAtIndex(propertyDefinition.Index);
 
-            var element = this.DocumentRoot.CreateElement(name ?? baseStruct.Name);
+							var xmlNode = parentNode.OwnerDocument.CreateElement(nameOverride ?? propertyDefinition.Name);
 
-            foreach (var node in properties)
-            {
-                node.ConversionType = (EConversionType)((Int32)node.ConversionType & 0xFF);
+							foreach (var childNode in dataStruct.ReadAsXml(xmlNode).Where(x => x != null))
+							{
+								if (childNode is XmlAttribute attribute) xmlNode.Attributes.Append(attribute);
+								else if (childNode is XmlElement element) xmlNode.AppendChild(element);
+							}
 
-                if (node.ConversionType == EConversionType.varAttribute)
-                {
-                    if (node.DataType == EDataType.varClass)
-                    {
-                        var dataStruct = this.DocumentRoot.StructDefinitionTable[node.StructIndex];
+							if (xmlNode.ChildNodes.Count == 0 && xmlNode.Attributes.Count == 0) return null;
 
-                        var child = dataStruct.Read(node.Name);
+							return xmlNode;
+						}
+					case EDataType.varReference:
+						{
+							var dataForgeReference = DataForgeReference.ReadFromStream(this.StreamReader);
 
-                        element.AppendChild(child);
-                    }
-                    else if (node.DataType == EDataType.varStrongPointer)
-                    {
-                        var parentSP = this.DocumentRoot.CreateElement(node.Name);
-                        var emptySP = this.DocumentRoot.CreateElement(String.Format("{0}", node.DataType));
-                        parentSP.AppendChild(emptySP);
-                        element.AppendChild(parentSP);
-                        this.DocumentRoot.Require_ClassMapping.Add(new ClassMapping { Node = emptySP, StructIndex = (UInt16)this._br.ReadUInt32(), RecordIndex = (Int32)this._br.ReadUInt32() });
-                    }
-                    else
-                    {
-                        var childAttribute = node.Read();
-                        element.Attributes.Append(childAttribute);
-                    }
-                }
-                else
-                {
-                    var arrayCount = this._br.ReadUInt32();
-                    var firstIndex = this._br.ReadUInt32();
+							if (dataForgeReference.IsNull) return null;
 
-                    var child = this.DocumentRoot.CreateElement(node.Name);
+							if (!this.StreamReader.FollowReferences) return parentNode.CreateAttributeWithValue(nameOverride ?? propertyDefinition.Name, dataForgeReference.Value);
+							
+							var xmlNode = this.StreamReader.ReadRecordByReferenceAsXml(parentNode, dataForgeReference.Value);
 
-                    for (var i = 0; i < arrayCount; i++)
-                    {
-                        switch (node.DataType)
-                        {
-                            case EDataType.varBoolean:
-                                child.AppendChild(this.DocumentRoot.Array_BooleanValues[firstIndex + i].Read());
-                                break;
-                            case EDataType.varDouble:
-                                child.AppendChild(this.DocumentRoot.Array_DoubleValues[firstIndex + i].Read());
-                                break;
-                            case EDataType.varEnum:
-                                child.AppendChild(this.DocumentRoot.Array_EnumValues[firstIndex + i].Read());
-                                break;
-                            case EDataType.varGuid:
-                                child.AppendChild(this.DocumentRoot.Array_GuidValues[firstIndex + i].Read());
-                                break;
-                            case EDataType.varInt16:
-                                child.AppendChild(this.DocumentRoot.Array_Int16Values[firstIndex + i].Read());
-                                break;
-                            case EDataType.varInt32:
-                                child.AppendChild(this.DocumentRoot.Array_Int32Values[firstIndex + i].Read());
-                                break;
-                            case EDataType.varInt64:
-                                child.AppendChild(this.DocumentRoot.Array_Int64Values[firstIndex + i].Read());
-                                break;
-                            case EDataType.varSByte:
-                                child.AppendChild(this.DocumentRoot.Array_Int8Values[firstIndex + i].Read());
-                                break;
-                            case EDataType.varLocale:
-                                child.AppendChild(this.DocumentRoot.Array_LocaleValues[firstIndex + i].Read());
-                                break;
-                            case EDataType.varReference:
-                                child.AppendChild(this.DocumentRoot.Array_ReferenceValues[firstIndex + i].Read());
-                                break;
-                            case EDataType.varSingle:
-                                child.AppendChild(this.DocumentRoot.Array_SingleValues[firstIndex + i].Read());
-                                break;
-                            case EDataType.varString:
-                                child.AppendChild(this.DocumentRoot.Array_StringValues[firstIndex + i].Read());
-                                break;
-                            case EDataType.varUInt16:
-                                child.AppendChild(this.DocumentRoot.Array_UInt16Values[firstIndex + i].Read());
-                                break;
-                            case EDataType.varUInt32:
-                                child.AppendChild(this.DocumentRoot.Array_UInt32Values[firstIndex + i].Read());
-                                break;
-                            case EDataType.varUInt64:
-                                child.AppendChild(this.DocumentRoot.Array_UInt64Values[firstIndex + i].Read());
-                                break;
-                            case EDataType.varByte:
-                                child.AppendChild(this.DocumentRoot.Array_UInt8Values[firstIndex + i].Read());
-                                break;
-                            case EDataType.varClass:
-                                var emptyC = this.DocumentRoot.CreateElement(String.Format("{0}", node.DataType));
-                                child.AppendChild(emptyC);
-                                this.DocumentRoot.Require_ClassMapping.Add(new ClassMapping { Node = emptyC, StructIndex = node.StructIndex, RecordIndex = (Int32)(firstIndex + i) });
-                                break;
-                            case EDataType.varStrongPointer:
-                                var emptySP = this.DocumentRoot.CreateElement(String.Format("{0}", node.DataType));
-                                child.AppendChild(emptySP);
-                                this.DocumentRoot.Require_StrongMapping.Add(new ClassMapping { Node = emptySP, StructIndex = node.StructIndex, RecordIndex = (Int32)(firstIndex + i) });
-                                break;
-                            case EDataType.varWeakPointer:
-                                var weakPointerElement = this.DocumentRoot.CreateElement("WeakPointer");
-                                var weakPointerAttribute = this.DocumentRoot.CreateAttribute(node.Name);
+							if (xmlNode.ChildNodes.Count == 0 && xmlNode.Attributes.Count == 0) return null;
 
-                                weakPointerElement.Attributes.Append(weakPointerAttribute);
-                                child.AppendChild(weakPointerElement);
+							return xmlNode;
+						}
+					case EDataType.varStrongPointer:
+						{
+							var pointer = DataForgePointer.ReadFromStream(this.StreamReader);
 
-                                this.DocumentRoot.Require_WeakMapping1.Add(new ClassMapping { Node = weakPointerAttribute, StructIndex = node.StructIndex, RecordIndex = (Int32)(firstIndex + i) });
-                                break;
-                            default:
-                                throw new NotImplementedException();
+							if (pointer.IsNull) return null;
 
-                                // var tempe = this.DocumentRoot.CreateElement(String.Format("{0}", node.DataType));
-                                // var tempa = this.DocumentRoot.CreateAttribute("__child");
-                                // tempa.Value = (firstIndex + i).ToString();
-                                // tempe.Attributes.Append(tempa);
-                                // var tempb = this.DocumentRoot.CreateAttribute("__parent");
-                                // tempb.Value = node.StructIndex.ToString();
-                                // tempe.Attributes.Append(tempb);
-                                // child.AppendChild(tempe);
-                                // break;
-                        }
-                    }
+							var dataStruct = this.StreamReader.ReadStructDefinitionAtIndex(pointer.StructIndex);
 
-                    element.AppendChild(child);
-                }
-            }
+							if (dataStruct == null) return null;
+							
+							if (!this.StreamReader.FollowStrongPointers) return parentNode.CreateElementWithValue(nameOverride ?? propertyDefinition.Name, String.Format("{1}[{2:X4}]", propertyDefinition.DataType, dataStruct.Name, pointer.VariantIndex, pointer.Padding));
 
-            attribute = this.DocumentRoot.CreateAttribute("__type");
-            attribute.Value = baseStruct.Name;
-            element.Attributes.Append(attribute);
+							var xmlNode = this.StreamReader.ReadStructAtIndexAsXml(parentNode.OwnerDocument.CreateElement(dataStruct.Name), pointer.StructIndex, pointer.VariantIndex);
 
-            if (this.ParentTypeIndex != 0xFFFFFFFF)
-            {
-                attribute = this.DocumentRoot.CreateAttribute("__polymorphicType");
-                attribute.Value = this.Name;
-                element.Attributes.Append(attribute);
-            }
+							if (xmlNode.ChildNodes.Count == 0 && xmlNode.Attributes.Count == 0) return null;
 
-            return element;
-        }
+							if (xmlNode != null) return parentNode.CreateElementWithValue(nameOverride ?? propertyDefinition.Name, xmlNode);
 
-        public String Export(String assemblyName = "HoloXPLOR.Data.DataForge")
-        {
-            var sb = new StringBuilder();
+							return null;
+						}
+					case EDataType.varWeakPointer:
+						{
+							var pointer = DataForgePointer.ReadFromStream(this.StreamReader);
 
-            sb.AppendLine(@"using System;");
-            sb.AppendLine(@"using System.Xml.Serialization;");
-            sb.AppendLine(@"");
-            sb.AppendFormat(@"namespace {0}", assemblyName);
-            sb.AppendLine();
-            sb.AppendLine(@"{");
-            sb.AppendFormat(@"    [XmlRoot(ElementName = ""{0}"")]", this.Name);
-            sb.AppendLine();
-            sb.AppendFormat(@"    public partial class {0}", this.Name);
-            if (this.ParentTypeIndex != 0xFFFFFFFF)
-            {
-                sb.AppendFormat(" : {0}", this.DocumentRoot.StructDefinitionTable[this.ParentTypeIndex].Name);
-            }
-            sb.AppendLine();
-            sb.AppendLine(@"    {");
+							return null;
 
-            for (UInt32 i = this.FirstAttributeIndex, j = (UInt32)(this.FirstAttributeIndex + this.AttributeCount); i < j; i++)
-            {
-                var property = this.DocumentRoot.PropertyDefinitionTable[i];
-                property.ConversionType = (EConversionType)((Int32)property.ConversionType | 0x6900);
+							if (pointer.IsNull) return null;
 
-                var arraySuffix = String.Empty;
+							var dataStruct = this.StreamReader.ReadStructDefinitionAtIndex(pointer.StructIndex);
 
-                switch (property.ConversionType)
-                {
-                    case EConversionType.varAttribute:
-                        if (property.DataType == EDataType.varClass)
-                        {
-                            sb.AppendFormat(@"        [XmlElement(ElementName = ""{0}"")]", property.Name);
-                        }
-                        else if (property.DataType == EDataType.varStrongPointer)
-                        {
-                            sb.AppendFormat(@"        [XmlArray(ElementName = ""{0}"")]", property.Name);
-                            arraySuffix = "[]";
-                        }
-                        else
-                        {
-                            sb.AppendFormat(@"        [XmlAttribute(AttributeName = ""{0}"")]", property.Name);
-                        }
-                        break;
-                    case EConversionType.varComplexArray:
-                    case EConversionType.varSimpleArray:
-                        sb.AppendFormat(@"        [XmlArray(ElementName = ""{0}"")]", property.Name);
-                        arraySuffix = "[]";
-                        break;
-                }
+							if (dataStruct == null) return null;
 
-                sb.AppendLine();
+							var result = this.StreamReader.ReadStructAtIndexAsXml(parentNode.OwnerDocument.CreateElement(dataStruct.Name), pointer.StructIndex, pointer.VariantIndex);
 
-                var arrayPrefix = "";
+							if (result != null) return parentNode.CreateElementWithValue(nameOverride ?? propertyDefinition.Name, result);
 
-                if (arraySuffix == "[]")
-                {
-                    if (property.DataType == EDataType.varClass || property.DataType == EDataType.varStrongPointer)
-                    {
-                        sb.Append(property.Export());
-                    }
-                    else if (property.DataType == EDataType.varEnum)
-                    {
-                        arrayPrefix = "_";
-                        sb.AppendFormat(@"        [XmlArrayItem(ElementName = ""Enum"", Type=typeof(_{0}))]", this.DocumentRoot.EnumDefinitionTable[property.StructIndex].Name);
-                        sb.AppendLine();
-                    }
-                    else if (property.DataType == EDataType.varSByte)
-                    {
-                        arrayPrefix = "_";
-                        sb.AppendFormat(@"        [XmlArrayItem(ElementName = ""Int8"", Type=typeof(_{0}))]", property.DataType.ToString().Replace("var", ""));
-                        sb.AppendLine();
-                    }
-                    else if (property.DataType == EDataType.varByte)
-                    {
-                        arrayPrefix = "_";
-                        sb.AppendFormat(@"        [XmlArrayItem(ElementName = ""UInt8"", Type=typeof(_{0}))]", property.DataType.ToString().Replace("var", ""));
-                        sb.AppendLine();
-                    }
-                    else
-                    {
-                        arrayPrefix = "_";
-                        sb.AppendFormat(@"        [XmlArrayItem(ElementName = ""{0}"", Type=typeof(_{0}))]", property.DataType.ToString().Replace("var", ""));
-                        sb.AppendLine();
-                    }
-                }
+							return null;
+						}
+					case EDataType.varLocale:
+						{
+							var localeIndex = this.StreamReader.ReadUInt32();
 
-                var keywords = new HashSet<String>
-                {
-                    "Dynamic",
-                    "Int16",
-                    "Int32",
-                    "Int64",
-                    "UInt16",
-                    "UInt32",
-                    "UInt64",
-                    "Double",
-                    "Single",
-                };
-                var propertyName = property.Name;
+							return parentNode.CreateAttributeWithValue(nameOverride ?? propertyDefinition.Name, this.StreamReader.ReadTextAtOffset(localeIndex));
+						}
+					case EDataType.varString: return parentNode.CreateAttributeWithValue(nameOverride ?? propertyDefinition.Name, this.StreamReader.ReadTextAtOffset(this.StreamReader.ReadUInt32()));
+					case EDataType.varEnum: return parentNode.CreateAttributeWithValue(nameOverride ?? propertyDefinition.Name, this.StreamReader.ReadEnumAtOffset(this.StreamReader.ReadUInt32()));
+					case EDataType.varBoolean: return parentNode.CreateAttributeWithValue(nameOverride ?? propertyDefinition.Name, this.StreamReader.ReadByte());
+					case EDataType.varSingle: return parentNode.CreateAttributeWithValue(nameOverride ?? propertyDefinition.Name, this.StreamReader.ReadSingle());
+					case EDataType.varDouble: return parentNode.CreateAttributeWithValue(nameOverride ?? propertyDefinition.Name, this.StreamReader.ReadDouble());
+					case EDataType.varGuid: return parentNode.CreateAttributeWithValue(nameOverride ?? propertyDefinition.Name, this.StreamReader.ReadGuid(false));
+					case EDataType.varInt8: return parentNode.CreateAttributeWithValue(nameOverride ?? propertyDefinition.Name, this.StreamReader.ReadSByte());
+					case EDataType.varInt16: return parentNode.CreateAttributeWithValue(nameOverride ?? propertyDefinition.Name, this.StreamReader.ReadInt16());
+					case EDataType.varInt32: return parentNode.CreateAttributeWithValue(nameOverride ?? propertyDefinition.Name, this.StreamReader.ReadInt32());
+					case EDataType.varInt64: return parentNode.CreateAttributeWithValue(nameOverride ?? propertyDefinition.Name, this.StreamReader.ReadInt64());
+					case EDataType.varUInt8: return parentNode.CreateAttributeWithValue(nameOverride ?? propertyDefinition.Name, this.StreamReader.ReadByte());
+					case EDataType.varUInt16: return parentNode.CreateAttributeWithValue(nameOverride ?? propertyDefinition.Name, this.StreamReader.ReadUInt16());
+					case EDataType.varUInt32: return parentNode.CreateAttributeWithValue(nameOverride ?? propertyDefinition.Name, this.StreamReader.ReadUInt32());
+					case EDataType.varUInt64: return parentNode.CreateAttributeWithValue(nameOverride ?? propertyDefinition.Name, this.StreamReader.ReadUInt64());
+				}
+			}
+			catch (Exception ex)
+			{
+				return parentNode.CreateAttributeWithValue(nameOverride ?? propertyDefinition.Name, $"Error reading property {propertyDefinition.Name} of type {propertyDefinition.DataType}: {ex}");
+			}
 
-                propertyName = String.Format("{0}{1}", propertyName[0].ToString().ToUpper(), propertyName.Substring(1));
+			return parentNode.CreateAttributeWithValue(nameOverride ?? propertyDefinition.Name, $"Unhandled Type {propertyDefinition.DataType}");
+		}
 
-                if (keywords.Contains(propertyName))
-                {
-                    propertyName = String.Format("@{0}", propertyName);
-                }
+		public IEnumerable<XmlElement> ReadArrayAsXml(XmlNode parentNode, DataForgePropertyDefinition propertyDefinition)
+		{
+			var arrayCount = this.StreamReader.ReadUInt32();
+			var firstIndex = this.StreamReader.ReadUInt32();
 
-                switch (property.DataType)
-                {
-                    case EDataType.varClass:
-                    case EDataType.varStrongPointer:
-                        sb.AppendFormat("        public {0}{2} {1} {{ get; set; }}", this.DocumentRoot.StructDefinitionTable[property.StructIndex].Name, propertyName, arraySuffix);
-                        break;
-                    case EDataType.varEnum:
-                        sb.AppendFormat("        public {3}{0}{2} {1} {{ get; set; }}", this.DocumentRoot.EnumDefinitionTable[property.StructIndex].Name, propertyName, arraySuffix, arrayPrefix);
-                        break;
-                    case EDataType.varReference:
-                        if (arraySuffix == "[]")
-                        {
-                            sb.AppendFormat("        public {3}{0}{2} {1} {{ get; set; }}", property.DataType.ToString().Replace("var", ""), propertyName, arraySuffix, arrayPrefix);
-                        }
-                        else
-                        {
-                            sb.AppendFormat("        public Guid{2} {1} {{ get; set; }}", this.DocumentRoot.StructDefinitionTable[property.StructIndex].Name, propertyName, arraySuffix);
-                        }
-                        break;
-                    case EDataType.varLocale:
-                    case EDataType.varWeakPointer:
-                        if (arraySuffix == "[]")
-                        {
-                            sb.AppendFormat("        public {3}{0}{2} {1} {{ get; set; }}", property.DataType.ToString().Replace("var", ""), propertyName, arraySuffix, arrayPrefix);
-                        }
-                        else
-                        {
-                            sb.AppendFormat("        public String{2} {1} {{ get; set; }}", this.DocumentRoot.StructDefinitionTable[property.StructIndex].Name, propertyName, arraySuffix);
-                        }
-                        break;
-                    default:
-                        sb.AppendFormat("        public {3}{0}{2} {1} {{ get; set; }}", property.DataType.ToString().Replace("var", ""), propertyName, arraySuffix, arrayPrefix);
-                        break;
-                }
-                sb.AppendLine();
-                sb.AppendLine();
-            }
+			for (UInt16 i = 0; i < arrayCount; i++)
+			{
+				yield return this.ReadArrayValueAsXml(parentNode, propertyDefinition, firstIndex, i);
+			}
+		}
 
-            sb.AppendLine(@"    }");
-            sb.AppendLine(@"}");
+		public XmlElement ReadArrayValueAsXml(XmlNode parentNode, DataForgePropertyDefinition propertyDefinition, UInt32 firstIndex, UInt16 offset)
+		{
+			try
+			{
+				switch (propertyDefinition.DataType)
+				{
+					case EDataType.varBoolean: return parentNode.CreateElementWithValue($"Bool", this.StreamReader.ReadBooleanAtIndex(firstIndex + offset).Value ? 1 : 0);
 
-            return sb.ToString();
-        }
+					case EDataType.varSingle: return parentNode.CreateElementWithValue($"Single", this.StreamReader.ReadSingleAtIndex(firstIndex + offset).Value);
+					case EDataType.varDouble: return parentNode.CreateElementWithValue($"Double", this.StreamReader.ReadDoubleAtIndex(firstIndex + offset).Value);
 
-        public override String ToString()
+					case EDataType.varGuid: return parentNode.CreateElementWithValue($"Guid", this.StreamReader.ReadGuidAtIndex(firstIndex + offset).Value);
+					case EDataType.varReference:
+
+						if (this.StreamReader.FollowReferences)
+						{
+							var dataForgeReference = this.StreamReader.ReadReferenceAtIndex(firstIndex + offset);
+							return this.StreamReader.ReadRecordByReferenceAsXml(parentNode, dataForgeReference.Value) as XmlElement;
+						}
+
+						return parentNode.CreateElementWithValue($"Reference", this.StreamReader.ReadReferenceAtIndex(firstIndex + offset).Value);
+				
+					case EDataType.varUInt8: return parentNode.CreateElementWithValue($"UInt8", this.StreamReader.ReadUInt8AtIndex(firstIndex + offset).Value);
+					case EDataType.varUInt16: return parentNode.CreateElementWithValue($"UInt16", this.StreamReader.ReadUInt16AtIndex(firstIndex + offset).Value);
+					case EDataType.varUInt32: return parentNode.CreateElementWithValue($"UInt32", this.StreamReader.ReadUInt32AtIndex(firstIndex + offset).Value);
+					case EDataType.varUInt64: return parentNode.CreateElementWithValue($"UInt64", this.StreamReader.ReadUInt64AtIndex(firstIndex + offset).Value);
+					
+					case EDataType.varInt8: return parentNode.CreateElementWithValue($"Int8", this.StreamReader.ReadInt8AtIndex(firstIndex + offset).Value);
+					case EDataType.varInt16: return parentNode.CreateElementWithValue($"Int16", this.StreamReader.ReadInt16AtIndex(firstIndex + offset).Value);
+					case EDataType.varInt32: return parentNode.CreateElementWithValue($"Int32", this.StreamReader.ReadInt32AtIndex(firstIndex + offset).Value);
+					case EDataType.varInt64: return parentNode.CreateElementWithValue($"Int64", this.StreamReader.ReadInt64AtIndex(firstIndex + offset).Value);
+					
+					case EDataType.varString: return parentNode.CreateElementWithValue($"String", this.StreamReader.ReadStringAtIndex(firstIndex + offset).Value);
+					case EDataType.varLocale: return parentNode.CreateElementWithValue($"LocID", this.StreamReader.ReadLocaleAtIndex(firstIndex + offset).Value);
+					case EDataType.varEnum: return parentNode.CreateElementWithValue($"Enum", this.StreamReader.ReadEnumValueAtIndex(firstIndex + offset).Value);
+
+					case EDataType.varWeakPointer:
+						{
+							var pointer = this.StreamReader.ReadWeakPointerAtIndex(offset + firstIndex);
+							var dataMapping = this.StreamReader.ReadDataMappingAtIndex(pointer.StructIndex);
+
+							return this.StreamReader.ReadStructAtIndexAsXml(parentNode.OwnerDocument.CreateElement(dataMapping.Name), pointer.StructIndex, pointer.VariantIndex);
+						}
+					case EDataType.varStrongPointer:
+						{
+							var pointer = this.StreamReader.ReadStrongPointerAtIndex(offset + firstIndex);
+							var dataMapping = this.StreamReader.ReadDataMappingAtIndex(pointer.StructIndex);
+
+							return this.StreamReader.ReadStructAtIndexAsXml(parentNode.OwnerDocument.CreateElement(dataMapping.Name), pointer.StructIndex, pointer.VariantIndex);
+						}
+					case EDataType.varClass:
+						{
+							var structIndex = (UInt32)(propertyDefinition.Index);
+							var dataMapping = this.StreamReader.ReadDataMappingAtIndex(structIndex);
+							var dataStruct = this.StreamReader.ReadStructDefinitionAtIndex(structIndex);
+
+							return this.StreamReader.ReadStructAtIndexAsXml(parentNode.OwnerDocument.CreateElement(dataMapping.Name), propertyDefinition.Index, firstIndex + offset);
+						}
+				}
+			}
+			catch (Exception ex)
+			{
+				return parentNode.CreateElementWithValue(propertyDefinition.Name, $"Error reading array property {propertyDefinition.Name} of type {propertyDefinition.DataType}: {ex}");
+			}
+
+			return parentNode.CreateElementWithValue(propertyDefinition.Name, "TBC");
+		}
+
+		public override String ToString()
         {
             return String.Format("<{0} />", this.Name);
         }
