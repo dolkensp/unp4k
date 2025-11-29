@@ -1,32 +1,23 @@
 ﻿using System;
-using System.Xml;
 
 namespace unforge
 {
-	public class DataForgeInt16 : _DataForgeSerializable
+	public class DataForgeInt16 : DataForgeTypeReader
     {
 		public static Int32 RecordSizeInBytes = 2;
 
-		public Int16 Value { get; set; }
+		public Int16 Value { get; }
 
-        public DataForgeInt16(DataForge documentRoot)
-            : base(documentRoot)
+		public static DataForgeInt16 ReadFromStream(DataForge baseStream) => new DataForgeInt16(baseStream);
+
+		private DataForgeInt16(DataForge reader) : base(reader)
         {
-            this.Value = this._br.ReadInt16();
+            this.Value = this.StreamReader.ReadInt16();
         }
 
         public override String ToString()
         {
             return String.Format("{0}", this.Value);
-        }
-
-        public XmlElement Read()
-        {
-            var element = this.DocumentRoot.CreateElement("Int16");
-            var attribute = this.DocumentRoot.CreateAttribute("value");
-            attribute.Value = this.Value.ToString();
-            element.Attributes.Append(attribute);
-            return element;
         }
     }
 }

@@ -1,33 +1,24 @@
 ﻿using System;
 using System.IO;
-using System.Xml;
 
 namespace unforge
 {
-	public class DataForgeGuid : _DataForgeSerializable
+	public class DataForgeGuid : DataForgeTypeReader
     {
 		public static Int32 RecordSizeInBytes = 16;
 
-		public Guid Value { get; set; }
+		public Guid Value { get; }
+		
+		public static DataForgeGuid ReadFromStream(DataForge baseStream) => new DataForgeGuid(baseStream);
 
-        public DataForgeGuid(DataForge documentRoot)
-            : base(documentRoot)
+		private DataForgeGuid(DataForge baseStream) : base(baseStream)
         {
-            this.Value = this._br.ReadGuid(false).Value;
+            this.Value = this.StreamReader.ReadGuid(false).Value;
         }
 
         public override String ToString()
         {
             return this.Value.ToString();
-        }
-
-        public XmlElement Read()
-        {
-            var element = this.DocumentRoot.CreateElement("Guid");
-            var attribute = this.DocumentRoot.CreateAttribute("value");
-            attribute.Value = this.Value.ToString();
-            element.Attributes.Append(attribute);
-            return element;
         }
     }
 }
