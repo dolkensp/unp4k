@@ -15,7 +15,7 @@ namespace unforge
 
             if (args.Length == 0)
             {
-                args = new String[] { "game.v4.dcb" };
+                args = new String[] { @"D:\game.dcb" };
                 // args = new String[] { "wrld.xml" };
                 // args = new String[] { "Data" };
                 // args = new String[] { @"S:\Mods\BuildXPLOR\archive-3.0\661655\Data\game.dcb" };

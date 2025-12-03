@@ -19,8 +19,8 @@ namespace unforge
         public String __variantIndex { get { return String.Format("{0:X4}", this.VariantIndex); } }
         public UInt16 VariantIndex { get; set; }
 
-        public String __otherIndex { get { return String.Format("{0:X4}", this.OtherIndex); } }
-        public UInt16 OtherIndex { get; set; }
+        public String __recordSize { get { return String.Format("{0:X4}", this.RecordSize); } }
+        public UInt16 RecordSize { get; set; }
 
         public DataForgeRecord(DataForge documentRoot)
             : base(documentRoot)
@@ -36,7 +36,7 @@ namespace unforge
             this.Hash = this._br.ReadGuid(false);
 
             this.VariantIndex = this._br.ReadUInt16();
-            this.OtherIndex = this._br.ReadUInt16();
+            this.RecordSize = this._br.ReadUInt16();
         }
 
         public override String ToString()

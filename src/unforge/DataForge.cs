@@ -150,7 +150,9 @@ namespace unforge
             this.Array_ReferenceValues = this.ReadArray<DataForgeReference>(referenceValueCount);
             this.EnumOptionTable = this.ReadArray<DataForgeStringLookup>(enumOptionCount);
 
-            var buffer = new List<DataForgeString> { };
+			var textOffset = this._br.BaseStream.Position;
+
+			var buffer = new List<DataForgeString> { };
             var maxPosition = this._br.BaseStream.Position + textLength;
             var startPosition = this._br.BaseStream.Position;
             this.TextMap = new Dictionary<UInt32, String> { };
@@ -161,6 +163,8 @@ namespace unforge
                 buffer.Add(dfString);
                 this.TextMap[(UInt32)offset] = dfString.Value;
             }
+
+			var blobOffset = this._br.BaseStream.Position;
 
 			buffer = new List<DataForgeString> { };
 			maxPosition = this._br.BaseStream.Position + blobLength;
@@ -178,17 +182,32 @@ namespace unforge
 
 			this.DataMap = new Dictionary<UInt32, List<XmlElement>> { };
 
-            foreach (var dataMapping in this.DataMappingTable)
+			var dataOffset = this._br.BaseStream.Position;
+
+			foreach (var dataMapping in this.DataMappingTable)
             {
                 this.DataMap[dataMapping.StructIndex] = new List<XmlElement> { };
 
                 var dataStruct = this.StructDefinitionTable[dataMapping.StructIndex];
 
-                for (Int32 i = 0; i < dataMapping.StructCount; i++)
-                {
-                    var node = dataStruct.Read(dataMapping.Name);
+				// Console.WriteLine($"{dataStruct.Name}[{dataMapping.StructIndex}] is at position {(this._br.BaseStream.Position):X} ; data offset {(this._br.BaseStream.Position - dataOffset):X}");
 
-                    this.DataMap[dataMapping.StructIndex].Add(node);
+				for (Int32 i = 0; i < dataMapping.StructCount; i++)
+                {
+					var offset = this._br.BaseStream.Position - dataOffset;
+					var xmlOffset = this.CreateAttribute("__offset");
+					xmlOffset.Value = $"{offset:X8}";
+
+					var node = dataStruct.Read(dataMapping.Name);
+
+					var size = this._br.BaseStream.Position - dataOffset - offset;
+					var xmlSize = this.CreateAttribute("__size");
+					xmlSize.Value = $"{size:X8}";
+
+					node.Attributes.Append(xmlOffset);
+					node.Attributes.Append(xmlSize);
+
+					this.DataMap[dataMapping.StructIndex].Add(node);
                 }
             }
 
@@ -366,7 +385,11 @@ namespace unforge
 					path.Value = $"{record.FileName}";
 					this.DataMap[record.StructIndex][record.VariantIndex].Attributes.Append(path);
 				}
-				
+
+				var xmlSize = this.CreateAttribute("__recordSize");
+				xmlSize.Value = record.__recordSize;
+				this.DataMap[record.StructIndex][record.VariantIndex].Attributes.Append(xmlSize);
+
 				this.DataMap[record.StructIndex][record.VariantIndex] = this.DataMap[record.StructIndex][record.VariantIndex].Rename(record.Name);
 				root.AppendChild(this.DataMap[record.StructIndex][record.VariantIndex]);
 			}
