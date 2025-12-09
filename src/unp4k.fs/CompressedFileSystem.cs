@@ -10,7 +10,7 @@ namespace unp4k.fs
 {
 	internal class CompressedFileSystem : VirtualDirectoryNode
 	{
-		private static XmlWriterSettings _xmlSettings = new XmlWriterSettings
+		private static readonly XmlWriterSettings _xmlSettings = new XmlWriterSettings
 		{
 			OmitXmlDeclaration = true,
 			Encoding = new UTF8Encoding(false), // UTF-8, no BOM
@@ -36,19 +36,17 @@ namespace unp4k.fs
 					{
 						if (System.IO.Path.GetExtension(segment).Equals(".dcb", StringComparison.InvariantCultureIgnoreCase))
 						{
-							var bufferedStream = new MemoryStream();
-							using (var s = p4k.GetInputStream(entry))
-							{
-								s.CopyTo(bufferedStream);
+							using var bufferedStream = new MemoryStream();
+							using var s = p4k.GetInputStream(entry);
+							s.CopyTo(bufferedStream);
 						
-								// It's a DataForge file
-								var df = new DataForge(bufferedStream);
-								var dfRoot = DataForgeFileSystem.BuildFileTree(df) as VirtualDirectoryNode;
+							// It's a DataForge file
+							var df = new DataForge(bufferedStream);
+							var dfRoot = DataForgeFileSystem.BuildFileTree(df) as VirtualDirectoryNode;
 								
-								foreach (var child in dfRoot.Children)
-								{
-									currentNode.Children[child.Key] = child.Value;
-								}
+							foreach (var child in dfRoot.Children)
+							{
+								currentNode.Children[child.Key] = child.Value;
 							}
 						}
 
