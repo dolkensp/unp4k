@@ -16,7 +16,7 @@ namespace unp4k.fs
 			Encoding = new UTF8Encoding(false), // UTF-8, no BOM
 			Indent = true,
 			IndentChars = "  ",
-			NewLineChars = "\n",
+			NewLineChars = "\r\n",
 			NewLineHandling = NewLineHandling.Replace,
 			ConformanceLevel = ConformanceLevel.Document,
 			CheckCharacters = false

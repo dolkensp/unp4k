@@ -9,19 +9,19 @@
     <RepositoryUrl>https://github.com/dolkensp/zstd.net</RepositoryUrl>
     <PackageReleaseNotes>This is a multi-platform wrapper for libzstd.</PackageReleaseNotes>
   </PropertyGroup>
-
+	
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
 		<Optimize>False</Optimize>
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
 		<DefineConstants>TRACE;DEBUG</DefineConstants>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
 		<Optimize>True</Optimize>
+		<DebugType>none</DebugType>
+		<DebugSymbols>false</DebugSymbols>
 	</PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NETCore.Portable.Compatibility" Version="1.0.1" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Update="x64\libzstd.dll">
@@ -31,4 +31,5 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+	
 </Project>

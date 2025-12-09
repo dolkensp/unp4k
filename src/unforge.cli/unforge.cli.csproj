@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
+	<PropertyGroup>
 		<TargetFrameworks>net6.0;net8.0;net10.0</TargetFrameworks>
 		<LangVersion>Latest</LangVersion>
 		<PlatformTarget>AnyCPU</PlatformTarget>
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
 		<OutputType>Exe</OutputType>
-    <StartupObject>unp4k.Program</StartupObject>
-  </PropertyGroup>
+		<StartupObject>unforge.cli.Program</StartupObject>
+	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
 		<Optimize>False</Optimize>
@@ -21,15 +21,15 @@
 		<DebugType>none</DebugType>
 		<DebugSymbols>false</DebugSymbols>
 	</PropertyGroup>
-
+	
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)'=='Release|net10.0'">
 		<PublishSingleFile>true</PublishSingleFile>
 		<SelfContained>true</SelfContained>
 		<PublishTrimmed>false</PublishTrimmed>
 	</PropertyGroup>
-	
+
   <ItemGroup>
-    <ProjectReference Include="..\ICSharpCode.SharpZipLib\ICSharpCode.SharpZipLib.csproj" />
+    <ProjectReference Include="..\unforge\unforge.csproj" />
   </ItemGroup>
 
 </Project>
