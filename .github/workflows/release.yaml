@@ -46,9 +46,9 @@ jobs:
 
           # Publish directories for this RID
           $publishDirs = @(
-            "src\unp4k.fs\bin\$dnv\$rid\publish",
-            "src\unforge.cli\bin\$dnv\$rid\publish",
-            "src\unp4k\bin\$dnv\$rid\publish"
+            "src\unp4k.fs\bin\Release\$dnv\$rid\publish",
+            "src\unforge.cli\bin\Release\$dnv\$rid\publish",
+            "src\unp4k\bin\Release\$dnv\$rid\publish"
           )
 
           # Strip PDBs from publish directories
@@ -64,9 +64,9 @@ jobs:
 
           # Zip each individual publish directory
           $map = @{
-            "unp4k.fs"    = "src\unp4k.fs\bin\$dnv\$rid\publish"
-            "unforge.cli" = "src\unforge.cli\bin\$dnv\$rid\publish"
-            "unp4k"       = "src\unp4k\bin\$dnv\$rid\publish"
+            "unp4k.fs"    = "src\unp4k.fs\bin\Release\$dnv\$rid\publish"
+            "unforge.cli" = "src\unforge.cli\bin\Release\$dnv\$rid\publish"
+            "unp4k"       = "src\unp4k\bin\Release\$dnv\$rid\publish"
           }
 
           foreach ($name in $map.Keys) {
