@@ -1,0 +1,8 @@
+{
+	"profiles": {
+		"unforge": {
+			"commandName": "Project",
+			"commandLineArgs": "D:\\Projects\\unp4k\\src\\unforge.cli\\bin\\net10.0\\win-x64\\publish\\Game2.dcb"
+		}
+	}
+}

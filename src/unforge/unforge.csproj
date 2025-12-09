@@ -4,17 +4,19 @@
 		<TargetFrameworks>net6.0;net8.0;net10.0</TargetFrameworks>
 		<LangVersion>Latest</LangVersion>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <OutputType>Exe</OutputType>
-    <StartupObject>unforge.Program</StartupObject>
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
 		<Optimize>False</Optimize>
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
 		<DefineConstants>TRACE;DEBUG</DefineConstants>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
 		<Optimize>True</Optimize>
+		<DebugType>none</DebugType>
+		<DebugSymbols>false</DebugSymbols>
 	</PropertyGroup>
-
+	
 </Project>

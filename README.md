@@ -20,15 +20,6 @@ NOTE: unforge currently requires [.Net Framework 4.6.2](https://www.microsoft.co
 
 NOTE: The filter does not fully support wildcards. To extract files of a certain type, you may use `*.ext` as the filter, but no further wildcard functionality exists.
 
-# Basic GUI Usage:
-
-1. Launch `unp4k.gui.exe`
-2. Select `File` > `Open` and browse to your chosen `Data.p4k`
-3. Browse the file structure
-4. Right click to extract/open files
-
-NOTE: unp4k.gui is early alpha, and has many crashes, and unfinished features. Use at your own risk
-
 # File Format Overview:
 
 The p4k files used by Star Citizen are Zip archives.

@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
+using System.Text;
 using System.Xml;
 
 namespace unforge
@@ -747,7 +749,7 @@ namespace unforge
 			}
 		}
 
-		public XmlNode ReadRecordByPathAsXml(String path)
+		public XmlElement ReadRecordByPathAsXml(String path)
 		{
 			if (!this.PathToRecordMap.TryGetValue(path, out var recordIndex)) throw new FileNotFoundException();
 
@@ -759,7 +761,7 @@ namespace unforge
 			}
 		}
 
-		public XmlNode ReadRecordByReferenceAsXml(XmlNode xmlNode, Guid reference)
+		public XmlElement ReadRecordByReferenceAsXml(XmlNode xmlNode, Guid reference)
 		{
 			if (!this.ReferenceToRecordMap.TryGetValue(reference, out var recordIndex)) throw new FileNotFoundException();
 
@@ -768,7 +770,7 @@ namespace unforge
 
 		public List<Int32> RecordStack { get; set; } = new List<Int32> { };
 
-		public XmlNode ReadRecordAtIndexAsXml(XmlNode xmlNode, Int32 recordIndex)
+		public XmlElement ReadRecordAtIndexAsXml(XmlNode xmlNode, Int32 recordIndex)
 		{
 			var position = this.Position;
 
@@ -824,6 +826,40 @@ namespace unforge
 			Console.WriteLine($"BlobOffset:               {this.BlobOffset:X8}");
 			Console.WriteLine($"DataOffset:               {this.DataOffset:X8}");
 			Console.WriteLine($"Length:                   {this.Length:X8}");
+		}
+
+		private static XmlWriterSettings _xmlSettings = new XmlWriterSettings
+		{
+			OmitXmlDeclaration = true,
+			Encoding = new UTF8Encoding(false), // UTF-8, no BOM
+			Indent = true,
+			IndentChars = "  ",
+			NewLineChars = "\r\n",
+			NewLineHandling = NewLineHandling.Replace,
+			ConformanceLevel = ConformanceLevel.Document,
+			CheckCharacters = false
+		};
+
+		public void Save(String filename)
+		{
+			foreach (var fileReference in this.PathToRecordMap.Keys)
+			{
+				var node = this.ReadRecordByPathAsXml(fileReference);
+
+				if (node == null) continue;
+
+				var newPath = Path.Combine(Path.GetDirectoryName(filename), fileReference);
+
+				if (!Directory.Exists(Path.GetDirectoryName(newPath))) Directory.CreateDirectory(Path.GetDirectoryName(newPath));
+
+
+				using (var fileStream= File.OpenWrite(newPath))
+				using (var writer = XmlWriter.Create(fileStream, _xmlSettings))
+				{
+					node.WriteTo(writer);
+					writer.Flush();
+				}
+			}
 		}
 	}
 }

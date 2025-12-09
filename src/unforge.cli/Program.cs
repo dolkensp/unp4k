@@ -2,10 +2,10 @@
 using System.IO;
 using System.Linq;
 
-namespace unforge
+namespace unforge.cli
 {
 	class Program
-    {
+	{
 		static void Main(params String[] args)
 		{
 			var ci = System.Globalization.CultureInfo.InvariantCulture;
@@ -13,13 +13,13 @@ namespace unforge
 			System.Threading.Thread.CurrentThread.CurrentUICulture = ci;
 
 
-            if (args.Length == 0)
-            {
-                args = new String[] { "game.v4.dcb" };
-                // args = new String[] { "wrld.xml" };
-                // args = new String[] { "Data" };
-                // args = new String[] { @"S:\Mods\BuildXPLOR\archive-3.0\661655\Data\game.dcb" };
-            }
+			if (args.Length == 0)
+			{
+				args = new String[] { "game.dcb" };
+				// args = new String[] { "wrld.xml" };
+				// args = new String[] { "Data" };
+				// args = new String[] { @"S:\Mods\BuildXPLOR\archive-3.0\661655\Data\game.dcb" };
+			}
 
 			if (args.Length < 1 || args.Length > 1)
 			{
@@ -37,26 +37,26 @@ namespace unforge
 			}
 
 			if ((args.Length > 0) && Directory.Exists(args[0]))
-            {
-                foreach (var file in Directory.GetFiles(args[0], "*.*", SearchOption.AllDirectories))
-                {
-                    if (new String[] { "ini", "txt" }.Contains(Path.GetExtension(file), StringComparer.InvariantCultureIgnoreCase)) continue;
+			{
+				foreach (var file in Directory.GetFiles(args[0], "*.*", SearchOption.AllDirectories))
+				{
+					if (new String[] { "ini", "txt" }.Contains(Path.GetExtension(file), StringComparer.InvariantCultureIgnoreCase)) continue;
 
-                    try
-                    {
+					try
+					{
 						Console.WriteLine("Converting {0}", file.Replace(args[0], ""));
 
 						Smelter.Instance.Smelt(file);
-                    }
-                    catch (Exception) { }
-                }
-            }
-            else
-            {
-                Smelter.Instance.Smelt(args[0]);
-            }
-        }
-    }
+					}
+					catch (Exception) { }
+				}
+			}
+			else
+			{
+				Smelter.Instance.Smelt(args[0]);
+			}
+		}
+	}
 
 	public class Smelter
 	{
@@ -76,8 +76,7 @@ namespace unforge
 					{
 						using var fileStream = File.OpenRead(path);
 						var df = new DataForge(fileStream);
-							
-						//df.Save(Path.ChangeExtension(path, "xml"));
+						df.Save(Path.ChangeExtension(path, "xml"));
 					}
 					else
 					{
