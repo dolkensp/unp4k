@@ -36,10 +36,7 @@ jobs:
       # Otherwise, replace these with explicit paths to your .csproj/.fsproj files.
       - name: Publish ${{ matrix.rid }}
         shell: pwsh
-        run: |
-          dotnet publish -c Release -r ${{ matrix.rid }} -f ${{ matrix.dnv }} unp4k.fs/unp4k.fs.fsproj
-          dotnet publish -c Release -r ${{ matrix.rid }} -f ${{ matrix.dnv }} unforge.cli/unforge.cli.csproj
-          dotnet publish -c Release -r ${{ matrix.rid }} -f ${{ matrix.dnv }} unp4k/unp4k.csproj
+        run: dotnet publish -c Release -r ${{ matrix.rid }} -f ${{ matrix.dnv }}
 
       - name: Remove PDBs and package artifacts
         shell: pwsh
@@ -49,9 +46,9 @@ jobs:
 
           # Publish directories for this RID
           $publishDirs = @(
-            "unp4k.fs\bin\$dnv\$rid\publish",
-            "unforge.cli\bin\$dnv\$rid\publish",
-            "unp4k\bin\$dnv\$rid\publish"
+            "src\unp4k.fs\bin\$dnv\$rid\publish",
+            "src\unforge.cli\bin\$dnv\$rid\publish",
+            "src\unp4k\bin\$dnv\$rid\publish"
           )
 
           # Strip PDBs from publish directories
@@ -67,9 +64,9 @@ jobs:
 
           # Zip each individual publish directory
           $map = @{
-            "unp4k.fs"    = "unp4k.fs\bin\$dnv\$rid\publish"
-            "unforge.cli" = "unforge.cli\bin\$dnv\$rid\publish"
-            "unp4k"       = "unp4k\bin\$dnv\$rid\publish"
+            "unp4k.fs"    = "src\unp4k.fs\bin\$dnv\$rid\publish"
+            "unforge.cli" = "src\unforge.cli\bin\$dnv\$rid\publish"
+            "unp4k"       = "src\unp4k\bin\$dnv\$rid\publish"
           }
 
           foreach ($name in $map.Keys) {
