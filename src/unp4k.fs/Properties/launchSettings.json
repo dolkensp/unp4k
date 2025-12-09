@@ -1,0 +1,8 @@
+{
+	"profiles": {
+		"unp4k.fs": {
+			"commandName": "Project",
+			"commandLineArgs": "\"D:\\Roberts Space Industries\\StarCitizen\\PTU\\Data.p4k\" S:"
+		}
+	}
+}

@@ -14,7 +14,7 @@ namespace unp4k.fs
 		static void Main(string[] args)
 		{
 			// Debugging convenience
-			if (args.Length == 0) args = [@"D:\Roberts Space Industries\StarCitizen\PTU\Data.p4k", @"S:"];
+			if (args.Length == 0) args = [@"Data.p4k"];
 
 			var filePath = args.FirstOrDefault();
 			var cleanupWorkspaceDirectory = false;
