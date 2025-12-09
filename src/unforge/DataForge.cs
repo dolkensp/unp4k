@@ -13,13 +13,13 @@ namespace unforge
 	public class DataForge : BinaryReader
 	{
 		public Boolean IsLegacy;
-		public Boolean FollowReferences { get => this.MaxReferenceDepth > 0; }
+		public Boolean FollowReferences { get => DataForge.MaxReferenceDepth > this.StructStack.Count; }
 		public Boolean FollowWeakPointers { get; } = false;
-		public Boolean FollowStrongPointers { get => this.MaxPointerDepth > 0; }
+		public Boolean FollowStrongPointers { get => DataForge.MaxPointerDepth > this.RecordStack.Count; }
 
-		public Int32 MaxReferenceDepth { get; } = 0;
-		public Int32 MaxPointerDepth { get; } = 10;
-		public Int32 MaxNodes { get; } = 10000;
+		public static Int32 MaxReferenceDepth { get; set; } = 1;
+		public static Int32 MaxPointerDepth { get; set; } = 100;
+		public static Int32 MaxNodes { get; set; } = 10000;
 
 		public Int32 FileVersion { get; }
 		public Int64 Length { get => this.BaseStream.Length; }
@@ -87,16 +87,16 @@ namespace unforge
 		public Int64 BlobOffset { get => this.TextOffset + this.TextLength; }
 		public Int64 DataOffset { get => this.BlobOffset + this.BlobLength; }
 
-		public DataForge(Stream stream, Boolean isLegacy = false) : base(stream)
+		public DataForge(Stream stream) : base(stream)
 		{
-			this.IsLegacy = isLegacy;
-
 			this.BaseStream.Seek(0, SeekOrigin.Begin);
 
 			_ = this.ReadUInt16();
 			_ = this.ReadUInt16();
 
 			this.FileVersion = this.ReadInt32();
+
+			this.IsLegacy = stream.Length < 0x0e2e00 && this.FileVersion < 6;
 
 			if (!this.IsLegacy)
 			{
@@ -262,7 +262,7 @@ namespace unforge
 		{
 			var position = this.Position;
 
-			if (this.StructStack.Count > this.MaxPointerDepth || this.StructStack.Contains((structIndex, variantIndex))) return null;
+			if (this.StructStack.Count > DataForge.MaxPointerDepth || this.StructStack.Contains((structIndex, variantIndex))) return null;
 
 			try
 			{
@@ -302,14 +302,13 @@ namespace unforge
 				if (childNode is XmlAttribute attribute) xmlNode.Attributes.Append(attribute);
 				else if (childNode is XmlElement element) xmlNode.AppendChild(element);
 
-				if (i++ > this.MaxNodes) break;
+				if (++i >= DataForge.MaxNodes) break;
 			}
 
 			if (xmlNode.ChildNodes.Count == 0 && xmlNode.Attributes.Count == 0) return null;
 
 			return xmlNode;
 		}
-
 
 		internal DataForgeStructDefinition ReadStructDefinitionAtIndex(Int64 index)
 		{
@@ -773,7 +772,7 @@ namespace unforge
 		{
 			var position = this.Position;
 
-			if (this.RecordStack.Count > this.MaxReferenceDepth || this.RecordStack.Contains(recordIndex)) return null;
+			if (this.RecordStack.Count > DataForge.MaxReferenceDepth || this.RecordStack.Contains(recordIndex)) return null;
 
 			try
 			{

@@ -2281,7 +2281,6 @@ namespace ICSharpCode.SharpZipLib.Zip
 
 				case CompressionMethod.ZStd:
 					throw new NotImplementedException("ZStd not implemented");
-					break;
 
 				default:
 					throw new ZipException("Unknown compression method " + entry.CompressionMethod);

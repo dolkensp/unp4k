@@ -293,8 +293,6 @@ namespace unforge
 
                 var xmlDoc = new XmlDocument();
 
-                var bugged = false;
-
                 Dictionary<Int32, XmlElement> xmlMap = new Dictionary<Int32, XmlElement> { };
 
                 foreach (var node in nodeTable)
@@ -309,7 +307,6 @@ namespace unforge
                         }
                         else
                         {
-                            bugged = true;
                             element.SetAttribute(dataMap[attributeTable[attributeIndex].NameOffset], "BUGGED");
                         }
                         attributeIndex++;
@@ -326,7 +323,6 @@ namespace unforge
                     }
                     else
                     {
-                        bugged = true;
                         element.AppendChild(xmlDoc.CreateCDataSection("BUGGED"));
                     }
 
