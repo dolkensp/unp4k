@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net47</TargetFrameworks>
+		<TargetFrameworks>net481;netstandard2.0;net6.0;net8.0;net10.0</TargetFrameworks>
     <PackageId>zstd.net</PackageId>
     <SignAssembly>False</SignAssembly>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -9,6 +9,15 @@
     <RepositoryUrl>https://github.com/dolkensp/zstd.net</RepositoryUrl>
     <PackageReleaseNotes>This is a multi-platform wrapper for libzstd.</PackageReleaseNotes>
   </PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+		<Optimize>False</Optimize>
+		<DefineConstants>TRACE;DEBUG</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<Optimize>True</Optimize>
+	</PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.Portable.Compatibility" Version="1.0.1" />

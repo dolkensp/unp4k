@@ -22,6 +22,8 @@ namespace unforge
 			
 			xmlElement = this.StreamReader.ReadStructAtIndexAsXml(xmlElement, this.StructIndex, this.VariantIndex);
 
+			if (xmlElement == null) return null;
+
 			// if (!this.StreamReader.FollowReferences)
 			// {
 			xmlElement.AddAttribute("__type", this.StructDefinition.Name);

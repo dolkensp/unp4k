@@ -1,13 +1,8 @@
 ﻿using Dolkens.Framework.BinaryExtensions;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
-using System.Reflection.Metadata;
-using System.Windows.Markup;
 using System.Xml;
-using System.Xml.Linq;
 
 namespace unforge
 {
@@ -77,6 +72,8 @@ namespace unforge
 
 		public IEnumerable<XmlNode> ReadAsXml(XmlNode parentNode)
 		{
+			var i = 0;
+
 			foreach (var propertyDefinition in this.PropertyDefinitions)
 			{
 				if (propertyDefinition.ConversionType == EConversionType.varAttribute) yield return this.ReadValueAsXml(parentNode, propertyDefinition);
@@ -93,6 +90,8 @@ namespace unforge
 
 					yield return xmlNode;
 				}
+
+				if (++i >= DataForge.MaxNodes) yield break;
 			}
 		}
 
@@ -114,6 +113,8 @@ namespace unforge
 								else if (childNode is XmlElement element) xmlNode.AppendChild(element);
 							}
 
+							if (xmlNode == null) return null;
+
 							if (xmlNode.ChildNodes.Count == 0 && xmlNode.Attributes.Count == 0) return null;
 
 							return xmlNode;
@@ -127,6 +128,8 @@ namespace unforge
 							if (!this.StreamReader.FollowReferences) return parentNode.CreateAttributeWithValue(nameOverride ?? propertyDefinition.Name, dataForgeReference.Value);
 							
 							var xmlNode = this.StreamReader.ReadRecordByReferenceAsXml(parentNode, dataForgeReference.Value);
+
+							if (xmlNode == null) return parentNode.CreateAttributeWithValue(nameOverride ?? propertyDefinition.Name, dataForgeReference.Value);
 
 							if (xmlNode.ChildNodes.Count == 0 && xmlNode.Attributes.Count == 0) return null;
 
@@ -145,6 +148,8 @@ namespace unforge
 							if (!this.StreamReader.FollowStrongPointers) return parentNode.CreateElementWithValue(nameOverride ?? propertyDefinition.Name, String.Format("{1}[{2:X4}]", propertyDefinition.DataType, dataStruct.Name, pointer.VariantIndex, pointer.Padding));
 
 							var xmlNode = this.StreamReader.ReadStructAtIndexAsXml(parentNode.OwnerDocument.CreateElement(dataStruct.Name), pointer.StructIndex, pointer.VariantIndex);
+
+							if (xmlNode == null) return null;
 
 							if (xmlNode.ChildNodes.Count == 0 && xmlNode.Attributes.Count == 0) return null;
 
@@ -208,6 +213,8 @@ namespace unforge
 			for (UInt16 i = 0; i < arrayCount; i++)
 			{
 				yield return this.ReadArrayValueAsXml(parentNode, propertyDefinition, firstIndex, i);
+				
+				if (i >= (DataForge.MaxNodes - 1)) break;
 			}
 		}
 
@@ -228,7 +235,9 @@ namespace unforge
 						if (this.StreamReader.FollowReferences)
 						{
 							var dataForgeReference = this.StreamReader.ReadReferenceAtIndex(firstIndex + offset);
-							return this.StreamReader.ReadRecordByReferenceAsXml(parentNode, dataForgeReference.Value) as XmlElement;
+							var xmlNode = this.StreamReader.ReadRecordByReferenceAsXml(parentNode, dataForgeReference.Value);
+
+							if (xmlNode is XmlElement xmlElement) return xmlElement;
 						}
 
 						return parentNode.CreateElementWithValue($"Reference", this.StreamReader.ReadReferenceAtIndex(firstIndex + offset).Value);

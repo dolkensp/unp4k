@@ -60,7 +60,7 @@ namespace unforge
 
 	public class Smelter
 	{
-		public static Smelter Instance => new Smelter { };
+		public static Smelter Instance { get; } = new Smelter { };
 
 		private Boolean _overwrite;
 
@@ -74,14 +74,10 @@ namespace unforge
 				{
 					if (Path.GetExtension(path) == ".dcb")
 					{
-						using (BinaryReader br = new BinaryReader(File.OpenRead(path)))
-						{
-							var legacy = new FileInfo(path).Length < 0x0e2e00;
-
-							// var df = new DataForge(br, legacy);
-							// 
-							// df.Save(Path.ChangeExtension(path, "xml"));
-						}
+						using var fileStream = File.OpenRead(path);
+						var df = new DataForge(fileStream);
+							
+						//df.Save(Path.ChangeExtension(path, "xml"));
 					}
 					else
 					{
