@@ -3,62 +3,106 @@ name: Release
 on:
   push:
     branches:
-        - main
+      - main
   pull_request:
-      branches:
-        - main
+    branches:
+      - main
+
 env:
-  UNP4K_VERSION: 3.13.${{ github.run_number }}
+  UNP4K_VERSION: 4.0.${{ github.run_number }}
 
 jobs:
   build:
     runs-on: windows-latest
 
+    strategy:
+      matrix:
+        rid: [win-x64, win-x86]
+        dnv: [net10.0]
+
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Setup Nuget
-      uses: nuget/setup-nuget@v2
-      with:
-        nuget-version: '5.x'
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
 
-    - name: Setup MSBuild
-      id: setup_msbuild
-      uses: microsoft/setup-msbuild@v2
+      - name: Restore
+        run: dotnet restore
 
-    - name: Restore dependencies
-      run: nuget restore
+      # If your .sln builds everything correctly, you can just publish the solution.
+      # Otherwise, replace these with explicit paths to your .csproj/.fsproj files.
+      - name: Publish ${{ matrix.rid }}
+        shell: pwsh
+        run: |
+          dotnet publish -c Release -r ${{ matrix.rid }} -f ${{ matrix.dnv }} unp4k.fs/unp4k.fs.fsproj
+          dotnet publish -c Release -r ${{ matrix.rid }} -f ${{ matrix.dnv }} unforge.cli/unforge.cli.csproj
+          dotnet publish -c Release -r ${{ matrix.rid }} -f ${{ matrix.dnv }} unp4k/unp4k.csproj
 
-    - name: Build
-      run: msbuild unp4k.sln /m /verbosity:minimal /p:Configuration=Release
-      
-    - name: Package
-      shell: cmd
-      run: |
-        cd src
-        copy unp4k\bin\Release\net47\win-x64\unp4k.exe unp4k.gui\bin\Release\unp4k.exe
-        erase *.pdb /s
-        erase *.exe.config /s
-        erase *.xml /s
-        erase System.Net.Http.dll /s
-        erase System.Runtime.dll /s
-        erase System.IO.dll /s
-        erase System.Security.*.dll /s
+      - name: Remove PDBs and package artifacts
+        shell: pwsh
+        run: |
+          $rid = "${{ matrix.rid }}"
+          $dnv = "${{ matrix.dnv }}"
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: unp4k-suite-v${{ env.UNP4K_VERSION }}
-        path: src/unp4k.gui/bin/Release
+          # Publish directories for this RID
+          $publishDirs = @(
+            "unp4k.fs\bin\$dnv\$rid\publish",
+            "unforge.cli\bin\$dnv\$rid\publish",
+            "unp4k\bin\$dnv\$rid\publish"
+          )
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: unforge-v${{ env.UNP4K_VERSION }}
-        path: src/unforge/bin/Release/net481
+          # Strip PDBs from publish directories
+          foreach ($dir in $publishDirs) {
+            if (Test-Path $dir) {
+              Get-ChildItem -Path $dir -Recurse -Filter *.pdb | Remove-Item -Force
+            }
+          }
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: unp4k-v${{ env.UNP4K_VERSION }}
-        path: src/unp4k/bin/Release/net481
+          # Ensure an artifacts directory exists for this RID
+          $artifactsRoot = "artifacts\$rid"
+          New-Item -ItemType Directory -Path $artifactsRoot -Force | Out-Null
+
+          # Zip each individual publish directory
+          $map = @{
+            "unp4k.fs"    = "unp4k.fs\bin\$dnv\$rid\publish"
+            "unforge.cli" = "unforge.cli\bin\$dnv\$rid\publish"
+            "unp4k"       = "unp4k\bin\$dnv\$rid\publish"
+          }
+
+          foreach ($name in $map.Keys) {
+            $src = $map[$name]
+            if (Test-Path $src) {
+              $zipPath = Join-Path $artifactsRoot "$name-$rid-v${{ env.UNP4K_VERSION }}.zip"
+              if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+              Compress-Archive -Path (Join-Path $src '*') -DestinationPath $zipPath
+            }
+          }
+
+          # Create a "suite" zip that contains all three publish directories
+          # (kept as subdirectories inside the suite zip, rather than flattened)
+          $suiteZip = Join-Path $artifactsRoot "suite-$rid-v${{ env.UNP4K_VERSION }}.zip"
+          if (Test-Path $suiteZip) { Remove-Item $suiteZip -Force }
+
+          $pathsToInclude = @()
+          foreach ($dir in $publishDirs) {
+            if (Test-Path $dir) {
+              $pathsToInclude += $dir
+            }
+          }
+
+          if ($pathsToInclude.Count -gt 0) {
+            Compress-Archive -Path $pathsToInclude -DestinationPath $suiteZip
+          }
+
+      - name: Upload build artifacts (per RID)
+        uses: actions/upload-artifact@v4
+        with:
+          name: unp4k-${{ matrix.rid }}-v${{ env.UNP4K_VERSION }}
+          path: artifacts/${{ matrix.rid }}/*.zip
+          if-no-files-found: error
 
   release:
     needs: build
