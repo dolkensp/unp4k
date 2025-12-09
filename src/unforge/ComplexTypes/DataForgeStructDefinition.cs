@@ -153,21 +153,17 @@ namespace unforge
 
 							if (xmlNode.ChildNodes.Count == 0 && xmlNode.Attributes.Count == 0) return null;
 
-							if (xmlNode != null) return parentNode.CreateElementWithValue(nameOverride ?? propertyDefinition.Name, xmlNode);
-
-							return null;
+							return parentNode.CreateElementWithValue(nameOverride ?? propertyDefinition.Name, xmlNode);
 						}
 					case EDataType.varWeakPointer:
 						{
 							var pointer = DataForgePointer.ReadFromStream(this.StreamReader);
 
-							return null;
-
 							if (pointer.IsNull) return null;
 
 							var dataStruct = this.StreamReader.ReadStructDefinitionAtIndex(pointer.StructIndex);
 
-							if (dataStruct == null) return null;
+							return parentNode.CreateElementWithValue(nameOverride ?? propertyDefinition.Name, String.Format("{1}[{2:X4}]", propertyDefinition.DataType, dataStruct.Name, pointer.VariantIndex, pointer.Padding));
 
 							var result = this.StreamReader.ReadStructAtIndexAsXml(parentNode.OwnerDocument.CreateElement(dataStruct.Name), pointer.StructIndex, pointer.VariantIndex);
 
@@ -274,7 +270,6 @@ namespace unforge
 						{
 							var structIndex = (UInt32)(propertyDefinition.Index);
 							var dataMapping = this.StreamReader.ReadDataMappingAtIndex(structIndex);
-							var dataStruct = this.StreamReader.ReadStructDefinitionAtIndex(structIndex);
 
 							return this.StreamReader.ReadStructAtIndexAsXml(parentNode.OwnerDocument.CreateElement(dataMapping.Name), propertyDefinition.Index, firstIndex + offset);
 						}
