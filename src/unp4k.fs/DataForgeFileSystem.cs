@@ -9,7 +9,7 @@ namespace unp4k.fs
 {
 	internal class DataForgeFileSystem : VirtualDirectoryNode
 	{
-		private static XmlWriterSettings _xmlSettings = new XmlWriterSettings
+		private static readonly XmlWriterSettings _xmlSettings = new XmlWriterSettings
 		{
 			OmitXmlDeclaration = true,
 			Encoding = new UTF8Encoding(false), // UTF-8, no BOM

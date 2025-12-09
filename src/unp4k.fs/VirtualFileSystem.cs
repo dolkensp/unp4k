@@ -14,7 +14,7 @@ namespace unp4k.fs
 	{
 		public int DirectoryListingTimeoutResetIntervalMs => 30000;
 
-		private VirtualNode _rootNode;
+		private readonly VirtualNode _rootNode;
 		public DateTime Timestamp { get; set; } = DateTime.MinValue;
 		public String VolumeLabel { get; set; } = "Virtual File System";
 		public String FileSystemName { get; set; } = "Virtual File System";

@@ -147,7 +147,6 @@ namespace unforge
 				var record = DataForgeRecordDefinition.ReadFromStream(this);
 
 				var filename = record.FileName;
-				var extension = Path.GetExtension(filename);
 				this.PathToRecordMap[filename] = recordIndex;
 				this.ReferenceToRecordMap[record.Hash] = recordIndex;
 			}
@@ -828,7 +827,7 @@ namespace unforge
 			Console.WriteLine($"Length:                   {this.Length:X8}");
 		}
 
-		private static XmlWriterSettings _xmlSettings = new XmlWriterSettings
+		private static readonly XmlWriterSettings _xmlSettings = new XmlWriterSettings
 		{
 			OmitXmlDeclaration = true,
 			Encoding = new UTF8Encoding(false), // UTF-8, no BOM
