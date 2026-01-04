@@ -35,3 +35,30 @@ CryXML is a basic serialized XML format which `unforge.exe` is able to deseriali
 Inside the p4k file, there is also a `game.dcb` file, which is a bespoke database format, with similarities to CryXML.
 
 This is the product of what is known internally as "DataForge", and is also able to be converted/extracted using the `unforge.exe` tool.
+
+# unsocpak - Batch .socpak Extractor
+
+Star Citizen uses `.socpak` files as compressed archives for various game assets. While these are standard zip files that can be extracted with any zip tool, `unsocpak.exe` is optimized for batch extraction of multiple socpak files at once.
+
+## Usage:
+
+```
+unsocpak.exe [options] <path>
+```
+
+## Options:
+
+- `-v, --verbose` - Enable verbose output (show all operations)
+- `-l, --log` - Write extraction log to file (unsocpak.log)
+- `-o, --overwrite` - Overwrite existing files (default: skip)
+
+## Examples:
+
+```bash
+unsocpak.exe file.socpak              # Extract single file
+unsocpak.exe *.socpak                 # Extract all socpak files in current directory
+unsocpak.exe /path/to/dir             # Extract all socpak files recursively in a directory
+unsocpak.exe -v -o /path/to/dir       # Verbose extraction with overwrite
+```
+
+The tool recursively finds all `.socpak` files in the specified path and extracts them in place, providing progress feedback and a summary of the extraction process.

@@ -164,12 +164,6 @@ namespace unforge
 							var dataStruct = this.StreamReader.ReadStructDefinitionAtIndex(pointer.StructIndex);
 
 							return parentNode.CreateElementWithValue(nameOverride ?? propertyDefinition.Name, String.Format("{1}[{2:X4}]", propertyDefinition.DataType, dataStruct.Name, pointer.VariantIndex, pointer.Padding));
-
-							var result = this.StreamReader.ReadStructAtIndexAsXml(parentNode.OwnerDocument.CreateElement(dataStruct.Name), pointer.StructIndex, pointer.VariantIndex);
-
-							if (result != null) return parentNode.CreateElementWithValue(nameOverride ?? propertyDefinition.Name, result);
-
-							return null;
 						}
 					case EDataType.varLocale:
 						{
@@ -195,8 +189,23 @@ namespace unforge
 			}
 			catch (Exception ex)
 			{
+				this.StreamReader.Logger.LogError(
+					message: $"Error reading property value",
+					recordPath: this.StreamReader.CurrentRecordPath,
+					propertyName: propertyDefinition.Name,
+					dataType: propertyDefinition.DataType.ToString(),
+					streamPosition: this.StreamReader.Position,
+					exception: ex);
+
 				return parentNode.CreateAttributeWithValue(nameOverride ?? propertyDefinition.Name, $"Error reading property {propertyDefinition.Name} of type {propertyDefinition.DataType}: {ex}");
 			}
+
+			this.StreamReader.Logger.LogWarning(
+				message: $"Unhandled data type encountered",
+				recordPath: this.StreamReader.CurrentRecordPath,
+				propertyName: propertyDefinition.Name,
+				dataType: propertyDefinition.DataType.ToString(),
+				streamPosition: this.StreamReader.Position);
 
 			return parentNode.CreateAttributeWithValue(nameOverride ?? propertyDefinition.Name, $"Unhandled Type {propertyDefinition.DataType}");
 		}
@@ -227,16 +236,20 @@ namespace unforge
 
 					case EDataType.varGuid: return parentNode.CreateElementWithValue($"Guid", this.StreamReader.ReadGuidAtIndex(firstIndex + offset).Value);
 					case EDataType.varReference:
-
-						if (this.StreamReader.FollowReferences)
 						{
 							var dataForgeReference = this.StreamReader.ReadReferenceAtIndex(firstIndex + offset);
-							var xmlNode = this.StreamReader.ReadRecordByReferenceAsXml(parentNode, dataForgeReference.Value);
 
-							if (xmlNode is XmlElement xmlElement) return xmlElement;
+							if (dataForgeReference.IsNull) return null;
+
+							if (this.StreamReader.FollowReferences)
+							{
+								var xmlNode = this.StreamReader.ReadRecordByReferenceAsXml(parentNode, dataForgeReference.Value);
+
+								if (xmlNode is XmlElement xmlElement) return xmlElement;
+							}
+
+							return parentNode.CreateElementWithValue($"Reference", dataForgeReference.Value);
 						}
-
-						return parentNode.CreateElementWithValue($"Reference", this.StreamReader.ReadReferenceAtIndex(firstIndex + offset).Value);
 				
 					case EDataType.varUInt8: return parentNode.CreateElementWithValue($"UInt8", this.StreamReader.ReadUInt8AtIndex(firstIndex + offset).Value);
 					case EDataType.varUInt16: return parentNode.CreateElementWithValue($"UInt16", this.StreamReader.ReadUInt16AtIndex(firstIndex + offset).Value);
@@ -255,6 +268,9 @@ namespace unforge
 					case EDataType.varWeakPointer:
 						{
 							var pointer = this.StreamReader.ReadWeakPointerAtIndex(offset + firstIndex);
+
+							if (pointer.IsNull) return null;
+
 							var dataMapping = this.StreamReader.ReadDataMappingAtIndex(pointer.StructIndex);
 
 							return this.StreamReader.ReadStructAtIndexAsXml(parentNode.OwnerDocument.CreateElement(dataMapping.Name), pointer.StructIndex, pointer.VariantIndex);
@@ -262,6 +278,9 @@ namespace unforge
 					case EDataType.varStrongPointer:
 						{
 							var pointer = this.StreamReader.ReadStrongPointerAtIndex(offset + firstIndex);
+
+							if (pointer.IsNull) return null;
+
 							var dataMapping = this.StreamReader.ReadDataMappingAtIndex(pointer.StructIndex);
 
 							return this.StreamReader.ReadStructAtIndexAsXml(parentNode.OwnerDocument.CreateElement(dataMapping.Name), pointer.StructIndex, pointer.VariantIndex);
@@ -277,8 +296,23 @@ namespace unforge
 			}
 			catch (Exception ex)
 			{
+				this.StreamReader.Logger.LogError(
+					message: $"Error reading array element at index {offset}",
+					recordPath: this.StreamReader.CurrentRecordPath,
+					propertyName: propertyDefinition.Name,
+					dataType: propertyDefinition.DataType.ToString(),
+					streamPosition: this.StreamReader.Position,
+					exception: ex);
+
 				return parentNode.CreateElementWithValue(propertyDefinition.Name, $"Error reading array property {propertyDefinition.Name} of type {propertyDefinition.DataType}: {ex}");
 			}
+
+			this.StreamReader.Logger.LogWarning(
+				message: $"Unhandled array data type at index {offset}",
+				recordPath: this.StreamReader.CurrentRecordPath,
+				propertyName: propertyDefinition.Name,
+				dataType: propertyDefinition.DataType.ToString(),
+				streamPosition: this.StreamReader.Position);
 
 			return parentNode.CreateElementWithValue(propertyDefinition.Name, "TBC");
 		}
