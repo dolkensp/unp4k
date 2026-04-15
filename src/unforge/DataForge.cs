@@ -66,7 +66,7 @@ namespace unforge
 		public Int64 EnumDefinitionOffset { get => this.PropertyDefinitionOffset + this.PropertyDefinitionCount * DataForgePropertyDefinition.RecordSizeInBytes; }
 		public Int64 DataMappingOffset { get => this.EnumDefinitionOffset + this.EnumDefinitionCount * DataForgeEnumDefinition.RecordSizeInBytes; }
 		public Int64 RecordDefinitionOffset { get => this.DataMappingOffset + this.DataMappingCount * (this.IsLegacy ? DataForgeDataMapping.RecordSizeInBytes : DataForgeDataMapping.RecordSizeInBytesV6); }
-		public Int64 Int8ValueOffset { get => this.RecordDefinitionOffset + this.RecordDefinitionCount * DataForgeRecordDefinition.RecordSizeInBytes; }
+		public Int64 Int8ValueOffset { get => this.RecordDefinitionOffset + this.RecordDefinitionCount * (this.FileVersion < 8 ? DataForgeRecordDefinition.RecordSizeInBytes : DataForgeRecordDefinition.RecordSizeInBytesV8); }
 		public Int64 Int16ValueOffset { get => this.Int8ValueOffset + this.Int8ValueCount * DataForgeInt8.RecordSizeInBytes; }
 		public Int64 Int32ValueOffset { get => this.Int16ValueOffset + this.Int16ValueCount * DataForgeInt16.RecordSizeInBytes; }
 		public Int64 Int64ValueOffset { get => this.Int32ValueOffset + this.Int32ValueCount * DataForgeInt32.RecordSizeInBytes; }
@@ -143,7 +143,7 @@ namespace unforge
 
 			foreach (var recordIndex in Enumerable.Range(0, this.RecordDefinitionCount))
 			{
-				this.Position = this.RecordDefinitionOffset + recordIndex * DataForgeRecordDefinition.RecordSizeInBytes;
+				this.Position = this.RecordDefinitionOffset + recordIndex * (this.FileVersion < 8 ? DataForgeRecordDefinition.RecordSizeInBytes : DataForgeRecordDefinition.RecordSizeInBytesV8);
 				var record = DataForgeRecordDefinition.ReadFromStream(this);
 
 				var filename = record.FileName;
@@ -247,7 +247,7 @@ namespace unforge
 
 			try
 			{
-				this.Position = this.RecordDefinitionOffset + index * DataForgeRecordDefinition.RecordSizeInBytes;
+				this.Position = this.RecordDefinitionOffset + index * (this.FileVersion < 8 ? DataForgeRecordDefinition.RecordSizeInBytes : DataForgeRecordDefinition.RecordSizeInBytesV8);
 
 				return DataForgeRecordDefinition.ReadFromStream(this);
 			}
