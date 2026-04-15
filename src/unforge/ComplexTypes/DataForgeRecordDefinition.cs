@@ -9,6 +9,7 @@ namespace unforge
 	{
 		public String Name { get => this.StreamReader.ReadBlobAtOffset(this.NameOffset); }
 		public String FileName { get => this.StreamReader.ReadTextAtOffset(this.FileNameOffset); }
+		public String DevTeamName { get => this.StreamReader.ReadBlobAtOffset(this.DevTeamNameOffset); }
 		public DataForgeStructDefinition StructDefinition { get => this.StreamReader.ReadStructDefinitionAtIndex(this.StructIndex); }
 
 
@@ -35,9 +36,11 @@ namespace unforge
 		}
 
 		public static Int32 RecordSizeInBytes = 32;
+		public static Int32 RecordSizeInBytesV8 = 36;
 
 		public UInt32 NameOffset { get; }
 		public UInt32 FileNameOffset { get; }
+		public UInt32 DevTeamNameOffset { get; }
 
 		public String __structIndex { get { return String.Format("{0:X4}", this.StructIndex); } }
 		public UInt32 StructIndex { get; }
@@ -57,6 +60,11 @@ namespace unforge
 			if (!this.StreamReader.IsLegacy)
 			{
 				this.FileNameOffset = this.StreamReader.ReadUInt32();
+			}
+
+			if (this.StreamReader.FileVersion >= 8)
+			{
+				this.DevTeamNameOffset = this.StreamReader.ReadUInt32();
 			}
 
 			this.StructIndex = this.StreamReader.ReadUInt32();
