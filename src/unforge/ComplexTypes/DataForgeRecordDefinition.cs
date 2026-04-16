@@ -30,6 +30,10 @@ namespace unforge
 			xmlElement.AddAttribute("__type", this.StructDefinition.Name);
 			xmlElement.AddAttribute("__ref", this.Hash);
 			xmlElement.AddAttribute("__path", this.FileName);
+			if (this.StreamReader.FileVersion >= 8)
+			{
+				xmlElement.AddAttribute("__team", this.DevTeamName);
+			}
 			// }
 
 			return xmlElement;
