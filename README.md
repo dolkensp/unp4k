@@ -20,6 +20,40 @@ NOTE: unforge currently requires [.Net Framework 4.6.2](https://www.microsoft.co
 
 NOTE: The filter does not fully support wildcards. To extract files of a certain type, you may use `*.ext` as the filter, but no further wildcard functionality exists.
 
+# unp4k.fs - Virtual Filesystem
+
+`unp4k.fs` mounts a `.p4k` or `.dcb` file as a read-only virtual drive using [Dokan](https://github.com/dokan-dev/dokany), letting you browse and read Star Citizen game assets directly in Windows Explorer without extracting anything to disk.
+
+**Prerequisites:** [Dokan](https://github.com/dokan-dev/dokany/releases) must be installed.
+
+## Usage:
+
+```
+unp4k.fs.exe [path-to-file] [mount-point]
+```
+
+- `path-to-file` — path to a `.p4k` or `.dcb` file. Defaults to `Data.p4k` in the current directory.
+- `mount-point` — drive letter or empty directory to mount to (e.g. `S:` or `C:\sc-data`). Defaults to `<filename>.unp4k` next to the input file.
+
+**Examples:**
+
+```
+unp4k.fs.exe
+unp4k.fs.exe "D:\Roberts Space Industries\StarCitizen\LIVE\Data.p4k"
+unp4k.fs.exe "D:\Roberts Space Industries\StarCitizen\LIVE\Data.p4k" S:
+unp4k.fs.exe game.dcb X:\virtual
+```
+
+Once mounted, CryXML files are served as standard XML and DataForge records are extracted as XML on demand. Press `Q` or `Esc` to unmount and exit.
+
+## Interactive options (while mounted):
+
+| Key | Option | Default | Range |
+|-----|--------|---------|-------|
+| `1` | Max reference depth — how deeply nested DataForge references are followed | 1 | 1–1000 |
+| `2` | Max pointer depth — recursion safety limit for DataForge structures | library default | 10–1000 |
+| `3` | Max nodes — node count safety limit per DataForge record | library default | 1000–1000000 |
+
 # File Format Overview:
 
 The p4k files used by Star Citizen are Zip archives.
