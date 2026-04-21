@@ -13,12 +13,31 @@ env:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ${{ matrix.runner }}
 
     strategy:
       matrix:
-        rid: [win-x64, win-x86]
-        dnv: [net10.0]
+        include:
+          - rid: win-x64
+            dnv: net10.0
+            runner: windows-latest
+            build_unp4kfs: true
+          - rid: win-x86
+            dnv: net10.0
+            runner: windows-latest
+            build_unp4kfs: true
+          - rid: linux-x64
+            dnv: net10.0
+            runner: ubuntu-latest
+            build_unp4kfs: false
+          - rid: linux-x86
+            dnv: net10.0
+            runner: ubuntu-latest
+            build_unp4kfs: false
+          - rid: linux-arm64
+            dnv: net10.0
+            runner: ubuntu-latest
+            build_unp4kfs: false
 
     steps:
       - name: Checkout
@@ -32,13 +51,12 @@ jobs:
       - name: Restore
         run: dotnet restore
 
-      # If your .sln builds everything correctly, you can just publish the solution.
-      # Otherwise, replace these with explicit paths to your .csproj/.fsproj files.
       - name: Publish ${{ matrix.rid }}
         shell: pwsh
         run: dotnet publish -c Release -r ${{ matrix.rid }} -f ${{ matrix.dnv }}
 
-      - name: Remove PDBs and package artifacts
+      - name: Remove PDBs and package artifacts (Windows)
+        if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $rid = "${{ matrix.rid }}"
@@ -94,6 +112,36 @@ jobs:
             Compress-Archive -Path $pathsToInclude -DestinationPath $suiteZip
           }
 
+      - name: Remove PDBs and package artifacts (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          rid="${{ matrix.rid }}"
+          dnv="${{ matrix.dnv }}"
+          ver="${{ env.UNP4K_VERSION }}"
+
+          artifacts_root="artifacts/$rid"
+          mkdir -p "$artifacts_root"
+
+          # Strip PDBs and zip each component
+          for name in unforge.cli unp4k; do
+            src="src/$name/bin/Release/$dnv/$rid/publish"
+            if [ -d "$src" ]; then
+              find "$src" -name "*.pdb" -delete
+              zip -j "$artifacts_root/$name-$rid-v$ver.zip" "$src"/*
+            fi
+          done
+
+          # Create suite zip from all packaged components
+          suite_dirs=()
+          for dir in "src/unforge.cli/bin/Release/$dnv/$rid/publish" "src/unp4k/bin/Release/$dnv/$rid/publish"; do
+            [ -d "$dir" ] && suite_dirs+=("$dir")
+          done
+
+          if [ ${#suite_dirs[@]} -gt 0 ]; then
+            zip -r "$artifacts_root/suite-$rid-v$ver.zip" "${suite_dirs[@]}"
+          fi
+
       - name: Upload build artifacts (per RID)
         uses: actions/upload-artifact@v4
         with:
@@ -136,16 +184,26 @@ jobs:
     strategy:
       max-parallel: 3
       matrix:
-        artifact: [ unp4k, unp4k-suite, unforge ]
+        include:
+          - artifact: unp4k
+            glob: "unp4k-*-v*.zip"
+          - artifact: unp4k-suite
+            glob: "suite-*-v*.zip"
+          - artifact: unforge
+            glob: "unforge.cli-*-v*.zip"
     steps:
     - name: Load Artifacts
       uses: actions/download-artifact@v4
       with:
-        name: ${{ matrix.artifact }}-v${{ env.UNP4K_VERSION }}
-        path: ${{ matrix.artifact }}
+        pattern: unp4k-*-v${{ env.UNP4K_VERSION }}
+        path: all-artifacts
+        merge-multiple: true
 
     - name: Compress Artifacts
-      run: (cd ${{ matrix.artifact }} && zip -r ../${{ matrix.artifact }}.zip .)
+      run: |
+        mkdir -p ${{ matrix.artifact }}
+        find all-artifacts -name "${{ matrix.glob }}" -exec cp {} ${{ matrix.artifact }}/ \;
+        (cd ${{ matrix.artifact }} && zip -r ../${{ matrix.artifact }}.zip .)
 
     - name: Upload Artifacts
       uses: actions/upload-release-asset@v1
