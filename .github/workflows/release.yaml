@@ -30,17 +30,17 @@ jobs:
             dnv: net10.0
             runner: ubuntu-latest
             build_unp4kfs: false
-            publish_args: "--no-self-contained -p:UseAppHost=false"
+            publish_args: "--no-self-contained -p:UseAppHost=false -p:PublishSingleFile=false"
           - rid: linux-x86
             dnv: net10.0
             runner: ubuntu-latest
             build_unp4kfs: false
-            publish_args: "--no-self-contained -p:UseAppHost=false"
+            publish_args: "--no-self-contained -p:UseAppHost=false -p:PublishSingleFile=false"
           - rid: linux-arm64
             dnv: net10.0
             runner: ubuntu-latest
             build_unp4kfs: false
-            publish_args: "--no-self-contained -p:UseAppHost=false"
+            publish_args: "--no-self-contained -p:UseAppHost=false -p:PublishSingleFile=false"
 
     steps:
       - name: Checkout
