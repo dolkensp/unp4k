@@ -164,29 +164,9 @@ jobs:
     
     - name: Load README
       run: |
-        VER="${{ env.UNP4K_VERSION }}"
-        {
-          echo "README<<EOF"
-          cat README.md
-          echo ""
-          echo "## Downloads"
-          echo ""
-          echo "### unp4k-suite (all tools)"
-          for rid in win-x64 win-x86 linux-x64 linux-x86 linux-arm64; do
-            echo "- \`unp4k-suite-${rid}-v${VER}.zip\`"
-          done
-          echo ""
-          echo "### unp4k"
-          for rid in win-x64 win-x86 linux-x64 linux-x86 linux-arm64; do
-            echo "- \`unp4k-${rid}-v${VER}.zip\`"
-          done
-          echo ""
-          echo "### unforge"
-          for rid in win-x64 win-x86 linux-x64 linux-x86 linux-arm64; do
-            echo "- \`unforge-${rid}-v${VER}.zip\`"
-          done
-          echo "EOF"
-        } >> $GITHUB_ENV
+        echo "README<<EOF" >> $GITHUB_ENV
+        cat README.md >> $GITHUB_ENV
+        echo 'EOF' >> $GITHUB_ENV
 
     - name: Create Release
       id: create_release
