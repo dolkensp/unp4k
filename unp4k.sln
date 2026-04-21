@@ -22,6 +22,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "unp4k.fs", "src\unp4k.fs\un
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "unforge.cli", "src\unforge.cli\unforge.cli.csproj", "{5C5AC242-F745-4052-88AB-3383048069EC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "unsocpak", "src\unsocpak\unsocpak.csproj", "{CFB6F995-793A-47E2-90BD-B4C60B6C7C87}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +54,10 @@ Global
 		{5C5AC242-F745-4052-88AB-3383048069EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5C5AC242-F745-4052-88AB-3383048069EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5C5AC242-F745-4052-88AB-3383048069EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFB6F995-793A-47E2-90BD-B4C60B6C7C87}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFB6F995-793A-47E2-90BD-B4C60B6C7C87}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFB6F995-793A-47E2-90BD-B4C60B6C7C87}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFB6F995-793A-47E2-90BD-B4C60B6C7C87}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

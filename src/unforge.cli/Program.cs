@@ -12,18 +12,30 @@ namespace unforge.cli
 			System.Threading.Thread.CurrentThread.CurrentCulture = ci;
 			System.Threading.Thread.CurrentThread.CurrentUICulture = ci;
 
+			// Parse command-line options
+			var verbose = args.Any(a => a == "-v" || a == "--verbose");
+			var logToFile = args.Any(a => a == "-l" || a == "--log");
+			var inputArgs = args.Where(a => !a.StartsWith("-")).ToArray();
 
-			if (args.Length == 0)
+			// Configure logging
+			DataForgeLogger.Instance.IsEnabled = true;
+			DataForgeLogger.Instance.VerboseMode = verbose;
+
+			if (inputArgs.Length == 0)
 			{
-				args = new String[] { "game.dcb" };
-				// args = new String[] { "wrld.xml" };
-				// args = new String[] { "Data" };
-				// args = new String[] { @"S:\Mods\BuildXPLOR\archive-3.0\661655\Data\game.dcb" };
+				inputArgs = new String[] { "game.dcb" };
+				// inputArgs = new String[] { "wrld.xml" };
+				// inputArgs = new String[] { "Data" };
+				// inputArgs = new String[] { @"S:\Mods\BuildXPLOR\archive-3.0\661655\Data\game.dcb" };
 			}
 
-			if (args.Length < 1 || args.Length > 1)
+			if (inputArgs.Length < 1 || inputArgs.Length > 1)
 			{
-				Console.WriteLine("Usage: unforge.exe [infile]");
+				Console.WriteLine("Usage: unforge.exe [options] [infile]");
+				Console.WriteLine();
+				Console.WriteLine("Options:");
+				Console.WriteLine("  -v, --verbose    Enable verbose output (show errors in console)");
+				Console.WriteLine("  -l, --log        Write errors to a log file (infile.log)");
 				Console.WriteLine();
 				Console.WriteLine("Converts any Star Citizen binary file into an actual XML file.");
 				Console.WriteLine("CryXml files (.xml) are saved as .raw in the original location.");
@@ -36,24 +48,44 @@ namespace unforge.cli
 				return;
 			}
 
-			if ((args.Length > 0) && Directory.Exists(args[0]))
+			var inputPath = inputArgs[0];
+
+			if (Directory.Exists(inputPath))
 			{
-				foreach (var file in Directory.GetFiles(args[0], "*.*", SearchOption.AllDirectories))
+				foreach (var file in Directory.GetFiles(inputPath, "*.*", SearchOption.AllDirectories))
 				{
 					if (new String[] { "ini", "txt" }.Contains(Path.GetExtension(file), StringComparer.InvariantCultureIgnoreCase)) continue;
 
 					try
 					{
-						Console.WriteLine("Converting {0}", file.Replace(args[0], ""));
+						Console.WriteLine("Converting {0}", file.Replace(inputPath, ""));
 
 						Smelter.Instance.Smelt(file);
 					}
-					catch (Exception) { }
+					catch (Exception ex)
+					{
+						DataForgeLogger.Instance.LogError(
+							message: $"Failed to convert file",
+							recordPath: file,
+							exception: ex);
+					}
 				}
 			}
 			else
 			{
-				Smelter.Instance.Smelt(args[0]);
+				Smelter.Instance.Smelt(inputPath);
+			}
+
+			// Output summary
+			Console.WriteLine();
+			Console.WriteLine(DataForgeLogger.Instance.GetSummary());
+
+			// Save log file if requested
+			if (logToFile)
+			{
+				var logPath = Path.ChangeExtension(inputPath, "log");
+				DataForgeLogger.Instance.SaveToFile(logPath);
+				Console.WriteLine($"Log saved to: {logPath}");
 			}
 		}
 	}
@@ -74,6 +106,8 @@ namespace unforge.cli
 				{
 					if (Path.GetExtension(path) == ".dcb")
 					{
+						DataForgeLogger.Instance.LogInfo($"Processing DCB file: {path}");
+
 						using var fileStream = File.OpenRead(path);
 						var df = new DataForge(fileStream);
 						df.Save(Path.ChangeExtension(path, "xml"));
@@ -97,13 +131,18 @@ namespace unforge.cli
 						}
 						else
 						{
-							Console.WriteLine("{0} already in XML format", path);
+							DataForgeLogger.Instance.LogDebug($"{path} already in XML format");
 						}
 					}
 				}
 			}
 			catch (Exception ex)
 			{
+				DataForgeLogger.Instance.LogError(
+					message: $"Error converting file",
+					recordPath: path,
+					exception: ex);
+
 				Console.WriteLine("Error converting {0}: {1}", path, ex.Message);
 			}
 		}

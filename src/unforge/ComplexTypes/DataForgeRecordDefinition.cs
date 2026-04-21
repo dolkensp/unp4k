@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml;
 
 namespace unforge
@@ -12,12 +13,47 @@ namespace unforge
 		public String DevTeamName { get => this.StreamReader.ReadBlobAtOffset(this.DevTeamNameOffset); }
 		public DataForgeStructDefinition StructDefinition { get => this.StreamReader.ReadStructDefinitionAtIndex(this.StructIndex); }
 
+		/// <summary>
+		/// Sanitizes a string to be a valid XML element name.
+		/// Replaces invalid characters with underscores.
+		/// </summary>
+		private static String SanitizeXmlName(String name)
+		{
+			if (String.IsNullOrEmpty(name)) return "_";
+
+			var sb = new StringBuilder(name.Length);
+
+			for (int i = 0; i < name.Length; i++)
+			{
+				char c = name[i];
+
+				// First character must be letter or underscore
+				if (i == 0)
+				{
+					if (Char.IsLetter(c) || c == '_')
+						sb.Append(c);
+					else
+						sb.Append('_');
+				}
+				// Subsequent characters can be letters, digits, hyphens, underscores, periods
+				else
+				{
+					if (Char.IsLetterOrDigit(c) || c == '_' || c == '-' || c == '.')
+						sb.Append(c);
+					else
+						sb.Append('_');
+				}
+			}
+
+			return sb.ToString();
+		}
 
 		public XmlElement ReadAsXml(XmlNode xmlNode = null)
 		{
 			// Ensure top level node for record
-			if (xmlNode is XmlDocument xmlDocument) xmlNode = xmlDocument.CreateElement(this.Name);
-			else if (xmlNode is XmlElement xmlRoot) xmlNode = xmlRoot.OwnerDocument.CreateElement(this.Name);
+			var sanitizedName = SanitizeXmlName(this.Name);
+			if (xmlNode is XmlDocument xmlDocument) xmlNode = xmlDocument.CreateElement(sanitizedName);
+			else if (xmlNode is XmlElement xmlRoot) xmlNode = xmlRoot.OwnerDocument.CreateElement(sanitizedName);
 
 			var xmlElement = xmlNode as XmlElement;
 			

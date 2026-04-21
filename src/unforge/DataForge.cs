@@ -23,6 +23,16 @@ namespace unforge
 		public static Int32 MaxPointerDepth { get; set; } = 100;
 		public static Int32 MaxNodes { get; set; } = 10000;
 
+		/// <summary>
+		/// Logger instance for capturing extraction errors.
+		/// </summary>
+		public DataForgeLogger Logger { get; } = DataForgeLogger.Instance;
+
+		/// <summary>
+		/// The current record path being processed (for error context).
+		/// </summary>
+		public String CurrentRecordPath { get; internal set; }
+
 		public Int32 FileVersion { get; }
 		public Int64 Length { get => this.BaseStream.Length; }
 		public Int64 Position
@@ -157,7 +167,7 @@ namespace unforge
 			foreach (var dataMappingIndex in Enumerable.Range(0, this.DataMappingCount))
 			{
 				var dataMapping = this.ReadDataMappingAtIndex(dataMappingIndex);
-				var dataStruct = this.ReadStructDefinitionAtIndex(dataMappingIndex);
+				var dataStruct = this.ReadStructDefinitionAtIndex(dataMapping.StructIndex);
 
 				if (!this.StructToDataOffsetMap.ContainsKey(dataMapping.StructIndex)) this.StructToDataOffsetMap[dataMapping.StructIndex] = lastOffset;
 				lastOffset += (Int32)(dataMapping.StructCount * dataStruct.RecordSize);
@@ -780,11 +790,18 @@ namespace unforge
 				this.RecordStack.Add(recordIndex);
 
 				var record = this.ReadRecordDefinitionAtIndex(recordIndex);
+				this.CurrentRecordPath = record.FileName;
 
 				return record.ReadAsXml(xmlNode);
 			}
 			catch (Exception ex)
 			{
+				this.Logger.LogError(
+					message: $"Failed to read record at index {recordIndex}",
+					recordPath: this.CurrentRecordPath,
+					streamPosition: position,
+					exception: ex);
+
 				return xmlNode.CreateElementWithValue("Error", ex.Message);
 			}
 			finally
@@ -841,24 +858,47 @@ namespace unforge
 
 		public void Save(String filename)
 		{
+			this.Logger.LogInfo($"Starting extraction: FileVersion={this.FileVersion}, IsLegacy={this.IsLegacy}, Records={this.RecordDefinitionCount}");
+			this.Logger.LogDebug($"File size: {this.Length} bytes, DataOffset: 0x{this.DataOffset:X8}");
+
+			var recordCount = 0;
+			var errorCount = 0;
+
 			foreach (var fileReference in this.PathToRecordMap.Keys)
 			{
-				var node = this.ReadRecordByPathAsXml(fileReference);
-
-				if (node == null) continue;
-
-				var newPath = Path.Combine(Path.GetDirectoryName(filename), fileReference);
-
-				if (!Directory.Exists(Path.GetDirectoryName(newPath))) Directory.CreateDirectory(Path.GetDirectoryName(newPath));
-
-
-				using (var fileStream= File.OpenWrite(newPath))
-				using (var writer = XmlWriter.Create(fileStream, _xmlSettings))
+				recordCount++;
+				try
 				{
-					node.WriteTo(writer);
-					writer.Flush();
+					var node = this.ReadRecordByPathAsXml(fileReference);
+
+					if (node == null)
+					{
+						this.Logger.LogWarning($"Record returned null", recordPath: fileReference);
+						continue;
+					}
+
+					var newPath = Path.Combine(Path.GetDirectoryName(filename), fileReference);
+
+					if (!Directory.Exists(Path.GetDirectoryName(newPath))) Directory.CreateDirectory(Path.GetDirectoryName(newPath));
+
+					using (var fileStream = File.OpenWrite(newPath))
+					using (var writer = XmlWriter.Create(fileStream, _xmlSettings))
+					{
+						node.WriteTo(writer);
+						writer.Flush();
+					}
+				}
+				catch (Exception ex)
+				{
+					errorCount++;
+					this.Logger.LogError(
+						message: $"Failed to save record",
+						recordPath: fileReference,
+						exception: ex);
 				}
 			}
+
+			this.Logger.LogInfo($"Extraction complete: {recordCount} records processed, {errorCount} save errors");
 		}
 	}
 }
