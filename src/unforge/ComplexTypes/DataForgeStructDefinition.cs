@@ -255,6 +255,8 @@ namespace unforge
 					case EDataType.varWeakPointer:
 						{
 							var pointer = this.StreamReader.ReadWeakPointerAtIndex(offset + firstIndex);
+							if (pointer.StructIndex == 0xFFFFFFFF) return null;
+							
 							var dataMapping = this.StreamReader.ReadDataMappingAtIndex(pointer.StructIndex);
 
 							return this.StreamReader.ReadStructAtIndexAsXml(parentNode.OwnerDocument.CreateElement(dataMapping.Name), pointer.StructIndex, pointer.VariantIndex);
@@ -262,6 +264,8 @@ namespace unforge
 					case EDataType.varStrongPointer:
 						{
 							var pointer = this.StreamReader.ReadStrongPointerAtIndex(offset + firstIndex);
+							if (pointer.StructIndex == 0xFFFFFFFF) return null;
+
 							var dataMapping = this.StreamReader.ReadDataMappingAtIndex(pointer.StructIndex);
 
 							return this.StreamReader.ReadStructAtIndexAsXml(parentNode.OwnerDocument.CreateElement(dataMapping.Name), pointer.StructIndex, pointer.VariantIndex);
@@ -269,6 +273,8 @@ namespace unforge
 					case EDataType.varClass:
 						{
 							var structIndex = (UInt32)(propertyDefinition.Index);
+							if (propertyDefinition.Index == 0xFFFF) return null;
+
 							var dataMapping = this.StreamReader.ReadDataMappingAtIndex(structIndex);
 
 							return this.StreamReader.ReadStructAtIndexAsXml(parentNode.OwnerDocument.CreateElement(dataMapping.Name), propertyDefinition.Index, firstIndex + offset);
