@@ -841,24 +841,49 @@ namespace unforge
 
 		public void Save(String filename)
 		{
+			var totalSw = Stopwatch.StartNew();
+			var readSw = new Stopwatch();
+			var writeSw = new Stopwatch();
+			var written = 0;
+			var skipped = 0;
+			Int64 bytesWritten = 0;
+
 			foreach (var fileReference in this.PathToRecordMap.Keys)
 			{
+				readSw.Start();
 				var node = this.ReadRecordByPathAsXml(fileReference);
+				readSw.Stop();
 
-				if (node == null) continue;
+				if (node == null) { skipped++; continue; }
 
 				var newPath = Path.Combine(Path.GetDirectoryName(filename), fileReference);
 
 				if (!Directory.Exists(Path.GetDirectoryName(newPath))) Directory.CreateDirectory(Path.GetDirectoryName(newPath));
 
 
-				using (var fileStream= File.OpenWrite(newPath))
+				writeSw.Start();
+				using (var fileStream = File.OpenWrite(newPath))
 				using (var writer = XmlWriter.Create(fileStream, _xmlSettings))
 				{
 					node.WriteTo(writer);
 					writer.Flush();
+					bytesWritten += fileStream.Length;
 				}
+				writeSw.Stop();
+				written++;
 			}
+
+			totalSw.Stop();
+
+			var perRecRead = written > 0 ? readSw.Elapsed.TotalMilliseconds / written : 0;
+			var perRecWrite = written > 0 ? writeSw.Elapsed.TotalMilliseconds / written : 0;
+			Console.WriteLine();
+			Console.WriteLine("=== unforge Save() timing ===");
+			Console.WriteLine($"  records:    {written} written, {skipped} skipped (null)");
+			Console.WriteLine($"  read+build: {readSw.Elapsed.TotalSeconds,8:F2}s  ({perRecRead:F2} ms/rec)");
+			Console.WriteLine($"  xml write:  {writeSw.Elapsed.TotalSeconds,8:F2}s  ({perRecWrite:F2} ms/rec)");
+			Console.WriteLine($"  output:     {bytesWritten / 1_048_576.0,8:F1} MB");
+			Console.WriteLine($"  total:      {totalSw.Elapsed.TotalSeconds,8:F2}s");
 		}
 	}
 }

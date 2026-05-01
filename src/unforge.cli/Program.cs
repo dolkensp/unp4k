@@ -75,7 +75,10 @@ namespace unforge.cli
 					if (Path.GetExtension(path) == ".dcb")
 					{
 						using var fileStream = File.OpenRead(path);
+						var ctorSw = System.Diagnostics.Stopwatch.StartNew();
 						var df = new DataForge(fileStream);
+						ctorSw.Stop();
+						Console.WriteLine($"DataForge ctor (header + tables): {ctorSw.Elapsed.TotalSeconds:F2}s");
 						df.Save(Path.ChangeExtension(path, "xml"));
 					}
 					else
