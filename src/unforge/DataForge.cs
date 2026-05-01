@@ -141,23 +141,27 @@ namespace unforge
 
 			// this.ReportOffsets();
 
-			foreach (var recordIndex in Enumerable.Range(0, this.RecordDefinitionCount))
-			{
-				this.Position = this.RecordDefinitionOffset + recordIndex * (this.FileVersion < 8 ? DataForgeRecordDefinition.RecordSizeInBytes : DataForgeRecordDefinition.RecordSizeInBytesV8);
-				var record = DataForgeRecordDefinition.ReadFromStream(this);
+			// Pre-load string tables, definition tables and value arrays once
+			// from the file. After this point, every per-record read is an
+			// array lookup (no stream seek+read+restore per element).
+			this.PreloadStringTables();
+			this.PreloadDefinitionTables();
+			this.PreloadValueArrays();
 
-				var filename = record.FileName;
-				this.PathToRecordMap[filename] = recordIndex;
+			for (Int32 recordIndex = 0; recordIndex < this.RecordDefinitionCount; recordIndex++)
+			{
+				var record = this._recordDefinitions[recordIndex];
+				this.PathToRecordMap[record.FileName] = recordIndex;
 				this.ReferenceToRecordMap[record.Hash] = recordIndex;
 			}
 
 			var lastOffset = 0;
 
 			this.StructToDataOffsetMap = new Dictionary<UInt32, Int64> { };
-			foreach (var dataMappingIndex in Enumerable.Range(0, this.DataMappingCount))
+			for (Int32 dataMappingIndex = 0; dataMappingIndex < this.DataMappingCount; dataMappingIndex++)
 			{
-				var dataMapping = this.ReadDataMappingAtIndex(dataMappingIndex);
-				var dataStruct = this.ReadStructDefinitionAtIndex(dataMappingIndex);
+				var dataMapping = this._dataMappings[dataMappingIndex];
+				var dataStruct = this._structDefinitions[dataMappingIndex];
 
 				if (!this.StructToDataOffsetMap.ContainsKey(dataMapping.StructIndex)) this.StructToDataOffsetMap[dataMapping.StructIndex] = lastOffset;
 				lastOffset += (Int32)(dataMapping.StructCount * dataStruct.RecordSize);
@@ -181,81 +185,205 @@ namespace unforge
 		/// </summary>
 		public Dictionary<UInt32, Int64> StructToDataOffsetMap { get; }
 
+		// Pre-loaded string tables — read once at ctor time so per-record
+		// string lookups become byte-buffer scans instead of stream seeks.
+		private Byte[] _textBuffer;
+		private Byte[] _blobBuffer;
+
+		// Pre-loaded definition tables — read once at ctor time so per-record
+		// reads become array lookups instead of stream seek+read+restore.
+		private DataForgeStructDefinition[] _structDefinitions;
+		private DataForgePropertyDefinition[] _propertyDefinitions;
+		private DataForgeEnumDefinition[] _enumDefinitions;
+		private DataForgeDataMapping[] _dataMappings;
+		private DataForgeRecordDefinition[] _recordDefinitions;
+
+		// Pre-loaded value arrays — same rationale.
+		private DataForgeBoolean[] _booleanValues;
+		private DataForgeInt8[] _int8Values;
+		private DataForgeInt16[] _int16Values;
+		private DataForgeInt32[] _int32Values;
+		private DataForgeInt64[] _int64Values;
+		private DataForgeUInt8[] _uint8Values;
+		private DataForgeUInt16[] _uint16Values;
+		private DataForgeUInt32[] _uint32Values;
+		private DataForgeUInt64[] _uint64Values;
+		private DataForgeSingle[] _singleValues;
+		private DataForgeDouble[] _doubleValues;
+		private DataForgeGuid[] _guidValues;
+		private DataForgeStringLookup[] _stringValues;
+		private DataForgeLocale[] _localeValues;
+		private DataForgeEnum[] _enumValues;
+		private DataForgePointer[] _strongPointerValues;
+		private DataForgePointer[] _weakPointerValues;
+		private DataForgeReference[] _referenceValues;
+		private DataForgeEnum[] _enumOptions;
+
+		private void PreloadStringTables()
+		{
+			this.Position = this.TextOffset;
+			this._textBuffer = new Byte[this.TextLength];
+			ReadFully(this.BaseStream, this._textBuffer);
+
+			if (!this.IsLegacy && this.BlobLength > 0)
+			{
+				this.Position = this.BlobOffset;
+				this._blobBuffer = new Byte[this.BlobLength];
+				ReadFully(this.BaseStream, this._blobBuffer);
+			}
+			else
+			{
+				// Legacy files reuse the text table as their blob table.
+				this._blobBuffer = this._textBuffer;
+			}
+		}
+
+		// Stream.ReadExactly is .NET 7+. We multi-target net6.0 so use a
+		// portable loop. FileStream typically returns the full buffer in a
+		// single Read() for hot files, so this is one iteration in practice.
+		private static void ReadFully(Stream stream, Byte[] buffer)
+		{
+			Int32 total = 0;
+			while (total < buffer.Length)
+			{
+				Int32 read = stream.Read(buffer, total, buffer.Length - total);
+				if (read == 0) throw new EndOfStreamException("Unexpected end of stream while preloading.");
+				total += read;
+			}
+		}
+
+		private void PreloadDefinitionTables()
+		{
+			this.Position = this.StructDefinitionOffset;
+			this._structDefinitions = new DataForgeStructDefinition[this.StructDefinitionCount];
+			for (Int32 i = 0; i < this.StructDefinitionCount; i++) this._structDefinitions[i] = DataForgeStructDefinition.ReadFromStream(this);
+
+			this.Position = this.PropertyDefinitionOffset;
+			this._propertyDefinitions = new DataForgePropertyDefinition[this.PropertyDefinitionCount];
+			for (Int32 i = 0; i < this.PropertyDefinitionCount; i++) this._propertyDefinitions[i] = DataForgePropertyDefinition.ReadFromStream(this);
+
+			this.Position = this.EnumDefinitionOffset;
+			this._enumDefinitions = new DataForgeEnumDefinition[this.EnumDefinitionCount];
+			for (Int32 i = 0; i < this.EnumDefinitionCount; i++) this._enumDefinitions[i] = DataForgeEnumDefinition.ReadFromStream(this);
+
+			this.Position = this.DataMappingOffset;
+			this._dataMappings = new DataForgeDataMapping[this.DataMappingCount];
+			for (Int32 i = 0; i < this.DataMappingCount; i++) this._dataMappings[i] = DataForgeDataMapping.ReadFromStream(this);
+
+			this.Position = this.RecordDefinitionOffset;
+			this._recordDefinitions = new DataForgeRecordDefinition[this.RecordDefinitionCount];
+			for (Int32 i = 0; i < this.RecordDefinitionCount; i++) this._recordDefinitions[i] = DataForgeRecordDefinition.ReadFromStream(this);
+		}
+
+		private void PreloadValueArrays()
+		{
+			this.Position = this.Int8ValueOffset;
+			this._int8Values = new DataForgeInt8[this.Int8ValueCount];
+			for (Int32 i = 0; i < this.Int8ValueCount; i++) this._int8Values[i] = DataForgeInt8.ReadFromStream(this);
+
+			this.Position = this.Int16ValueOffset;
+			this._int16Values = new DataForgeInt16[this.Int16ValueCount];
+			for (Int32 i = 0; i < this.Int16ValueCount; i++) this._int16Values[i] = DataForgeInt16.ReadFromStream(this);
+
+			this.Position = this.Int32ValueOffset;
+			this._int32Values = new DataForgeInt32[this.Int32ValueCount];
+			for (Int32 i = 0; i < this.Int32ValueCount; i++) this._int32Values[i] = DataForgeInt32.ReadFromStream(this);
+
+			this.Position = this.Int64ValueOffset;
+			this._int64Values = new DataForgeInt64[this.Int64ValueCount];
+			for (Int32 i = 0; i < this.Int64ValueCount; i++) this._int64Values[i] = DataForgeInt64.ReadFromStream(this);
+
+			this.Position = this.UInt8ValueOffset;
+			this._uint8Values = new DataForgeUInt8[this.UInt8ValueCount];
+			for (Int32 i = 0; i < this.UInt8ValueCount; i++) this._uint8Values[i] = DataForgeUInt8.ReadFromStream(this);
+
+			this.Position = this.UInt16ValueOffset;
+			this._uint16Values = new DataForgeUInt16[this.UInt16ValueCount];
+			for (Int32 i = 0; i < this.UInt16ValueCount; i++) this._uint16Values[i] = DataForgeUInt16.ReadFromStream(this);
+
+			this.Position = this.UInt32ValueOffset;
+			this._uint32Values = new DataForgeUInt32[this.UInt32ValueCount];
+			for (Int32 i = 0; i < this.UInt32ValueCount; i++) this._uint32Values[i] = DataForgeUInt32.ReadFromStream(this);
+
+			this.Position = this.UInt64ValueOffset;
+			this._uint64Values = new DataForgeUInt64[this.UInt64ValueCount];
+			for (Int32 i = 0; i < this.UInt64ValueCount; i++) this._uint64Values[i] = DataForgeUInt64.ReadFromStream(this);
+
+			this.Position = this.BooleanValueOffset;
+			this._booleanValues = new DataForgeBoolean[this.BooleanValueCount];
+			for (Int32 i = 0; i < this.BooleanValueCount; i++) this._booleanValues[i] = DataForgeBoolean.ReadFromStream(this);
+
+			this.Position = this.SingleValueOffset;
+			this._singleValues = new DataForgeSingle[this.SingleValueCount];
+			for (Int32 i = 0; i < this.SingleValueCount; i++) this._singleValues[i] = DataForgeSingle.ReadFromStream(this);
+
+			this.Position = this.DoubleValueOffset;
+			this._doubleValues = new DataForgeDouble[this.DoubleValueCount];
+			for (Int32 i = 0; i < this.DoubleValueCount; i++) this._doubleValues[i] = DataForgeDouble.ReadFromStream(this);
+
+			this.Position = this.GuidValueOffset;
+			this._guidValues = new DataForgeGuid[this.GuidValueCount];
+			for (Int32 i = 0; i < this.GuidValueCount; i++) this._guidValues[i] = DataForgeGuid.ReadFromStream(this);
+
+			this.Position = this.StringValueOffset;
+			this._stringValues = new DataForgeStringLookup[this.StringValueCount];
+			for (Int32 i = 0; i < this.StringValueCount; i++) this._stringValues[i] = DataForgeStringLookup.ReadFromStream(this);
+
+			this.Position = this.LocaleValueOffset;
+			this._localeValues = new DataForgeLocale[this.LocaleValueCount];
+			for (Int32 i = 0; i < this.LocaleValueCount; i++) this._localeValues[i] = DataForgeLocale.ReadFromStream(this);
+
+			this.Position = this.EnumValueOffset;
+			this._enumValues = new DataForgeEnum[this.EnumValueCount];
+			for (Int32 i = 0; i < this.EnumValueCount; i++) this._enumValues[i] = DataForgeEnum.ReadFromStream(this);
+
+			this.Position = this.StrongValueOffset;
+			this._strongPointerValues = new DataForgePointer[this.StrongValueCount];
+			for (Int32 i = 0; i < this.StrongValueCount; i++) this._strongPointerValues[i] = DataForgePointer.ReadFromStream(this);
+
+			this.Position = this.WeakValueOffset;
+			this._weakPointerValues = new DataForgePointer[this.WeakValueCount];
+			for (Int32 i = 0; i < this.WeakValueCount; i++) this._weakPointerValues[i] = DataForgePointer.ReadFromStream(this);
+
+			this.Position = this.ReferenceValueOffset;
+			this._referenceValues = new DataForgeReference[this.ReferenceValueCount];
+			for (Int32 i = 0; i < this.ReferenceValueCount; i++) this._referenceValues[i] = DataForgeReference.ReadFromStream(this);
+
+			this.Position = this.EnumOptionOffset;
+			this._enumOptions = new DataForgeEnum[this.EnumOptionCount];
+			for (Int32 i = 0; i < this.EnumOptionCount; i++) this._enumOptions[i] = DataForgeEnum.ReadFromStream(this);
+		}
+
 		internal String ReadEnumAtOffset(UInt32 enumValueOffset) => this.ReadTextAtOffset(enumValueOffset);
 
 		internal String ReadTextAtOffset(Int64 offset)
 		{
 			if (offset > this.TextLength) throw new IndexOutOfRangeException($"Offset {offset} is out of range for Text values (length: {this.TextLength})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.TextOffset + offset;
-
-				return this.ReadCString();
-			}
-			finally
-			{
-				this.Position = position;
-			}
+			return ReadCStringFrom(this._textBuffer, (Int32)offset);
 		}
 
 		internal String ReadBlobAtOffset(Int64 offset)
 		{
 			if (this.FileVersion < 6) return this.ReadTextAtOffset(offset);
-
-			if (offset > this.BlobLength) throw new IndexOutOfRangeException($"Offset {offset} is out of range for Blob values (length: {this.TextLength})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.BlobOffset + offset;
-
-				return this.ReadCString();
-			}
-			finally
-			{
-				this.Position = position;
-			}
+			if (offset > this.BlobLength) throw new IndexOutOfRangeException($"Offset {offset} is out of range for Blob values (length: {this.BlobLength})");
+			return ReadCStringFrom(this._blobBuffer, (Int32)offset);
 		}
 
-		internal DataForgeDataMapping ReadDataMappingAtIndex(Int64 index)
+		// Scan a null-terminated string out of the pre-loaded text/blob buffer.
+		// Matches the original byte→char cast (Latin-1) so string output is
+		// byte-identical to the prior ReadCString() path.
+		private static String ReadCStringFrom(Byte[] buffer, Int32 offset)
 		{
-			if (index > this.DataMappingCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Data Mapping values (count: {this.DataMappingCount})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.DataMappingOffset + index * (this.IsLegacy ? DataForgeDataMapping.RecordSizeInBytes : DataForgeDataMapping.RecordSizeInBytesV6);
-
-				return DataForgeDataMapping.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
+			Int32 end = offset;
+			while (end < buffer.Length && buffer[end] != 0) end++;
+			Int32 length = end - offset;
+			if (length == 0) return String.Empty;
+			return Encoding.Latin1.GetString(buffer, offset, length);
 		}
 
-		internal DataForgeRecordDefinition ReadRecordDefinitionAtIndex(Int64 index)
-		{
-			if (index > this.RecordDefinitionCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Record Definition values (count: {this.RecordDefinitionCount})");
+		internal DataForgeDataMapping ReadDataMappingAtIndex(Int64 index) => this._dataMappings[index];
 
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.RecordDefinitionOffset + index * (this.FileVersion < 8 ? DataForgeRecordDefinition.RecordSizeInBytes : DataForgeRecordDefinition.RecordSizeInBytesV8);
-
-				return DataForgeRecordDefinition.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
-		}
+		internal DataForgeRecordDefinition ReadRecordDefinitionAtIndex(Int64 index) => this._recordDefinitions[index];
 
 		public List<(UInt32, UInt32)> StructStack { get; set; } = new List<(UInt32, UInt32)> { };
 
@@ -311,442 +439,49 @@ namespace unforge
 			return xmlNode;
 		}
 
-		internal DataForgeStructDefinition ReadStructDefinitionAtIndex(Int64 index)
-		{
-			if (index > this.StructDefinitionCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Struct Definition values (count: {this.StructDefinitionCount})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.StructDefinitionOffset + index * DataForgeStructDefinition.RecordSizeInBytes;
-
-				return DataForgeStructDefinition.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
-		}
-
-		internal DataForgePropertyDefinition ReadPropertyDefinitionAtIndex(Int64 index)
-		{
-			if (index > this.PropertyDefinitionCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Property Definition values (count: {this.PropertyDefinitionCount})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.PropertyDefinitionOffset + index * DataForgePropertyDefinition.RecordSizeInBytes;
-
-				return DataForgePropertyDefinition.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
-		}
-
-		internal DataForgeBoolean ReadBooleanAtIndex(Int64 index)
-		{
-			if (index > this.BooleanValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Boolean values (count: {this.BooleanValueCount})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.BooleanValueOffset + index * DataForgeBoolean.RecordSizeInBytes;
-
-				return DataForgeBoolean.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
-		}
-
-		internal DataForgeDouble ReadDoubleAtIndex(Int64 index)
-		{
-			if (index > this.DoubleValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Double values (count: {this.DoubleValueCount})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.DoubleValueOffset + index * DataForgeDouble.RecordSizeInBytes;
-
-				return DataForgeDouble.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
-		}
-
-		internal DataForgeEnum ReadEnumOptionAtIndex(Int64 index)
-		{
-			if (index > this.EnumValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Enum values (count: {this.EnumOptionCount})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.EnumOptionOffset + index * DataForgeEnum.RecordSizeInBytes;
-
-				return DataForgeEnum.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
-		}
-
-		internal DataForgeEnumDefinition ReadEnumDefinitionAtIndex(Int64 index)
-		{
-			if (index > this.EnumValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Enum values (count: {this.EnumDefinitionCount})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.EnumDefinitionOffset + index * DataForgeEnumDefinition.RecordSizeInBytes;
-
-				return DataForgeEnumDefinition.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
-		}
-
-		internal DataForgeEnum ReadEnumValueAtIndex(Int64 index)
-		{
-			if (index > this.EnumValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Enum values (count: {this.EnumValueCount})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.EnumValueOffset + index * DataForgeEnum.RecordSizeInBytes;
-
-				return DataForgeEnum.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
-		}
-
-		internal DataForgeGuid ReadGuidAtIndex(Int64 index)
-		{
-			if (index > this.GuidValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Guid values (count: {this.GuidValueCount})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.GuidValueOffset + index * DataForgeGuid.RecordSizeInBytes;
-
-				return DataForgeGuid.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
-		}
-
-		internal DataForgeInt16 ReadInt16AtIndex(Int64 index)
-		{
-			if (index > this.Int16ValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Int16 values (count: {this.Int16ValueCount})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.Int16ValueOffset + index * DataForgeInt16.RecordSizeInBytes;
-
-				return DataForgeInt16.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
-		}
-
-		internal DataForgeInt32 ReadInt32AtIndex(Int64 index)
-		{
-			if (index > this.Int32ValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Int32 values (count: {this.Int32ValueCount})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.Int32ValueOffset + index * DataForgeInt32.RecordSizeInBytes;
-
-				return DataForgeInt32.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
-		}
-
-		internal DataForgeInt64 ReadInt64AtIndex(Int64 index)
-		{
-			if (index > this.Int64ValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Int64 values (count: {this.Int64ValueCount})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.Int64ValueOffset + index * DataForgeInt64.RecordSizeInBytes;
-
-				return DataForgeInt64.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
-		}
-
-		internal DataForgeInt8 ReadInt8AtIndex(Int64 index)
-		{
-			if (index > this.Int8ValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Int8 values (count: {this.Int8ValueCount})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.Int8ValueOffset + index * DataForgeInt8.RecordSizeInBytes;
-
-				return DataForgeInt8.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
-		}
-
-		internal DataForgeLocale ReadLocaleAtIndex(Int64 index)
-		{
-			if (index > this.LocaleValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Locale values (count: {this.LocaleValueCount})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.LocaleValueOffset + index * DataForgeLocale.RecordSizeInBytes;
-
-				return DataForgeLocale.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
-		}
-
-		internal DataForgeReference ReadReferenceAtIndex(Int64 index)
-		{
-			if (index > this.ReferenceValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Reference values (count: {this.ReferenceValueCount})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.ReferenceValueOffset + index * DataForgeReference.RecordSizeInBytes;
-
-				return DataForgeReference.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
-		}
-
-		internal DataForgeSingle ReadSingleAtIndex(Int64 index)
-		{
-			if (index > this.SingleValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Single values (count: {this.SingleValueCount})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.SingleValueOffset + index * DataForgeSingle.RecordSizeInBytes;
-
-				return DataForgeSingle.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
-		}
-
-		internal DataForgeStringLookup ReadStringAtIndex(Int64 index)
-		{
-			if (index > this.StringValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for String values (count: {this.StringValueCount})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.StringValueOffset + index * DataForgeStringLookup.RecordSizeInBytes;
-
-				return DataForgeStringLookup.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
-		}
-
-		internal DataForgeUInt16 ReadUInt16AtIndex(Int64 index)
-		{
-			if (index > this.UInt16ValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for UInt16 values (count: {this.UInt16ValueCount})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.UInt16ValueOffset + index * DataForgeUInt16.RecordSizeInBytes;
-
-				return DataForgeUInt16.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
-		}
-
-		internal DataForgeUInt32 ReadUInt32AtIndex(Int64 index)
-		{
-			if (index > this.UInt32ValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for UInt32 values (count: {this.UInt32ValueCount})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.UInt32ValueOffset + index * DataForgeUInt32.RecordSizeInBytes;
-
-				return DataForgeUInt32.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
-		}
-
-		internal DataForgeUInt64 ReadUInt64AtIndex(Int64 index)
-		{
-			if (index > this.UInt64ValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for UInt64 values (count: {this.UInt64ValueCount})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.UInt64ValueOffset + index * DataForgeUInt64.RecordSizeInBytes;
-
-				return DataForgeUInt64.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
-		}
-
-		internal DataForgeUInt8 ReadUInt8AtIndex(Int64 index)
-		{
-			if (index > this.UInt8ValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for UInt8 values (count: {this.UInt8ValueCount})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.UInt8ValueOffset + index * DataForgeUInt8.RecordSizeInBytes;
-
-				return DataForgeUInt8.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
-		}
-
-		internal DataForgePointer ReadWeakPointerAtIndex(Int64 index)
-		{
-			if (index > this.WeakValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Weak Pointer values (count: {this.WeakValueCount})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.WeakValueOffset + index * DataForgePointer.RecordSizeInBytes;
-
-				return DataForgePointer.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
-		}
-
-		internal DataForgePointer ReadStrongPointerAtIndex(Int64 index)
-		{
-			if (index > this.StrongValueCount) throw new IndexOutOfRangeException($"Index {index} is out of range for Strong Pointer values (count: {this.StrongValueCount})");
-
-			var position = this.Position;
-
-			try
-			{
-				this.Position = this.StrongValueOffset + index * DataForgePointer.RecordSizeInBytes;
-
-				return DataForgePointer.ReadFromStream(this);
-			}
-			finally
-			{
-				this.Position = position;
-			}
-		}
-
-		private String ReadCString()
-		{
-			// Small, fast stack buffer for typical strings
-			Span<Char> initialBuffer = stackalloc Char[256];
-			Span<Char> buffer = initialBuffer;
-
-			Char[] rented = null;
-			Int32 length = 0;
-
-			try
-			{
-				Int32 value;
-				while ((value = this.BaseStream.ReadByte()) != -1 && value != 0)
-				{
-					// Need more space? Rent a bigger buffer.
-					if (length == buffer.Length)
-					{
-						Int32 newSize = buffer.Length * 2;
-
-						Char[] newRented = ArrayPool<Char>.Shared.Rent(newSize);
-						buffer.CopyTo(newRented);
-
-						rented = newRented;
-						buffer = rented;
-					}
-
-					buffer[length++] = (Char)value;
-				}
-
-				// One String allocation from the final span slice
-				return new String(buffer.Slice(0, length));
-			}
-			finally
-			{
-				if (rented != null)
-				{
-					ArrayPool<Char>.Shared.Return(rented);
-				}
-			}
-		}
+		internal DataForgeStructDefinition ReadStructDefinitionAtIndex(Int64 index) => this._structDefinitions[index];
+
+		internal DataForgePropertyDefinition ReadPropertyDefinitionAtIndex(Int64 index) => this._propertyDefinitions[index];
+
+		internal DataForgeBoolean ReadBooleanAtIndex(Int64 index) => this._booleanValues[index];
+
+		internal DataForgeDouble ReadDoubleAtIndex(Int64 index) => this._doubleValues[index];
+
+		internal DataForgeEnum ReadEnumOptionAtIndex(Int64 index) => this._enumOptions[index];
+
+		internal DataForgeEnumDefinition ReadEnumDefinitionAtIndex(Int64 index) => this._enumDefinitions[index];
+
+		internal DataForgeEnum ReadEnumValueAtIndex(Int64 index) => this._enumValues[index];
+
+		internal DataForgeGuid ReadGuidAtIndex(Int64 index) => this._guidValues[index];
+
+		internal DataForgeInt16 ReadInt16AtIndex(Int64 index) => this._int16Values[index];
+
+		internal DataForgeInt32 ReadInt32AtIndex(Int64 index) => this._int32Values[index];
+
+		internal DataForgeInt64 ReadInt64AtIndex(Int64 index) => this._int64Values[index];
+
+		internal DataForgeInt8 ReadInt8AtIndex(Int64 index) => this._int8Values[index];
+
+		internal DataForgeLocale ReadLocaleAtIndex(Int64 index) => this._localeValues[index];
+
+		internal DataForgeReference ReadReferenceAtIndex(Int64 index) => this._referenceValues[index];
+
+		internal DataForgeSingle ReadSingleAtIndex(Int64 index) => this._singleValues[index];
+
+		internal DataForgeStringLookup ReadStringAtIndex(Int64 index) => this._stringValues[index];
+
+		internal DataForgeUInt16 ReadUInt16AtIndex(Int64 index) => this._uint16Values[index];
+
+		internal DataForgeUInt32 ReadUInt32AtIndex(Int64 index) => this._uint32Values[index];
+
+		internal DataForgeUInt64 ReadUInt64AtIndex(Int64 index) => this._uint64Values[index];
+
+		internal DataForgeUInt8 ReadUInt8AtIndex(Int64 index) => this._uint8Values[index];
+
+		internal DataForgePointer ReadWeakPointerAtIndex(Int64 index) => this._weakPointerValues[index];
+
+		internal DataForgePointer ReadStrongPointerAtIndex(Int64 index) => this._strongPointerValues[index];
 
 		public XmlElement ReadRecordByPathAsXml(String path)
 		{
