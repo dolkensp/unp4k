@@ -83,7 +83,94 @@ namespace sc.gamedata
 		public DamageProfile multiplier { get; set; } = new();
 		public ResistanceProfile resistance { get; set; } = new();
 
+		// Hull HP from SHealthComponentParams/@Health on the armor item.
+		// Surfaces as vehicle.hull_hp after VehicleExtractor copies it.
+		public Double? hull_hp { get; set; }
+
 		[JsonIgnore]
+		public String? _guid { get; set; }
+	}
+
+	// ── Per-ship physics shapes (output JSON) ─────────────────────────
+	// Match the existing physics_overlay.json field set so battlestations
+	// keeps reading the same shape. Note the CIG-style inconsistency:
+	// thrust_capacity uses "maneuvering" but acceleration uses "maneuver" —
+	// preserved from the legacy overlay format.
+
+	internal sealed class AgilityProfile
+	{
+		public Double pitch { get; set; }
+		public Double yaw { get; set; }
+		public Double roll { get; set; }
+		public Double pitch_boosted { get; set; }
+		public Double yaw_boosted { get; set; }
+		public Double roll_boosted { get; set; }
+	}
+
+	internal sealed class AccelerationProfile
+	{
+		public Double main { get; set; }
+		public Double retro { get; set; }
+		public Double vtol { get; set; }
+		public Double maneuver { get; set; }
+		public Double main_boosted { get; set; }
+		public Double maneuver_boosted { get; set; }
+	}
+
+	internal sealed class ThrustCapacity
+	{
+		public Double main { get; set; }
+		public Double retro { get; set; }
+		public Double vtol { get; set; }
+		public Double maneuvering { get; set; }
+	}
+
+	internal sealed class CrossSection
+	{
+		public Double x { get; set; }
+		public Double y { get; set; }
+		public Double z { get; set; }
+	}
+
+	// ── Internal-only records used during vehicle pass ────────────────
+	// Not serialized to game_data.json. Index by id + by GUID, like weapons
+	// and armor, so VehicleExtractor can resolve loadout refs cheaply.
+
+	internal sealed class IfcsRecord
+	{
+		public String id { get; set; } = "";
+		public Double scm_speed { get; set; }
+		public Double boost_speed_forward { get; set; }
+		public Double max_speed { get; set; }      // CIG's "max" = the nav/quantum cap
+		// Per-axis angular velocity (deg/s). x=pitch, y=yaw, z=roll.
+		public Double angular_velocity_x { get; set; }
+		public Double angular_velocity_y { get; set; }
+		public Double angular_velocity_z { get; set; }
+		// Afterburn multipliers applied to the baseline angular velocity for
+		// the boosted variants. Per-axis.
+		public Double afterburn_ang_velocity_mult_x { get; set; } = 1.0;
+		public Double afterburn_ang_velocity_mult_y { get; set; } = 1.0;
+		public Double afterburn_ang_velocity_mult_z { get; set; } = 1.0;
+		// Forward (positive y) linear afterburn multiplier — boosts main acceleration.
+		public Double afterburn_lin_accel_mult_forward { get; set; } = 1.0;
+		// Base mass of the IFCS item itself (contributes to mass_loadout).
+		public Double mass { get; set; }
+
+		public String? _guid { get; set; }
+	}
+
+	internal sealed class ThrusterRecord
+	{
+		public String id { get; set; } = "";
+		public Double thrust_capacity { get; set; }
+		// "Main" | "Maneuver" | "Retro" — direct from SCItemThrusterParams/@thrusterType.
+		public String thruster_type { get; set; } = "";
+		// When true, this thruster only fires in atmospheric VTOL mode; it
+		// counts toward the VTOL bucket regardless of thruster_type (which
+		// is typically "Maneuver" for VTOL units).
+		public Boolean only_active_in_vtol { get; set; }
+		public Double mass { get; set; }
+
 		public String? _guid { get; set; }
 	}
 
@@ -124,9 +211,9 @@ namespace sc.gamedata
 		public String? career { get; set; }
 		public String? role { get; set; }
 
-		// Physics fields kept here so an --overlay pass can populate them
-		// without having to re-shape the record. Sparse on PTU until per-ship
-		// physics extraction is wired up.
+		// Physics fields. Populated by PhysicsAggregator (from IFCS / thrusters
+		// / armor / vehicle XML) during VehicleExtractor.Extract. Nullable so
+		// OverlayApplier can backfill anything extraction couldn't resolve.
 		public Int32? size_class { get; set; }
 		public Double? scm_speed { get; set; }
 		public Double? boost_speed { get; set; }
@@ -135,10 +222,10 @@ namespace sc.gamedata
 		public Double? mass_loadout { get; set; }
 		public Double? mass_total { get; set; }
 		public Double? hull_hp { get; set; }
-		public Object? agility { get; set; }
-		public Object? acceleration { get; set; }
-		public Object? thrust_capacity { get; set; }
-		public Object? cross_section { get; set; }
+		public AgilityProfile? agility { get; set; }
+		public AccelerationProfile? acceleration { get; set; }
+		public ThrustCapacity? thrust_capacity { get; set; }
+		public CrossSection? cross_section { get; set; }
 	}
 
 	internal sealed class GameDataOutput

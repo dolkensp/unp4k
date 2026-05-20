@@ -48,7 +48,11 @@ namespace sc.gamedata
 			IReadOnlyDictionary<String, WeaponRecord> weaponByGuid,
 			IReadOnlyDictionary<String, WeaponRecord> weaponById,
 			IReadOnlyDictionary<String, ArmorRecord> armorById,
-			IReadOnlyDictionary<String, ArmorRecord> armorByGuid)
+			IReadOnlyDictionary<String, ArmorRecord> armorByGuid,
+			IReadOnlyDictionary<String, IfcsRecord> ifcsById,
+			IReadOnlyDictionary<String, IfcsRecord> ifcsByGuid,
+			IReadOnlyDictionary<String, ThrusterRecord> thrusterById,
+			IReadOnlyDictionary<String, ThrusterRecord> thrusterByGuid)
 		{
 			var result = new List<VehicleRecord>();
 			foreach (var path in df.PathToRecordMap.Keys)
@@ -161,10 +165,39 @@ namespace sc.gamedata
 					vehicle.resistance = armor.resistance;
 				}
 
-				// Bounding-box dims + crew + role/career. We don't try to
-				// compute mass/agility/thrust here — those live in CryXML
-				// physics files outside the DataForge tree, and an --overlay
-				// pass copies them from a previous game_data.json.
+				// Walk the loadout AGAIN for physics references. We can't reuse
+				// WalkForWeapons — its early-yield-on-leaf semantics emit
+				// chains, not individual entries, and would miss thrusters
+				// that aren't leaves. Sibling walker WalkAllEntries hands us
+				// every entry; we categorize against the new dicts here.
+				IfcsRecord? ifcs = null;
+				var thrustersList = new List<ThrusterRecord>();
+				foreach (var entry in WalkAllEntries(topLoadout))
+				{
+					var entryRefGuid = XmlHelpers.Attr(entry, "entityClassReference");
+					var entryCn = XmlHelpers.Attr(entry, "entityClassName");
+
+					if (ifcs == null)
+					{
+						if (!String.IsNullOrEmpty(entryRefGuid) && ifcsByGuid.TryGetValue(entryRefGuid, out var byGuid))
+							ifcs = byGuid;
+						else if (!String.IsNullOrEmpty(entryCn) && ifcsById.TryGetValue(entryCn, out var byId))
+							ifcs = byId;
+					}
+
+					if (!String.IsNullOrEmpty(entryRefGuid) && thrusterByGuid.TryGetValue(entryRefGuid, out var tByGuid))
+						thrustersList.Add(tByGuid);
+					else if (!String.IsNullOrEmpty(entryCn) && thrusterById.TryGetValue(entryCn, out var tById))
+						thrustersList.Add(tById);
+				}
+
+				PhysicsAggregator.Aggregate(vehicle, root, ifcs, thrustersList, armor);
+
+				// Bounding-box dims + crew + role/career. Cross-section is
+				// already populated by PhysicsAggregator from the same
+				// maxBoundingBoxSize element; the meters-rounded length /
+				// width / height fields below stay for backward-compat with
+				// game_data.json consumers that read those keys directly.
 				var vehicleComponent = XmlNav.FindFirst(root, "VehicleComponentParams");
 				if (vehicleComponent != null)
 				{
@@ -206,6 +239,25 @@ namespace sc.gamedata
 			if (entries == null) yield break;
 			foreach (XmlNode c in entries.ChildNodes)
 				if (c is XmlElement e && e.LocalName == "SItemPortLoadoutEntryParams") yield return e;
+		}
+
+		// Yields every SItemPortLoadoutEntryParams in the loadout subtree,
+		// regardless of whether the entry's ref resolves to a weapon. Used by
+		// the physics pass to categorize entries against multiple dicts
+		// (ifcs, thrusters, armor) without forcing them through WalkForWeapons'
+		// weapon-leaf early-yield logic.
+		private static IEnumerable<XmlElement> WalkAllEntries(XmlElement loadoutElem)
+		{
+			foreach (var entry in DirectEntries(loadoutElem))
+			{
+				yield return entry;
+				XmlElement? nested = null;
+				foreach (XmlNode c in entry.ChildNodes)
+					if (c is XmlElement e && e.LocalName == "loadout") { nested = e; break; }
+				if (nested != null)
+					foreach (var nestedEntry in WalkAllEntries(nested))
+						yield return nestedEntry;
+			}
 		}
 
 		private static IEnumerable<(List<String> chain, WeaponRecord weapon)> WalkForWeapons(

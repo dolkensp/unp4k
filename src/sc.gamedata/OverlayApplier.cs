@@ -53,6 +53,7 @@ namespace sc.gamedata
 			}
 
 			var updated = 0;
+			var fallbackFieldFills = 0;
 			foreach (var v in vehicles)
 			{
 				if (!byId.TryGetValue(v.id, out var live)) continue;
@@ -60,12 +61,45 @@ namespace sc.gamedata
 				foreach (var field in FieldsToCopy)
 				{
 					if (!live.TryGetProperty(field, out var val) || val.ValueKind == JsonValueKind.Null) continue;
-					if (CopyField(v, field, val)) touched = true;
+					// Skip-when-populated: physics extraction takes precedence.
+					// Only fill from overlay if the fresh extraction left the
+					// field null. Stops a stale overlay from silently clobbering
+					// freshly-extracted values.
+					if (IsAlreadyPopulated(v, field)) continue;
+					if (CopyField(v, field, val))
+					{
+						touched = true;
+						fallbackFieldFills++;
+					}
 				}
 				if (touched) updated++;
 			}
+			if (fallbackFieldFills > 0)
+			{
+				Console.WriteLine($"WARN: overlay backfilled {fallbackFieldFills} field(s) across {updated} vehicle(s). "
+					+ "Extraction couldn't resolve these — investigate per-ship coverage.");
+			}
 			return updated;
 		}
+
+		// True when the fresh extraction has already populated this field on v.
+		// Used to make overlay strictly a fallback, never a clobber.
+		private static Boolean IsAlreadyPopulated(VehicleRecord v, String field) => field switch
+		{
+			"size_class"     => v.size_class != null,
+			"scm_speed"      => v.scm_speed != null,
+			"boost_speed"    => v.boost_speed != null,
+			"nav_speed"      => v.nav_speed != null,
+			"mass"           => v.mass != null,
+			"mass_loadout"   => v.mass_loadout != null,
+			"mass_total"     => v.mass_total != null,
+			"hull_hp"        => v.hull_hp != null,
+			"agility"        => v.agility != null,
+			"acceleration"   => v.acceleration != null,
+			"thrust_capacity" => v.thrust_capacity != null,
+			"cross_section"  => v.cross_section != null,
+			_                => false,
+		};
 
 		// Reflection-style copy. Only the explicit field set above is touched;
 		// any unknown field is silently skipped so an old overlay file with
@@ -84,10 +118,10 @@ namespace sc.gamedata
 				case "mass_loadout": v.mass_loadout = AsDouble(val); return v.mass_loadout != null;
 				case "mass_total": v.mass_total = AsDouble(val); return v.mass_total != null;
 				case "hull_hp": v.hull_hp = AsDouble(val); return v.hull_hp != null;
-				case "agility": v.agility = JsonRaw(val); return true;
-				case "acceleration": v.acceleration = JsonRaw(val); return true;
-				case "thrust_capacity": v.thrust_capacity = JsonRaw(val); return true;
-				case "cross_section": v.cross_section = JsonRaw(val); return true;
+				case "agility":          v.agility          = Deserialize<AgilityProfile>(val);     return v.agility != null;
+				case "acceleration":     v.acceleration     = Deserialize<AccelerationProfile>(val); return v.acceleration != null;
+				case "thrust_capacity":  v.thrust_capacity  = Deserialize<ThrustCapacity>(val);     return v.thrust_capacity != null;
+				case "cross_section":    v.cross_section    = Deserialize<CrossSection>(val);       return v.cross_section != null;
 			}
 			return false;
 		}
@@ -98,14 +132,19 @@ namespace sc.gamedata
 			return null;
 		}
 
-		// Roundtrip the nested object through JsonDocument so System.Text.Json
-		// re-serializes it cleanly with the rest of the output. Cloning the
-		// element keeps the data alive past the source JsonDocument's Dispose().
-		private static Object? JsonRaw(JsonElement v)
+		// Deserialize a JsonElement into a typed physics shape. Falls back to
+		// null on any malformed object so a bad overlay can't crash the build.
+		private static T? Deserialize<T>(JsonElement v) where T : class
 		{
-			using var ms = new MemoryStream();
-			using (var w = new Utf8JsonWriter(ms)) v.WriteTo(w);
-			return JsonSerializer.Deserialize<JsonElement>(ms.ToArray());
+			if (v.ValueKind != JsonValueKind.Object) return null;
+			try
+			{
+				return JsonSerializer.Deserialize<T>(v.GetRawText());
+			}
+			catch (JsonException)
+			{
+				return null;
+			}
 		}
 	}
 }

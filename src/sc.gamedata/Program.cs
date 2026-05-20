@@ -65,18 +65,40 @@ namespace sc.gamedata
 			var armors = ArmorExtractor.Extract(df, loc);
 			Console.WriteLine($"Armor records: {armors.Count}");
 
-			// Pass 4: vehicles. Walks each ship's default loadout, looks up
-			// weapons by GUID/className, and collects size_class hints from
-			// CIG's port-name 'classN' tokens.
+			// Pass 4a + 4b: per-ship IFCS controllers + thrusters. Each ship
+			// references one controller (hardpoint_controller_flight) and
+			// multiple thrusters in its loadout; both carry physics fields
+			// (scm_speed, agility, thrust_capacity) that the DataForge tree
+			// alone doesn't surface on the spaceship record.
+			var ifcsRecords = IfcsExtractor.Extract(df);
+			Console.WriteLine($"IFCS controllers: {ifcsRecords.Count}");
+			var thrusterRecords = ThrusterExtractor.Extract(df);
+			Console.WriteLine($"Thrusters: {thrusterRecords.Count}");
+
+			// Pass 5: vehicles. Walks each ship's default loadout, looks up
+			// weapons by GUID/className, collects size_class hints from CIG's
+			// port-name 'classN' tokens, and aggregates per-ship physics from
+			// the resolved IFCS + thruster + armor items via PhysicsAggregator.
 			var weaponByGuid = guns.Concat(missiles).Where(w => w._guid != null)
 				.ToDictionary(w => w._guid!, w => w);
 			var weaponById = guns.Concat(missiles).ToDictionary(w => w.id, w => w);
 			var armorById = armors.ToDictionary(a => a.id, a => a);
 			var armorByGuid = armors.Where(a => a._guid != null)
 				.ToDictionary(a => a._guid!, a => a);
+			var ifcsById = ifcsRecords.ToDictionary(i => i.id, i => i);
+			var ifcsByGuid = ifcsRecords.Where(i => i._guid != null)
+				.ToDictionary(i => i._guid!, i => i);
+			var thrusterById = thrusterRecords.ToDictionary(t => t.id, t => t);
+			var thrusterByGuid = thrusterRecords.Where(t => t._guid != null)
+				.ToDictionary(t => t._guid!, t => t);
 
-			var vehicles = VehicleExtractor.Extract(df, loc, weaponByGuid, weaponById, armorById, armorByGuid);
-			Console.WriteLine($"Vehicles: {vehicles.Count} ({vehicles.Count(v => v.slots.Count > 0)} with weapon hardpoints)");
+			var vehicles = VehicleExtractor.Extract(df, loc,
+				weaponByGuid, weaponById,
+				armorById, armorByGuid,
+				ifcsById, ifcsByGuid,
+				thrusterById, thrusterByGuid);
+			Console.WriteLine($"Vehicles: {vehicles.Count} ({vehicles.Count(v => v.slots.Count > 0)} with weapon hardpoints, "
+				+ $"{vehicles.Count(v => v.size_class != null)} with physics extracted)");
 
 			var racks = RackExtractor.Extract(df, loc);
 			Console.WriteLine($"Missile racks: {racks.Count}");

@@ -67,6 +67,17 @@ namespace sc.gamedata
 					name = name[..^" Armor".Length].TrimEnd();
 				if (String.IsNullOrEmpty(name)) name = fallback;
 
+				// Hull HP: SHealthComponentParams/@Health on the armor item is
+				// what players see as "hull HP" — the spaceship record's own
+				// SHealthComponentParams is always 1 (just a container).
+				Double? hullHp = null;
+				var health = XmlNav.FindFirst(root, "SHealthComponentParams");
+				if (health != null)
+				{
+					var h = XmlHelpers.AttrDouble(health, "Health", -1);
+					if (h > 0) hullHp = h;
+				}
+
 				result.Add(new ArmorRecord
 				{
 					id = entityId,
@@ -74,6 +85,7 @@ namespace sc.gamedata
 					deflection = XmlHelpers.DamageFrom(deflectionValue),
 					multiplier = multiplierInfo != null ? XmlHelpers.DamageFrom(multiplierInfo) : new DamageProfile(),
 					resistance = resistance,
+					hull_hp = hullHp,
 					_guid = armorGuid,
 				});
 			}
